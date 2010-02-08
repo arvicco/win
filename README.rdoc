@@ -1,6 +1,138 @@
 = win
 
-Description goes here.
+    by: Arvicco
+    url: http://github.com/arvicco/win_gui
+
+== DESCRIPTION
+
+A collection of Windows functions predefined for you using FFI. In addition to
+straightforward (CamelCase) API wrappers, it also strives to provide more Ruby-like
+snake_case methods that take a minimum of arguments with sensible defaults and have
+sensible return values (false/true instead of 0/nonzero for test functions, etc).
+
+Windows functions are grouped by topics and defined in separate namespaces (modules),
+that also contain related constants and convenience methods. For example, win/dde.rb
+file contains functions related to DDE protocol, such as DdeInitialize() as well as
+constants such as DMLERR_NO_ERROR, APPCLASS_STANDARD, etc.
+
+It is still work in progress, only a small number of Windows API functions wrapped so far...
+
+== SUMMARY
+
+So you want to write a simple program that makes some Windows API function calls.
+You searched MSDN high and low and you now know exactly what functions you need.
+All you want is just putting those function calls into your Ruby code without too
+much pain. You'd love this to be more or less natural extension of your Ruby code,
+preferably not turning your code base into an ugly spaghetty of CamelCase calls,
+String/Array pack/unpack gymnastics, buffer/pointer allocations, extracting return
+values from [in/out] parameters and checking return codes for 0.
+
+You have several options at this point. You can use either 'win32-api' or 'ffi' libraries
+to connect your ruby code to Windows API and manually define wrapper methods for
+needed function calls. This is definitely a valid approach, even if it is a bit
+low-level one: you'll still have to handle (somewhat) gory details of callback
+announcement, argument preparation, mimicking pointers with Strings (or declaring
+pointers explicitly with FFI) and other stuff (like manually defining about a gazillion
+obscure Windows constants). As an example, consider the amount of code needed to complete
+a task as simple as getting unicode title text for the window that you already have handle
+for (using win32-api):
+
+  api = Win32::API.new( 'GetWindowTextW', ['L', 'P', 'I'], 'L', 'user32' )
+  buffer = "\x00" * 1024  # I just hope it will be enough...
+  num_chars = api.call(window_handle, buffer, buffer.size)
+  title = if num_chars == 0
+    nil
+  else
+     buffer.force_encoding('utf-16LE').encode('utf-8').rstrip
+  end
+
+This is how you achieve the same result with ffi:
+
+  extend FFI::Library
+  ffi_lib 'user32'
+  ffi_convention :stdcall
+  attach_function :GetWindowTextW, [ :long, :buffer_out, :int ], :long
+  buffer = FFI::Buffer.new 1024
+  buffer.put_string(0, "\x00" * 1024)
+  num_chars = GetWindowTextW(window_handle, buffer, 1024)
+  title = if num_chars == 0
+    nil
+  else
+     buffer.get_bytes(0, num_chars).force_encoding('utf-16LE').encode('utf-8').rstrip
+  end
+
+As an alternative, you can use 'windows-pr' (pure ruby) library that gives you lots of
+Windows functions pre-defined and sectioned into modules, declares Windows constants and
+adds some other niceties. Unfortunately this library works only with MRI (not JRuby or
+other Ruby implementations), and still lacks Ruby look-and-feel for declared functions.
+It helps you to cut some of the declaration slack:
+
+  num_chars = GetWindowTextW(window_handle, buffer ="\x00" * 1024 , buffer.size)
+  title = if num_chars == 0
+    nil
+  else
+     buffer.force_encoding('utf-16LE').encode('utf-8').rstrip
+  end
+
+But still, does not it look like TOO MUCH code for something that should (ideally) look like this:
+
+  title = window_text_w(window_handle)
+
+This is an idea behind this library - make Windows API functions easier to use and feel more
+natural inside Ruby code. Following the principle of least surprise, we define methods that:
+* Have Rubyesque names (minimized? instead of IsMinimized, etc)
+* Require minimum arguments with sensible defaults
+* Return appropriate values explicitly (several return values if necessary)
+* Have sensible returns (false/true instead of 0/nonzero for test functions, nil if find function fails, etc)
+* Accept blocks where callback is expected
+* Are partitioned into related namespaces, so that you can load only the modules you need
+
+Well, we even keep a backup solution for those diehard Win32 API longtimers who would rather
+allocate their buffer strings by hand and mess with obscure return codes. If you use original
+CamelCase method name instead of Rubyesque snake_case one, it will expect those standard
+parameters you know and love from MSDN, return your zeroes instead of nils and support no
+other enhancements.
+
+And if you do not see your favorite Windows API functions amoung those already defined, it is
+quite easy to define new ones with 'function' macro method from Win::Library class - it does a
+lot of heavy lifting for you and can be customized with options and code blocks to give you
+reusable API wrapper methods with the exact behavior you need.
+
+== REQUIREMENTS:
+
+Only works with Ruby 1.9 compatible implementations since it uses some of the most recent features
+(block arguments given to block, etc...)
+
+== FEATURES/PROBLEMS:
+
+This project is quite new, so it may be not suitable for production-quality systems yet.
+Contributors always welcome!
+
+== INSTALLATION
+
+  $ gem install win
+
+== SYNOPSIS
+
+  require 'win/window'
+
+  class Foo
+    include Win::Window
+
+    fg_window = foreground_window
+    puts window_text_w(fg_window)
+    show_window(fg_window) unless minimized?(fg_window)
+    hide_window(fg_window) if maximized?(fg_window)
+    ...
+  end
+
+== CREDITS:
+
+This library started as an extension of ideas and code described in excellent book
+"Scripted GUI Testing with Ruby" by Ian Dees. 'win32-api' and 'windows-pr' gems by
+Daniel J. Berger and Park Heesob provided both inspiration and an excellent source
+for code borrowing. 'ffi' gem serves as a solid basis for this library, allowing to
+use it for multiple Ruby implementations.
 
 == Note on Patches/Pull Requests
  

@@ -353,7 +353,7 @@ module WinTest
 
       it 'created callback object can be used as a valid arg of API function expecting callback' do
         pending 'What about callbacks?'
-        WinGui.def_api 'EnumWindows', 'KP', 'L'
+        MyLib.function 'EnumWindows', 'KP', 'L'
         @callback = WinGui.callback('LP', 'I'){|handle, message| true }
         expect { enum_windows(@callback, 'Message') }.to_not raise_error
       end
@@ -361,7 +361,7 @@ module WinTest
       it 'defined API functions expecting callback convert given block into callback' do
         pending 'What about callbacks?'
         pending ' What about prototype!? API is not exactly clear atm (.with_callback method?)'
-        WinGui.def_api 'EnumWindows', 'KP', 'L'
+        MyLib.function 'EnumWindows', 'KP', 'L'
         expect { enum_windows('Message'){|handle, message| true } }.to_not raise_error
       end
     end

@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{win}
-  s.version = "0.0.2"
+  s.version = "0.0.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["arvicco"]
-  s.date = %q{2010-02-08}
+  s.date = %q{2010-02-10}
   s.description = %q{A collection of Windows functions predefined for you using FFI}
   s.email = %q{arvitallian@gmail.com}
   s.extra_rdoc_files = [
@@ -28,10 +28,14 @@ Gem::Specification.new do |s|
      "features/win.feature",
      "lib/win/extensions.rb",
      "lib/win/library.rb",
+     "lib/win/window.rb",
      "spec/spec.opts",
      "spec/spec_helper.rb",
+     "spec/test_apps/locknote/LockNote.exe",
      "spec/win/extensions_spec.rb",
-     "spec/win/library_spec.rb"
+     "spec/win/library_spec.rb",
+     "spec/win/window_spec.rb",
+     "win.gemspec"
   ]
   s.homepage = %q{http://github.com/arvicco/win}
   s.rdoc_options = ["--charset=UTF-8"]
@@ -41,7 +45,8 @@ Gem::Specification.new do |s|
   s.test_files = [
     "spec/spec_helper.rb",
      "spec/win/extensions_spec.rb",
-     "spec/win/library_spec.rb"
+     "spec/win/library_spec.rb",
+     "spec/win/window_spec.rb"
   ]
 
   if s.respond_to? :specification_version then

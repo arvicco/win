@@ -1,21 +1,16 @@
 = win
 
     by: Arvicco
-    url: http://github.com/arvicco/win_gui
+    url: http://github.com/arvicco/win
 
 == DESCRIPTION
 
-A collection of Windows functions predefined for you using FFI. In addition to
+A collection of Windows API functions predefined for you using FFI. In addition to
 straightforward (CamelCase) API wrappers, it also strives to provide more Ruby-like
 snake_case methods that take a minimum of arguments with sensible defaults and have
 sensible return values (false/true instead of 0/nonzero for test functions, etc).
 
-Windows functions are grouped by topics and defined in separate namespaces (modules),
-that also contain related constants and convenience methods. For example, win/dde.rb
-file contains functions related to DDE protocol, such as DdeInitialize() as well as
-constants such as DMLERR_NO_ERROR, APPCLASS_STANDARD, etc.
-
-It is still work in progress, only a small number of Windows API functions wrapped so far...
+This is still work in progress, only a small portion of Windows API wrapped so far...
 
 == SUMMARY
 
@@ -79,7 +74,7 @@ But still, does not it look like TOO MUCH code for something that should (ideall
   title = window_text_w(window_handle)
 
 This is an idea behind this library - make Windows API functions easier to use and feel more
-natural inside Ruby code. Following the principle of least surprise, we define methods that:
+natural inside Ruby code. Following the principle of least surprise, we define wrapper methods that:
 * Have Rubyesque names (minimized? instead of IsMinimized, etc)
 * Require minimum arguments with sensible defaults
 * Return appropriate values explicitly (several return values if necessary)
@@ -93,10 +88,17 @@ CamelCase method name instead of Rubyesque snake_case one, it will expect those 
 parameters you know and love from MSDN, return your zeroes instead of nils and support no
 other enhancements.
 
+Related Windows API functions are grouped by topic and defined in separate namespaces (modules),
+that also contain related constants and convenience methods. For example, win/dde.rb file
+contains only functions related to DDE protocol such as DdeInitialize() as well as constants
+such as DMLERR_NO_ERROR, APPCLASS_STANDARD, etc. So if you need only DDE-related functions,
+there is no need to load all the other modules, clogging your namespaces - just require 'win/dde'
+and be done with it.
+
 And if you do not see your favorite Windows API functions amoung those already defined, it is
-quite easy to define new ones with 'function' macro method from Win::Library class - it does a
-lot of heavy lifting for you and can be customized with options and code blocks to give you
-reusable API wrapper methods with the exact behavior you need.
+quite easy to 'include Win::Library' into your module and define new ones with 'function'
+class method (macro) - it does a lot of heavy lifting for you and can be customized with options
+and code blocks to give you reusable API wrapper methods with the exact behavior you need.
 
 == REQUIREMENTS:
 
@@ -116,11 +118,11 @@ Contributors always welcome!
 
   require 'win/window'
 
-  class Foo
+  class MyClass
     include Win::Window
 
     fg_window = foreground_window
-    puts window_text_w(fg_window)
+    puts window_text(fg_window)
     show_window(fg_window) unless minimized?(fg_window)
     hide_window(fg_window) if maximized?(fg_window)
     ...

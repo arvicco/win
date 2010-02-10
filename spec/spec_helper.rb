@@ -26,13 +26,32 @@ module WinTest
 
   TEST_IMPOSSIBLE = 'Impossible'
   TEST_CONVERSION_ERROR = /Can.t convert/
+  TEST_SLEEP_DELAY = 0.01
+  TEST_APP_PATH = File.join(File.dirname(__FILE__), "test_apps/locknote/LockNote.exe" )
+  TEST_APP_START = 'start "" "' + TEST_APP_PATH + '"'
+  TEST_WIN_TITLE = 'LockNote - Steganos LockNote'
+  TEST_WIN_CLASS = 'ATL:00434098'
+  TEST_WIN_RECT = [710, 400, 1210, 800]
+  TEST_TEXTAREA_CLASS = 'ATL:00434310'
 
   def use
-    lambda {yield}.should_not raise_error
+    lambda {yield}.should_not raise_error          
   end
 
   def any_block
     lambda {|*args| args}
+  end
+
+  def any_handle
+    unless respond_to? :find_window
+      require 'win/window'
+      include Win::Window
+    end
+    find_window(nil, nil)
+  end
+
+  def not_a_handle
+    123
   end
 
 end

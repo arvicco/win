@@ -51,6 +51,7 @@ module WinTest
   def hide_method(*names) # hide original method(s) if it is defined
     names.map(&:to_s).each do |name|
       MyLib.module_eval do
+        # + remove_const
         aliases = generate_names(name).flatten + [name]
         aliases.map(&:to_s).each do |ali|
           if method_defined? ali

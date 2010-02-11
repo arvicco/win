@@ -237,9 +237,11 @@ module WinWindowTest
       spec{ use{ GetWindowText(any_handle, buffer = "\00"* 1024, buffer.size)}}
       # Improved with block to accept window handle as a single arg and return (rstripped) text string
       spec{ use{ text = get_window_text(handle = 0)}}
+      spec{ use{ text = window_text(handle = 0)}}
       # Unicode version of get_window_text (strings returned encoded as utf-8)
       spec{ use{ GetWindowTextW(any_handle, buffer = "\00"* 1024, buffer.size)}}
       spec{ use{ text = get_window_text_w(any_handle)}} # result encoded as utf-8
+      spec{ use{ text = window_text_w(handle = 0)}}
 
       it 'returns nil if incorrect window handle given' do
         get_window_text(not_a_handle).should == nil
@@ -250,6 +252,8 @@ module WinWindowTest
         test_app do |app|
           get_window_text(app.handle).should == TEST_WIN_TITLE
           get_window_text_w(app.handle).should == TEST_WIN_TITLE
+          window_text(app.handle).should == TEST_WIN_TITLE
+          window_text_w(app.handle).should == TEST_WIN_TITLE
         end
       end
     end
@@ -258,14 +262,18 @@ module WinWindowTest
       spec{ use{ GetClassName(any_handle, buffer = "\00"* 1024, buffer.size)}}
       # Improved with block to accept window handle as a single arg and return class name string
       spec{ use{ class_name = get_class_name(any_handle)}}
+      spec{ use{ class_name = class_name(any_handle)}}
       # Unicode version of get_class_name (strings returned encoded as utf-8)
       spec{ use{ GetClassNameW(any_handle, buffer = "\00"* 1024, buffer.size)}}
       spec{ use{ class_name = get_class_name_w(handle = 0)}} # result encoded as utf-8
+      spec{ use{ class_name = class_name_w(any_handle)}}
 
       it 'returns correct window class name' do
         test_app do |app|
           get_class_name(app.handle).should == TEST_WIN_CLASS
           get_class_name_w(app.handle).should == TEST_WIN_CLASS
+          class_name(app.handle).should == TEST_WIN_CLASS
+          class_name_w(app.handle).should == TEST_WIN_CLASS
         end
       end
     end

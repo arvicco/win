@@ -1,6 +1,12 @@
 require 'ffi'
 require 'win/extensions'
 
+# Related Windows API functions are grouped by topic and defined in separate namespaces (modules),
+# that also contain related constants and convenience methods. For example, Win::DDE module
+# contains only functions related to DDE protocol such as DdeInitialize() as well as constants
+# such as DMLERR_NO_ERROR, APPCLASS_STANDARD, etc. So if you need only DDE-related functions,
+# there is no need to load all the other modules, clogging your namespaces - just require 'win/dde'
+# and be done with it. Win is just a top level namespace (container) that holds all the other modules. 
 module Win
 
   module Errors                         # :nodoc:
@@ -11,12 +17,18 @@ module Win
     end
   end
 
+  # WIN::Library is a module that extends FFI::Library and is used to connect to Windows API functions
+  # and wrap them into Ruby methods using 'function' declaration. If you do not see your favorite Windows
+  # API functions among those already defined, you can easily 'include Win::Library’ into your module
+  # and declare them using ‘function’ class method (macro) - it does a lot of heavy lifting for you and
+  # can be customized with options and code blocks to give you reusable API wrapper methods with the exact
+  # behavior you need.
   module Library
 
-    # API wrapper for Class Win::Library::API mimics Win32::API
+    # Win::Library::API is a wrapper for callable function API object that mimics Win32::API
     class API
 
-      # The name of the DLL that exports the API function
+      # The name of the DLL(s) that export this API function
       attr_reader :dll_name
 
       # Ruby namespace (module) where this API function is attached
@@ -25,9 +37,8 @@ module Win
       # The name of the function passed to the constructor
       attr_reader :function_name
 
-      # The name of the actual function that is returned by the constructor.
-      # For example, if you passed 'GetUserName' to the constructor, then the
-      # effective function name would be either 'GetUserNameA' or 'GetUserNameW'.
+      # The name of the actual Windows API function. For example, if you passed 'GetUserName' to the
+      # constructor, then the effective function name would be either 'GetUserNameA' or 'GetUserNameW'.
       attr_accessor :effective_function_name
 
       # The prototype, returned as an array of FFI types
@@ -45,6 +56,7 @@ module Win
         @dll_name = dll_name
       end
 
+      # Calls underlying CamelCase Windows API function with supplied args
       def call( *args )
         @namespace.send(@function_name.to_sym, *args)
       end
@@ -273,22 +285,25 @@ module Win
       # Defines new method wrappers for Windows API function call:
       #   - Defines method with original (CamelCase) API function name and original signature (matches MSDN description)
       #   - Defines method with snake_case name (converted from CamelCase function name) with enhanced API signature
-      #       When the defined wrapper method is called, it checks the argument count, executes underlying API
-      #       function call and (optionally) transforms the result before returning it. If block is attached to
-      #       method invocation, raw result is yielded to this block before final transformations
+      #       When defined snake_case method is called, it converts the arguments you provided into ones required by
+      #       original API (adding defaults, mute and transitory args as necessary), executes API function call
+      #       and (optionally) transforms the result before returning it. If a block is attached to
+      #       method invocation, raw result is yielded to this block before final transformation take place
       #   - Defines aliases for enhanced method with more Rubyesque names for getters, setters and tests:
       #       GetWindowText -> window_test, SetWindowText -> window_text=, IsZoomed -> zoomed?
       #
-      # You may modify default behavior of defined method by providing optional &define_block to def_api.
-      #   If you do so, instead of directly calling API function, defined method just yields callable api
-      #   object, arguments and (optional) runtime block to your &define_block and returns result coming out of it.
-      #   So, &define_block should define all the behavior of defined method. You can use define_block to:
+      # You may modify default behavior of defined method by providing optional &def_block to function.
+      #   If you do so, snake_case method is defined based on your def_block. It receives callable API
+      #   object for function being defined, arguments and (optional) runtime block with which the method
+      #   will be called. Results coming from &def_block are then transformed and returned.
+      #   So, your &def_block should define all the behavior of defined method. You can use define_block to:
       #   - Change original signature of API function, provide argument defaults, check argument types
-      #   - Pack arguments into strings for [in] or [in/out] parameters that expect a pointer
-      #   - Allocate string buffers for pointers required by API functions [out] parameters
+      #   - Pack arguments into strings/structs for [in] or [in/out] parameters that expect a pointer
+      #   - Allocate buffers/structs for pointers required by API functions [out] parameters
       #   - Unpack [out] and [in/out] parameters returned as pointers
       #   - Explicitly return results of API call that are returned in [out] and [in/out] parameters
       #   - Convert attached runtime blocks into callback functions and stuff them into [in] callback parameters
+      #   - do other stuff that you think is appropriate to make Windows API function behavior more Ruby-like
       #
       # Accepts following options:
       #   :dll:: Use this dll instead of default 'user32'
@@ -395,6 +410,10 @@ module Win
         args.any?{|arg| arg == 0 } ? args.map{||nil} : args
       end
 
+      ##
+      # :singleton-method: namespace
+      # This method is meta-generated when Win::Library module is included into other module/class
+      # it holds reference to including module for use by Win::Library::API and class methods.
     end
 
     def self.included(klass)

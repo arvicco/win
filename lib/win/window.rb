@@ -1,6 +1,9 @@
 require 'win/library'
 
 module Win
+
+  # Contains constants, functions and wrappers related to Windows manipulation
+  #
   module Window
     include Win::Library
 
@@ -155,7 +158,6 @@ module Win
         num_chars = api.call(*args)
         return nil if num_chars == 0
         string = string.force_encoding('utf-16LE').encode(encode) if encode
-        p string
         string.rstrip
       end
     end                 
@@ -474,6 +476,7 @@ module Win
       return d
     end
 
+    # Thin wrapper around window handle
     class Window
       include Win::Window
       extend Win::Window

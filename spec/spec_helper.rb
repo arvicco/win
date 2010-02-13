@@ -24,6 +24,7 @@ Spec::Runner.configure { |config| config.extend(SpecMacros) }
 
 module WinTest
 
+  TEST_KEY_DELAY = 0.001
   TEST_IMPOSSIBLE = 'Impossible'
   TEST_CONVERSION_ERROR = /Can.t convert/
   TEST_SLEEP_DELAY = 0.01
@@ -32,6 +33,7 @@ module WinTest
   TEST_WIN_TITLE = 'LockNote - Steganos LockNote'
   TEST_WIN_CLASS = 'ATL:00434098'
   TEST_WIN_RECT = [710, 400, 1210, 800]
+  TEST_STATUSBAR_CLASS = 'msctls_statusbar32' 
   TEST_TEXTAREA_CLASS = 'ATL:00434310'
 
   def use

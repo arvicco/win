@@ -64,128 +64,132 @@ module Win
       alias_method :[], :call
     end
 
-    # Contains class methods (macros) to be used in Win::Libraries
+    # Contains class methods (macros) that can be used in any module mixing in Win::Library
     module ClassMethods
+
+      # Mapping of Windows API types and one-letter shortcuts into FFI types.
+      # Like :ATOM => :ushort, :LPARAM => :long, :c => :char, :i => :int
       TYPES = {
               # FFI type shortcuts
-              V: :void, # For functions that return nothing (return type void).
-              v: :void, # For functions that return nothing (return type void).
-              C: :uchar, #– 8-bit unsigned character (byte)
-              c: :char, # 8-bit character (byte)
-              # :int8 – 8-bit signed integer
-              # :uint8 – 8-bit unsigned integer
-              S: :ushort, # – 16-bit unsigned integer (Win32API: used for string)
-              s: :short, # – 16-bit signed integer
-              # :uint16 – 16-bit unsigned integer
-              # :int16 – 16-bit signed integer
-              I: :uint, # 32-bit unsigned integer
-              i: :int, # 32-bit signed integer
-              # :uint32 – 32-bit unsigned integer
-              # :int32 – 32-bit signed integer
-              L: :ulong, # unsigned long int – platform-specific size
-              l: :long, # long int – platform-specific size (http://groups.google.com/group/ruby-ffi/browse_thread/thread/4762fc77130339b1)
-              # :int64 – 64-bit signed integer
-              # :uint64 – 64-bit unsigned integer
-              # :long_long – 64-bit signed integer
-              # :ulong_long – 64-bit unsigned integer
-              F: :float, # 32-bit floating point
-              D: :double, # 64-bit floating point (double-precision)
-              P: :pointer, # pointer – platform-specific size
-              p: :string, # C-style (NULL-terminated) character string (Win32API: S)
-              B: :bool, # (?? 1 byte in C++)
-              #For function argument type only:
-              # :buffer_in – Similar to :pointer, but optimized for Buffers that the function can only read (not write).
-              # :buffer_out – Similar to :pointer, but optimized for Buffers that the function can only write (not read).
+              C:  :uchar, #– 8-bit unsigned character (byte)
+              c:  :char, # 8-bit character (byte)
+              #   :int8       – 8-bit signed integer
+              #   :uint8      – 8-bit unsigned integer
+              S:  :ushort, # – 16-bit unsigned integer (Win32API: used for string)
+              s:  :short, # – 16-bit signed integer
+              #   :uint16     – 16-bit unsigned integer
+              #   :int16      – 16-bit signed integer
+              I:  :uint, # 32-bit unsigned integer
+              i:  :int, # 32-bit signed integer
+              #   :uint32     – 32-bit unsigned integer
+              #   :int32      – 32-bit signed integer
+              L:  :ulong, # unsigned long int – platform-specific size
+              l:  :long, # long int – platform-specific size. For discussion of platforms, see:
+              #                (http://groups.google.com/group/ruby-ffi/browse_thread/thread/4762fc77130339b1)
+              #   :int64      – 64-bit signed integer
+              #   :uint64     – 64-bit unsigned integer
+              #   :long_long  – 64-bit signed integer
+              #   :ulong_long – 64-bit unsigned integer
+              F:  :float, # 32-bit floating point
+              D:  :double, # 64-bit floating point (double-precision)
+              P:  :pointer, # pointer – platform-specific size
+              p:  :string, # C-style (NULL-terminated) character string (Win32API: S)
+              B:  :bool, # (?? 1 byte in C++)
+              V:  :void, # For functions that return nothing (return type void).
+              v:  :void, # For functions that return nothing (return type void).
+              # For function argument type only:
+              # :buffer_in    – Similar to :pointer, but optimized for Buffers that the function can only read (not write).
+              # :buffer_out   – Similar to :pointer, but optimized for Buffers that the function can only write (not read).
               # :buffer_inout – Similar to :pointer, but may be optimized for Buffers.
-              # :varargs – Variable arguments
+              # :varargs      – Variable arguments
 
               # Windows-specific typedefs:
               ATOM:      :ushort, # Atom ~= Symbol: Atom table stores strings and corresponding identifiers. Application
-                                  # places a string in an atom table and receives a 16-bit integer, called an atom, that
-                                  # can be used to access the string. Placed string is called an atom name.
-                                  # See: http://msdn.microsoft.com/en-us/library/ms648708%28VS.85%29.aspx
+              # places a string in an atom table and receives a 16-bit integer, called an atom, that
+              # can be used to access the string. Placed string is called an atom name.
+              # See: http://msdn.microsoft.com/en-us/library/ms648708%28VS.85%29.aspx
               BOOL:      :bool,
               BOOLEAN:   :bool,
-              BYTE:      :uchar,  # Byte (8 bits). Declared as unsigned char
+              BYTE:      :uchar, # Byte (8 bits). Declared as unsigned char
               #CALLBACK:  K,       # Win32.API gem-specific ?? MSDN: #define CALLBACK __stdcall
-              CHAR:      :char,   # 8-bit Windows (ANSI) character. See http://msdn.microsoft.com/en-us/library/dd183415%28VS.85%29.aspx
+              CHAR:      :char, # 8-bit Windows (ANSI) character. See http://msdn.microsoft.com/en-us/library/dd183415%28VS.85%29.aspx
               COLORREF:  :uint32, # Red, green, blue (RGB) color value (32 bits). See COLORREF for more info.
               DWORD:     :uint32, # 32-bit unsigned integer. The range is 0 through 4,294,967,295 decimal.
               DWORDLONG: :uint64, # 64-bit unsigned integer. The range is 0 through 18,446,744,073,709,551,615 decimal.
-              DWORD_PTR: :ulong,  # Unsigned long type for pointer precision. Use when casting a pointer to a long type
-                                  # to perform pointer arithmetic. (Also commonly used for general 32-bit parameters that have
-                                  # been extended to 64 bits in 64-bit Windows.)  BaseTsd.h: #typedef ULONG_PTR DWORD_PTR;
+              DWORD_PTR: :ulong, # Unsigned long type for pointer precision. Use when casting a pointer to a long type
+              # to perform pointer arithmetic. (Also commonly used for general 32-bit parameters that have
+              # been extended to 64 bits in 64-bit Windows.)  BaseTsd.h: #typedef ULONG_PTR DWORD_PTR;
               DWORD32:   :uint32,
               DWORD64:   :uint64,
-              HALF_PTR:  :int,   # Half the size of a pointer. Use within a structure that contains a pointer and two small fields.
-                                  # BaseTsd.h: #ifdef (_WIN64) typedef int HALF_PTR; #else typedef short HALF_PTR;
-              HACCEL:    :ulong,  # (L) Handle to an accelerator table. WinDef.h: #typedef HANDLE HACCEL;
-                                  # See http://msdn.microsoft.com/en-us/library/ms645526%28VS.85%29.aspx
-              HANDLE:    :ulong,  # (L) Handle to an object. WinNT.h: #typedef PVOID HANDLE;
-              HBITMAP:   :ulong,  # (L) Handle to a bitmap: http://msdn.microsoft.com/en-us/library/dd183377%28VS.85%29.aspx
-              HBRUSH:    :ulong,  # (L) Handle to a brush. http://msdn.microsoft.com/en-us/library/dd183394%28VS.85%29.aspx
-              HCOLORSPACE: :ulong,# (L) Handle to a color space. http://msdn.microsoft.com/en-us/library/ms536546%28VS.85%29.aspx
-              HCURSOR:   :ulong,  # (L) Handle to a cursor. http://msdn.microsoft.com/en-us/library/ms646970%28VS.85%29.aspx
-              HCONV:     :ulong,  # (L) Handle to a dynamic data exchange (DDE) conversation.
-              HCONVLIST: :ulong,  # (L) Handle to a DDE conversation list. HANDLE - L ?
-              HDDEDATA:  :ulong,  # (L) Handle to DDE data (structure?)
-              HDC:       :ulong,  # (L) Handle to a device context (DC). http://msdn.microsoft.com/en-us/library/dd183560%28VS.85%29.aspx
-              HDESK:     :ulong,  # (L) Handle to a desktop. http://msdn.microsoft.com/en-us/library/ms682573%28VS.85%29.aspx
-              HDROP:     :ulong,  # (L) Handle to an internal drop structure.
-              HDWP:      :ulong,  # (L) Handle to a deferred window position structure.
-              HENHMETAFILE: :ulong,#(L) Handle to an enhanced metafile. http://msdn.microsoft.com/en-us/library/dd145051%28VS.85%29.aspx
-              HFILE:     :uint,   # (I) Special file handle to a file opened by OpenFile, not CreateFile.
-                                  # WinDef.h: #typedef int HFILE;
-              HFONT:     :ulong,  # (L) Handle to a font. http://msdn.microsoft.com/en-us/library/dd162470%28VS.85%29.aspx
-              HGDIOBJ:   :ulong,  # (L) Handle to a GDI object.
-              HGLOBAL:   :ulong,  # (L) Handle to a global memory block.
-              HHOOK:     :ulong,  # (L) Handle to a hook. http://msdn.microsoft.com/en-us/library/ms632589%28VS.85%29.aspx
-              HICON:     :ulong,  # (L) Handle to an icon. http://msdn.microsoft.com/en-us/library/ms646973%28VS.85%29.aspx
-              HINSTANCE: :ulong,  # (L) Handle to an instance. This is the base address of the module in memory.
-                                  # HMODULE and HINSTANCE are the same today, but were different in 16-bit Windows.
-              HKEY:      :ulong,  # (L) Handle to a registry key.
-              HKL:       :ulong,  # (L) Input locale identifier.
-              HLOCAL:    :ulong,  # (L) Handle to a local memory block.
-              HMENU:     :ulong,  # (L) Handle to a menu. http://msdn.microsoft.com/en-us/library/ms646977%28VS.85%29.aspx
-              HMETAFILE: :ulong,  # (L) Handle to a metafile. http://msdn.microsoft.com/en-us/library/dd145051%28VS.85%29.aspx
-              HMODULE:   :ulong,  # (L) Handle to an instance. Same as HINSTANCE today, but was different in 16-bit Windows.
-              HMONITOR:  :ulong,  # (L) Рandle to a display monitor. WinDef.h: if(WINVER >= 0x0500) typedef HANDLE HMONITOR;
-              HPALETTE:  :ulong,  # (L) Handle to a palette.
-              HPEN:      :ulong,  # (L) Handle to a pen. http://msdn.microsoft.com/en-us/library/dd162786%28VS.85%29.aspx
-              HRESULT:   :long,   # Return code used by COM interfaces. For more info, Structure of the COM Error Codes.
-                                  # To test an HRESULT value, use the FAILED and SUCCEEDED macros.
-              HRGN:      :ulong,  # (L) Handle to a region. http://msdn.microsoft.com/en-us/library/dd162913%28VS.85%29.aspx
-              HRSRC:     :ulong,  # (L) Handle to a resource.
-              HSZ:       :ulong,  # (L) Handle to a DDE string.
-              HWINSTA:   :ulong,  # (L) Handle to a window station. http://msdn.microsoft.com/en-us/library/ms687096%28VS.85%29.aspx
-              HWND:      :ulong,  # (L) Handle to a window. http://msdn.microsoft.com/en-us/library/ms632595%28VS.85%29.aspx
-              INT:       :int,   # 32-bit signed integer. The range is -2147483648 through 2147483647 decimal.
-              INT_PTR:   :int,   # Signed integer type for pointer precision. Use when casting a pointer to an integer
-                                 # to perform pointer arithmetic. BaseTsd.h:
-                                 #if defined(_WIN64) typedef __int64 INT_PTR; #else typedef int INT_PTR;
-              INT32:    :int32,  # 32-bit signed integer. The range is -2,147,483,648 through +...647 decimal.
-              INT64:    :int64,  # 64-bit signed integer. The range is –9,223,372,036,854,775,808 through +...807
+              HALF_PTR:  :int, # Half the size of a pointer. Use within a structure that contains a pointer and two small fields.
+              # BaseTsd.h: #ifdef (_WIN64) typedef int HALF_PTR; #else typedef short HALF_PTR;
+              HACCEL:    :ulong, # (L) Handle to an accelerator table. WinDef.h: #typedef HANDLE HACCEL;
+              # See http://msdn.microsoft.com/en-us/library/ms645526%28VS.85%29.aspx
+              HANDLE:    :ulong, # (L) Handle to an object. WinNT.h: #typedef PVOID HANDLE;
+              HBITMAP:   :ulong, # (L) Handle to a bitmap: http://msdn.microsoft.com/en-us/library/dd183377%28VS.85%29.aspx
+              HBRUSH:    :ulong, # (L) Handle to a brush. http://msdn.microsoft.com/en-us/library/dd183394%28VS.85%29.aspx
+              HCOLORSPACE: :ulong, # (L) Handle to a color space. http://msdn.microsoft.com/en-us/library/ms536546%28VS.85%29.aspx
+              HCURSOR:   :ulong, # (L) Handle to a cursor. http://msdn.microsoft.com/en-us/library/ms646970%28VS.85%29.aspx
+              HCONV:     :ulong, # (L) Handle to a dynamic data exchange (DDE) conversation.
+              HCONVLIST: :ulong, # (L) Handle to a DDE conversation list. HANDLE - L ?
+              HDDEDATA:  :ulong, # (L) Handle to DDE data (structure?)
+              HDC:       :ulong, # (L) Handle to a device context (DC). http://msdn.microsoft.com/en-us/library/dd183560%28VS.85%29.aspx
+              HDESK:     :ulong, # (L) Handle to a desktop. http://msdn.microsoft.com/en-us/library/ms682573%28VS.85%29.aspx
+              HDROP:     :ulong, # (L) Handle to an internal drop structure.
+              HDWP:      :ulong, # (L) Handle to a deferred window position structure.
+              HENHMETAFILE: :ulong, #(L) Handle to an enhanced metafile. http://msdn.microsoft.com/en-us/library/dd145051%28VS.85%29.aspx
+              HFILE:     :uint, # (I) Special file handle to a file opened by OpenFile, not CreateFile.
+              # WinDef.h: #typedef int HFILE;
+              HFONT:     :ulong, # (L) Handle to a font. http://msdn.microsoft.com/en-us/library/dd162470%28VS.85%29.aspx
+              HGDIOBJ:   :ulong, # (L) Handle to a GDI object.
+              HGLOBAL:   :ulong, # (L) Handle to a global memory block.
+              HHOOK:     :ulong, # (L) Handle to a hook. http://msdn.microsoft.com/en-us/library/ms632589%28VS.85%29.aspx
+              HICON:     :ulong, # (L) Handle to an icon. http://msdn.microsoft.com/en-us/library/ms646973%28VS.85%29.aspx
+              HINSTANCE: :ulong, # (L) Handle to an instance. This is the base address of the module in memory.
+              # HMODULE and HINSTANCE are the same today, but were different in 16-bit Windows.
+              HKEY:      :ulong, # (L) Handle to a registry key.
+              HKL:       :ulong, # (L) Input locale identifier.
+              HLOCAL:    :ulong, # (L) Handle to a local memory block.
+              HMENU:     :ulong, # (L) Handle to a menu. http://msdn.microsoft.com/en-us/library/ms646977%28VS.85%29.aspx
+              HMETAFILE: :ulong, # (L) Handle to a metafile. http://msdn.microsoft.com/en-us/library/dd145051%28VS.85%29.aspx
+              HMODULE:   :ulong, # (L) Handle to an instance. Same as HINSTANCE today, but was different in 16-bit Windows.
+              HMONITOR:  :ulong, # (L) Рandle to a display monitor. WinDef.h: if(WINVER >= 0x0500) typedef HANDLE HMONITOR;
+              HPALETTE:  :ulong, # (L) Handle to a palette.
+              HPEN:      :ulong, # (L) Handle to a pen. http://msdn.microsoft.com/en-us/library/dd162786%28VS.85%29.aspx
+              HRESULT:   :long, # Return code used by COM interfaces. For more info, Structure of the COM Error Codes.
+              # To test an HRESULT value, use the FAILED and SUCCEEDED macros.
+              HRGN:      :ulong, # (L) Handle to a region. http://msdn.microsoft.com/en-us/library/dd162913%28VS.85%29.aspx
+              HRSRC:     :ulong, # (L) Handle to a resource.
+              HSZ:       :ulong, # (L) Handle to a DDE string.
+              HWINSTA:   :ulong, # (L) Handle to a window station. http://msdn.microsoft.com/en-us/library/ms687096%28VS.85%29.aspx
+              HWND:      :ulong, # (L) Handle to a window. http://msdn.microsoft.com/en-us/library/ms632595%28VS.85%29.aspx
+              INT:       :int, # 32-bit signed integer. The range is -2147483648 through 2147483647 decimal.
+              INT_PTR:   :int, # Signed integer type for pointer precision. Use when casting a pointer to an integer
+              # to perform pointer arithmetic. BaseTsd.h:
+              #if defined(_WIN64) typedef __int64 INT_PTR; #else typedef int INT_PTR;
+              INT32:    :int32, # 32-bit signed integer. The range is -2,147,483,648 through +...647 decimal.
+              INT64:    :int64, # 64-bit signed integer. The range is –9,223,372,036,854,775,808 through +...807
               LANGID:   :ushort, # Language identifier. For more information, see Locales. WinNT.h: #typedef WORD LANGID;
-                                 # See http://msdn.microsoft.com/en-us/library/dd318716%28VS.85%29.aspx
+              # See http://msdn.microsoft.com/en-us/library/dd318716%28VS.85%29.aspx
               LCID:     :uint32, # Locale identifier. For more information, see Locales.
               LCTYPE:   :uint32, # Locale information type. For a list, see Locale Information Constants.
               LGRPID:   :uint32, # Language group identifier. For a list, see EnumLanguageGroupLocales.
-              LONG:     :long,   # 32-bit signed integer. The range is -2,147,483,648 through +...647 decimal.
-              LONG32:   :long,   # 32-bit signed integer. The range is -2,147,483,648 through +...647 decimal.
-              LONG64:   :int64,  # 64-bit signed integer. The range is –9,223,372,036,854,775,808 through +...807
-              LONGLONG: :int64,  # 64-bit signed integer. The range is –9,223,372,036,854,775,808 through +...807
-              LONG_PTR: :long,   # Signed long type for pointer precision. Use when casting a pointer to a long to
-                                 # perform pointer arithmetic. BaseTsd.h:
-                                 #if defined(_WIN64) typedef __int64 LONG_PTR; #else typedef long LONG_PTR;
-              LPARAM:   :long,     # Message parameter. WinDef.h as follows: #typedef LONG_PTR LPARAM;
-              LPBOOL:   :pointer,  # Pointer to a BOOL. WinDef.h as follows: #typedef BOOL far *LPBOOL;
-              LPBYTE:   :pointer,  # Pointer to a BYTE. WinDef.h as follows: #typedef BYTE far *LPBYTE;
-              LPCOLORREF: :pointer,# Pointer to a COLORREF value. WinDef.h as follows: #typedef DWORD *LPCOLORREF;
-              LPCSTR:   :pointer,  # Pointer to a constant null-terminated string of 8-bit Windows (ANSI) characters.
-                                   # See Character Sets Used By Fonts. http://msdn.microsoft.com/en-us/library/dd183415%28VS.85%29.aspx
-              LPCTSTR:  :pointer,  # An LPCWSTR if UNICODE is defined, an LPCSTR otherwise.
-              LPCVOID:  :pointer,  # Pointer to a constant of any type. WinDef.h as follows: typedef CONST void *LPCVOID;
-              LPCWSTR:  :pointer,  # Pointer to a constant null-terminated string of 16-bit Unicode characters.
+              LONG:     :long, # 32-bit signed integer. The range is -2,147,483,648 through +...647 decimal.
+              LONG32:   :long, # 32-bit signed integer. The range is -2,147,483,648 through +...647 decimal.
+              LONG64:   :int64, # 64-bit signed integer. The range is –9,223,372,036,854,775,808 through +...807
+              LONGLONG: :int64, # 64-bit signed integer. The range is –9,223,372,036,854,775,808 through +...807
+              LONG_PTR: :long, # Signed long type for pointer precision. Use when casting a pointer to a long to
+              # perform pointer arithmetic. BaseTsd.h:
+              #if defined(_WIN64) typedef __int64 LONG_PTR; #else typedef long LONG_PTR;
+              LPARAM:   :long, # Message parameter. WinDef.h as follows: #typedef LONG_PTR LPARAM;
+              LPBOOL:   :pointer, # Pointer to a BOOL. WinDef.h as follows: #typedef BOOL far *LPBOOL;
+              LPBYTE:   :pointer, # Pointer to a BYTE. WinDef.h as follows: #typedef BYTE far *LPBYTE;
+              LPCOLORREF: :pointer, # Pointer to a COLORREF value. WinDef.h as follows: #typedef DWORD *LPCOLORREF;
+              LPCSTR:   :pointer, # Pointer to a constant null-terminated string of 8-bit Windows (ANSI) characters.
+              # See Character Sets Used By Fonts. http://msdn.microsoft.com/en-us/library/dd183415%28VS.85%29.aspx
+              LPCTSTR:  :pointer, # An LPCWSTR if UNICODE is defined, an LPCSTR otherwise.
+              LPCVOID:  :pointer, # Pointer to a constant of any type. WinDef.h as follows: typedef CONST void *LPCVOID;
+              LPCWSTR:  :pointer, # Pointer to a constant null-terminated string of 16-bit Unicode characters.
               LPDWORD:  :pointer, # Pointer to a DWORD. WinDef.h as follows: typedef DWORD *LPDWORD;
               LPHANDLE: :pointer, # Pointer to a HANDLE. WinDef.h as follows: typedef HANDLE *LPHANDLE;
               LPINT:    :pointer, # Pointer to an INT.
@@ -195,7 +199,7 @@ module Win
               LPVOID:   :pointer, # Pointer to any type.
               LPWORD:   :pointer, # Pointer to a WORD.
               LPWSTR:   :pointer, # Pointer to a null-terminated string of 16-bit Unicode characters.
-              LRESULT:  :long,    # Signed result of message processing. WinDef.h: typedef LONG_PTR LRESULT;
+              LRESULT:  :long, # Signed result of message processing. WinDef.h: typedef LONG_PTR LRESULT;
               PBOOL:    :pointer, # Pointer to a BOOL.
               PBOOLEAN: :pointer, # Pointer to a BOOL.
               PBYTE:    :pointer, # Pointer to a BYTE.
@@ -204,8 +208,8 @@ module Win
               PCTSTR:   :pointer, # A PCWSTR if UNICODE is defined, a PCSTR otherwise.
               PCWSTR:    :pointer, # Pointer to a constant null-terminated string of 16-bit Unicode characters.
               PDWORD:    :pointer, # Pointer to a DWORD.
-              PDWORDLONG: :pointer,# Pointer to a DWORDLONG.
-              PDWORD_PTR: :pointer,# Pointer to a DWORD_PTR.
+              PDWORDLONG: :pointer, # Pointer to a DWORDLONG.
+              PDWORD_PTR: :pointer, # Pointer to a DWORD_PTR.
               PDWORD32:  :pointer, # Pointer to a DWORD32.
               PDWORD64:  :pointer, # Pointer to a DWORD64.
               PFLOAT:    :pointer, # Pointer to a FLOAT.
@@ -249,35 +253,35 @@ module Win
               PWCHAR:     :pointer, # Pointer to a WCHAR.
               PWORD:      :pointer, # Pointer to a WORD.
               PWSTR:      :pointer, # Pointer to a null- terminated string of 16-bit Unicode characters.
-                                    # For more information, see Character Sets Used By Fonts.
-              SC_HANDLE:  :ulong,   # (L) Handle to a service control manager database.
-                                    # See SCM Handles http://msdn.microsoft.com/en-us/library/ms685104%28VS.85%29.aspx
+              # For more information, see Character Sets Used By Fonts.
+              SC_HANDLE:  :ulong, # (L) Handle to a service control manager database.
+              # See SCM Handles http://msdn.microsoft.com/en-us/library/ms685104%28VS.85%29.aspx
               SC_LOCK:    :pointer, # Lock to a service control manager database. For more information, see SCM Handles.
-              SERVICE_STATUS_HANDLE: :ulong,  # (L) Handle to a service status value. See SCM Handles.
-              SHORT:     :short,  # A 16-bit integer. The range is –32768 through 32767 decimal.
-              SIZE_T:    :ulong,  #  The maximum number of bytes to which a pointer can point. Use for a count that must span the full range of a pointer.
-              SSIZE_T:   :long,   # Signed SIZE_T.
-              TBYTE:     :short,  # A WCHAR if UNICODE is defined, a CHAR otherwise.TCHAR:
-              TCHAR:     :short,  # A WCHAR if UNICODE is defined, a CHAR otherwise.TCHAR:
-              UCHAR:     :uchar,  # Unsigned CHAR (8 bit)
-              UHALF_PTR: :uint,   # Unsigned HALF_PTR. Use within a structure that contains a pointer and two small fields.
-              UINT:      :uint,   # Unsigned INT. The range is 0 through 4294967295 decimal.
-              UINT_PTR:  :uint,   # Unsigned INT_PTR.
+              SERVICE_STATUS_HANDLE: :ulong, # (L) Handle to a service status value. See SCM Handles.
+              SHORT:     :short, # A 16-bit integer. The range is –32768 through 32767 decimal.
+              SIZE_T:    :ulong, #  The maximum number of bytes to which a pointer can point. Use for a count that must span the full range of a pointer.
+              SSIZE_T:   :long, # Signed SIZE_T.
+              TBYTE:     :short, # A WCHAR if UNICODE is defined, a CHAR otherwise.TCHAR:
+              TCHAR:     :short, # A WCHAR if UNICODE is defined, a CHAR otherwise.TCHAR:
+              UCHAR:     :uchar, # Unsigned CHAR (8 bit)
+              UHALF_PTR: :uint, # Unsigned HALF_PTR. Use within a structure that contains a pointer and two small fields.
+              UINT:      :uint, # Unsigned INT. The range is 0 through 4294967295 decimal.
+              UINT_PTR:  :uint, # Unsigned INT_PTR.
               UINT32:    :uint32, # Unsigned INT32. The range is 0 through 4294967295 decimal.
               UINT64:    :uint64, # Unsigned INT64. The range is 0 through 18446744073709551615 decimal.
-              ULONG:     :ulong,  # Unsigned LONG. The range is 0 through 4294967295 decimal.
+              ULONG:     :ulong, # Unsigned LONG. The range is 0 through 4294967295 decimal.
               ULONGLONG: :ulong_long, # 64-bit unsigned integer. The range is 0 through 18446744073709551615 decimal.
-              ULONG_PTR: :ulong,      # Unsigned LONG_PTR.
-              ULONG32:   :uint32,     # Unsigned INT32. The range is 0 through 4294967295 decimal.
-              ULONG64:   :uint64,     # Unsigned LONG64. The range is 0 through 18446744073709551615 decimal.
-              UNICODE_STRING: :pointer,# Pointer to some string structure??
-              USHORT:    :ushort,     # Unsigned SHORT. The range is 0 through 65535 decimal.
-              USN:    :ulong_long,    # Update sequence number (USN).
-              VOID:   :void,   # Any type ?
+              ULONG_PTR: :ulong, # Unsigned LONG_PTR.
+              ULONG32:   :uint32, # Unsigned INT32. The range is 0 through 4294967295 decimal.
+              ULONG64:   :uint64, # Unsigned LONG64. The range is 0 through 18446744073709551615 decimal.
+              UNICODE_STRING: :pointer, # Pointer to some string structure??
+              USHORT:    :ushort, # Unsigned SHORT. The range is 0 through 65535 decimal.
+              USN:    :ulong_long, # Update sequence number (USN).
+              VOID:   [], # Any type ? Only use it to indicate no arguments or no return value
               WCHAR:  :ushort, # 16-bit Unicode character. For more information, see Character Sets Used By Fonts.
-                               # In WinNT.h: typedef wchar_t WCHAR;
+              # In WinNT.h: typedef wchar_t WCHAR;
               #WINAPI: K,      # Calling convention for system functions. WinDef.h: define WINAPI __stdcall
-              WORD: :ushort,   # 16-bit unsigned integer. The range is 0 through 65535 decimal.
+              WORD: :ushort, # 16-bit unsigned integer. The range is 0 through 65535 decimal.
               WPARAM: :uint    # Message parameter. WinDef.h as follows: typedef UINT_PTR WPARAM;
       }
 
@@ -314,7 +318,7 @@ module Win
       #
       def function(name, params, returns, options={}, &def_block)
         method_name, effective_names, aliases = generate_names(name, options)
-        params, returns = generate_signature(params, returns, options)
+        params, returns = generate_signature(params, returns)
         libs = ffi_libraries.map(&:name)
         boolean = options[:boolean]
         zeronil = options[:zeronil]
@@ -357,6 +361,7 @@ module Win
         api   #return api object from function declaration
       end
 
+      ##
       # Generates possible effective names for function in Win32 dll (name+A/W),
       # Rubyesque name and aliases for method(s) defined based on function name,
       # sets boolean flag for test functions (Is...)
@@ -378,16 +383,26 @@ module Win
         [method_name, effective_names, aliases]
       end
 
+      ##
       # Generates params and returns (signature) containing only FFI-compliant types
       #
-      def generate_signature(params, returns, options={})
+      def generate_signature(params, returns)
         params = params.split(//) if params.respond_to?(:split) # Convert params string into array
         params.map! {|param| TYPES[param.to_sym] || param} # Convert chars into FFI type symbols
         returns = TYPES[returns.to_sym] || returns # Convert chars into FFI type symbols
         [params, returns]
       end
 
-      # Ensures that args count is equal to params count plus diff  
+      ##
+      # Wrapper for FFI::Library#callback() that converts Win32/shortcut types into FFI format
+      #
+      def callback(name, params, returns)
+        params, returns = generate_signature(params, returns)
+        ffi_callback name.to_sym, params, returns
+      end
+
+      ##
+      # Ensures that args count is equal to params count plus diff
       #
       def enforce_count(args, params, diff = 0)
         num_args = args.size
@@ -397,12 +412,19 @@ module Win
         end
       end
 
+      ##
       # Returns string buffer - used to supply string pointer reference to API functions
       #
       def buffer(size = 1024, code = "\x00")
         code * size
       end
 
+      ##
+      # :method: namespace
+      # This method is meta-generated when Win::Library module is included into other module/class
+      # It returns reference to including (host) module for use by Win::Library::API and class methods.
+
+      ##
       # Returns array of given args if none of them is zero,
       # if any arg is zero, returns array of nils
       #
@@ -410,18 +432,23 @@ module Win
         args.any?{|arg| arg == 0 } ? args.map{||nil} : args
       end
 
-      ##
-      # :singleton-method: namespace
-      # This method is meta-generated when Win::Library module is included into other module/class
-      # it holds reference to including module for use by Win::Library::API and class methods.
+
     end
 
+    ##
+    # Hook executed when Win::Library is included into class or module. It extends host class/module
+    # with both FFI::Library methods and Win::Library macro methods like 'function'.
     def self.included(klass)
-      klass.extend ClassMethods
       klass.extend FFI::Library
+
+      eigenklass = class << klass; self; end  # Extracting host class's eigenclass
+      eigenklass.class_eval "
+        alias_method :ffi_callback, :callback
+        def namespace; #{klass}; end"
+
+      klass.extend ClassMethods
       klass.ffi_lib 'user32', 'kernel32'  # Default libraries
       klass.ffi_convention :stdcall
-      klass.instance_eval "def namespace; #{klass}; end"
     end
 
   end

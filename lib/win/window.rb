@@ -1,5 +1,31 @@
 require 'win/library'
 
+# Monkey patch for segfault issue
+#module FFI::Library
+#    def callback(*args)
+#      raise ArgumentError, "wrong number of arguments" if args.length < 2 || args.length > 3
+#      name, params, ret = if args.length == 3
+#        args
+#      else
+#        [ nil, args[0], args[1] ]
+#      end
+#
+#      options = Hash.new
+#      options[:convention] = defined?(@ffi_convention) ? @ffi_convention : :default
+#      options[:enums] = @ffi_enums if defined?(@ffi_enums)
+#      cb = FFI::CallbackInfo.new(find_type(ret), params.map { |e| find_type(e) }, options)
+#
+#      # Add to the symbol -> type map (unless there was no name)
+#      unless name.nil?
+#        @ffi_callbacks = Hash.new unless defined?(@ffi_callbacks)
+#        @ffi_callbacks[name] = cb
+#      end
+#
+#      cb
+#    end
+#end
+
+
 module Win
 
   # Contains constants, functions and wrappers related to Windows manipulation
@@ -15,6 +41,71 @@ module Win
     WM_SYSCOMMAND = 0x0112
     # Sys Command Close
     SC_CLOSE = 0xF060
+
+    # Windows keyboard-related Constants:
+    # ? move to keyboard.rb?
+    WIN_KEY_DELAY  = 0.00001
+
+    # Key down keyboard event
+    KEYEVENTF_KEYDOWN = 0
+    # Key up keyboard event
+    KEYEVENTF_KEYUP = 2
+    #   Virtual key codes:
+
+    # Control-break processing
+    VK_CANCEL   = 0x03
+    #  Backspace? key
+    VK_BACK     = 0x08
+    #  Tab key
+    VK_TAB      = 0x09
+    #  Shift key
+    VK_SHIFT    = 0x10
+    #  Ctrl key
+    VK_CONTROL  = 0x11
+    #  ENTER key
+    VK_RETURN   = 0x0D
+    #  ALT key
+    VK_ALT      = 0x12
+    #  ALT key alias
+    VK_MENU     = 0x12
+    #  PAUSE key
+    VK_PAUSE    = 0x13
+    #  CAPS LOCK key
+    VK_CAPITAL  = 0x14
+    #  ESC key
+    VK_ESCAPE   = 0x1B
+    #  SPACEBAR
+    VK_SPACE    = 0x20
+    #  PAGE UP key
+    VK_PRIOR    = 0x21
+    #  PAGE DOWN key
+    VK_NEXT     = 0x22
+    #  END key
+    VK_END      = 0x23
+    #  HOME key
+    VK_HOME     = 0x24
+    #  LEFT ARROW key
+    VK_LEFT     = 0x25
+    #  UP ARROW key
+    VK_UP       = 0x26
+    #  RIGHT ARROW key
+    VK_RIGHT    = 0x27
+    #  DOWN ARROW key
+    VK_DOWN     = 0x28
+    #  SELECT key
+    VK_SELECT   = 0x29
+    #  PRINT key
+    VK_PRINT    = 0x2A
+    #  EXECUTE key
+    VK_EXECUTE  = 0x2B
+    #  PRINT SCREEN key
+    VK_SNAPSHOT = 0x2C
+    #  INS key
+    VK_INSERT   = 0x2D
+    #  DEL key
+    VK_DELETE   = 0x2E
+    #  HELP key
+    VK_HELP     = 0x2F
 
     # ShowWindow constants:
 
@@ -71,7 +162,7 @@ module Win
     # WS_VISIBLE style, it may be true even if the window is totally obscured by other windows.
     #
     # :call-seq:
-    #   visible?( win_handle ), window_visible?( win_handle )
+    #   [window_]visible?( win_handle )
     #
     function 'IsWindowVisible', 'L', 'L', aliases: :visible?
 
@@ -195,7 +286,7 @@ module Win
     #   of calling GetWindowText.
     #
     #:call-seq:
-    #   text = get_window_text( win_handle )
+    #   text = [get_]window_text( win_handle )
     #
     function 'GetWindowText', 'LPI', 'L', &return_string
 
@@ -204,7 +295,7 @@ module Win
     # API improved to require only win_handle and return rstripped string
     #
     #:call-seq:
-    #   text = get_window_text_w( win_handle )
+    #   text = [get_]window_text_w( win_handle )
     #
     function 'GetWindowTextW', 'LPI', 'L', &return_string('utf-8')
 
@@ -227,7 +318,7 @@ module Win
     # Returns: Name of the class or NIL if function fails. For extended error information, call GetLastError.
     #
     #:call-seq:
-    #   text = get_class_name( win_handle )
+    #   text = [get_]class_name( win_handle )
     #
     function 'GetClassName', 'LPI', 'I', &return_string
 
@@ -236,7 +327,7 @@ module Win
     # API improved to require only win_handle and return rstripped string
     #
     #:call-seq:
-    #   text = get_class_name_w( win_handle )
+    #   text = [get_]class_name_w( win_handle )
     #
     function 'GetClassNameW', 'LPI', 'I', &return_string('utf-8')
 
@@ -287,7 +378,7 @@ module Win
     # Returns: Pair of identifiers of the thread and process_id that created the window.
     #
     #:call-seq:
-    #   thread, process_id = get_window_tread_process_id( win_handle )
+    #   thread, process_id = [get_]window_tread_process_id( win_handle )
     #
     function 'GetWindowThreadProcessId', 'LP', 'L', &return_thread_process
 
@@ -318,91 +409,95 @@ module Win
     #   are exclusive. In other words, the pixel at (right, bottom) lies immediately outside the rectangle.
     #
     #:call-seq:
-    #   rect = get_window_rect( win_handle )
+    #   rect = [get_]window_rect( win_handle )
     #
     function 'GetWindowRect', 'LP', 'I', &return_rect
 
-#    # Procedure that calls api function expecting a callback. If runtime block is given
-#    # it is converted into callback, otherwise procedure returns an array of all handles
-#    # pushed into callback by api enumeration
-#    # TODO: should be private
-#    #
-#    def self.return_enum  #:nodoc:
-#      lambda do |api, *args, &block|
-#        namespace.enforce_count( args, api.prototype, -1)
-#        handles = []
-#        cb = if block
-#          callback('LP', 'I', &block)
-#        else
-#          callback('LP', 'I') do |handle, message|
-#            handles << handle
-#            true
-#          end
-#        end
-#        args[api.prototype.find_index('K'), 0] = cb # Insert callback into appropriate place of args Array
-#        api.call *args
-#        handles
-#      end
-#    end
-#
-#    ##
-#    # The EnumWindows function enumerates all top-level windows on the screen by passing the handle to
-#    #   each window, in turn, to an application-defined callback function. EnumWindows continues until
-#    #   the last top-level window is enumerated or the callback function returns FALSE.
-#    #
-#    # Original Parameters:
-#    #   callback [K] - Pointer to an application-defined callback function (see EnumWindowsProc).
-#    #   message [P] - Specifies an application-defined value(message) to be passed to the callback function.
-#    # Original Return: Nonzero if the function succeeds, zero if the function fails. GetLastError for error info.
-#    #   If callback returns zero, the return value is also zero. In this case, the callback function should
-#    #   call SetLastError to obtain a meaningful error code to be returned to the caller of EnumWindows.
-#    #
-#    # API improved to accept blocks (instead of callback objects) and message as a single arg
-#    #
-#    # New Parameters:
-#    #   message [P] - Specifies an application-defined value(message) to be passed to the callback function.
-#    #   block given to method invocation serves as an application-defined callback function (see EnumWindowsProc).
-#    # Returns: True if the function succeeds, false if the function fails. GetLastError for error info.
-#    #   If callback returns zero, the return value is also zero. In this case, the callback function should
-#    #   call SetLastError to obtain a meaningful error code to be returned to the caller of EnumWindows.
-#    #
-#    # Remarks: The EnumWindows function does not enumerate child windows, with the exception of a few top-level
-#    #   windows owned by the system that have the WS_CHILD style. This function is more reliable than calling
-#    #   the GetWindow function in a loop. An application that calls GetWindow to perform this task risks being
-#    #   caught in an infinite loop or referencing a handle to a window that has been destroyed.
-#    #
-#    #:call-seq:
-#    #   status = enum_windows( message ) {|win_handle, message| callback procedure }
-#    #
-#    function'EnumWindows', 'KP', 'L', boolean: true, &return_enum
-#
-#    ##
-#    # Enumerates child windows to a given window.
-#    #
-#    # Original Parameters:
-#    #   parent (L) - Handle to the parent window whose child windows are to be enumerated.
-#    #   callback [K] - Pointer to an application-defined callback function (see EnumWindowsProc).
-#    #   message [P] - Specifies an application-defined value(message) to be passed to the callback function.
-#    # Original Return: Not used (?!)
-#    #   If callback returns zero, the return value is also zero. In this case, the callback function should
-#    #   call SetLastError to obtain a meaningful error code to be returned to the caller of EnumWindows.
-#    #   If it is nil, this function is equivalent to EnumWindows. Windows 95/98/Me: parent cannot be NULL.
-#    #
-#    # API improved to accept blocks (instead of callback objects) and two args: parent handle and message.
-#    # New Parameters:
-#    #   parent (L) - Handle to the parent window whose child windows are to be enumerated.
-#    #   message (P) - Specifies an application-defined value(message) to be passed to the callback function.
-#    #   block given to method invocation serves as an application-defined callback function (see EnumChildProc).
-#    #
-#    # Remarks:
-#    #   If a child window has created child windows of its own, EnumChildWindows enumerates those windows as well.
-#    #   A child window that is moved or repositioned in the Z order during the enumeration process will be properly enumerated.
-#    #   The function does not enumerate a child window that is destroyed before being enumerated or that is created during the enumeration process.
-#    #
-#    #:call-seq:
-#    #   enum_windows( parent_handle, message ) {|win_handle, message| callback procedure }
-#    #
-#    function 'EnumChildWindows', 'LKP', 'L', &return_enum
+    # Procedure that calls api function expecting EnumWindowsProc callback. If runtime block is given
+    # it is converted into callback, otherwise procedure returns an array of all handles
+    # pushed into callback by api enumeration
+    #
+    return_enum = lambda do |api, *args, &block|
+      args.push 0 if args.size == api.prototype.size - 2 # Value missing, defaults to 0
+      handles = []
+      block ||= proc {|handle, message| handles << handle; true }
+      callback_key = api.prototype.find {|k, v| k.to_s =~ /callback/}
+      args[api.prototype.find_index(callback_key), 0] = block # Insert callback into appropriate place of args Array
+      handles if api.call *args
+    end
+
+    # This is an application-defined callback function that receives top-level window handles as a result of a call
+    # to the EnumWindows or EnumDesktopWindows function.
+    #
+    # Syntax: BOOL CALLBACK EnumWindowsProc( HWND hwnd, LPARAM lParam );
+    #
+    # Parameters:
+    #   hwnd (L) - [out] Handle to a top-level window.
+    #   lParam (L) - [in] Specifies the application-defined value given in EnumWindows or EnumDesktopWindows.
+    # Return Values:
+    #   TRUE continues enumeration. FALSE stops enumeration.
+    #
+    # Remarks: An application must register this callback function by passing its address to EnumWindows or EnumDesktopWindows.
+    callback :enum_callback, 'LL', :bool
+
+    ##
+    # The EnumWindows function enumerates all top-level windows on the screen by passing the handle to
+    #   each window, in turn, to an application-defined callback function. EnumWindows continues until
+    #   the last top-level window is enumerated or the callback function returns FALSE.
+    #
+    # Original Parameters:
+    #   callback [K] - Pointer to an application-defined callback function (see EnumWindowsProc).
+    #   value [P] - Specifies an application-defined value(message) to be passed to the callback function.
+    # Original Return: Nonzero if the function succeeds, zero if the function fails. GetLastError for error info.
+    #   If callback returns zero, the return value is also zero. In this case, the callback function should
+    #   call SetLastError to obtain a meaningful error code to be returned to the caller of EnumWindows.
+    #
+    # API improved to accept blocks (instead of callback objects) and message as a single arg
+    #
+    # New Parameters:
+    #   message [P] - Specifies an application-defined value(message) to be passed to the callback function.
+    #   block given to method invocation serves as an application-defined callback function (see EnumWindowsProc).
+    # Returns: True if the function succeeds, false if the function fails. GetLastError for error info.
+    #   If callback returns zero, the return value is also zero. In this case, the callback function should
+    #   call SetLastError to obtain a meaningful error code to be returned to the caller of EnumWindows.
+    #
+    # Remarks: The EnumWindows function does not enumerate child windows, with the exception of a few top-level
+    #   windows owned by the system that have the WS_CHILD style. This function is more reliable than calling
+    #   the GetWindow function in a loop. An application that calls GetWindow to perform this task risks being
+    #   caught in an infinite loop or referencing a handle to a window that has been destroyed.
+    #
+    #:call-seq:
+    #   status = enum_windows( [value] ) {|win_handle, message| callback procedure }
+    #
+    function'EnumWindows', [:enum_callback, :long], :bool, &return_enum
+
+    ##
+    # Enumerates child windows to a given window.
+    #
+    # Original Parameters:
+    #   parent (L) - Handle to the parent window whose child windows are to be enumerated.
+    #   callback [K] - Pointer to an application-defined callback function (see EnumWindowsProc).
+    #   message [P] - Specifies an application-defined value(message) to be passed to the callback function.
+    # Original Return: Not used (?!)
+    #   If callback returns zero, the return value is also zero. In this case, the callback function should
+    #   call SetLastError to obtain a meaningful error code to be returned to the caller of EnumWindows.
+    #   If it is nil, this function is equivalent to EnumWindows. Windows 95/98/Me: parent cannot be NULL.
+    #
+    # API improved to accept blocks (instead of callback objects) and two args: parent handle and message.
+    # New Parameters:
+    #   parent (L) - Handle to the parent window whose child windows are to be enumerated.
+    #   message (P) - Specifies an application-defined value(message) to be passed to the callback function.
+    #   block given to method invocation serves as an application-defined callback function (see EnumChildProc).
+    #
+    # Remarks:
+    #   If a child window has created child windows of its own, EnumChildWindows enumerates those windows as well.
+    #   A child window that is moved or repositioned in the Z order during the enumeration process will be properly enumerated.
+    #   The function does not enumerate a child window that is destroyed before being enumerated or that is created during the enumeration process.
+    #
+    #:call-seq:
+    #   enum_child_windows( parent_handle, message ) {|win_handle, message| callback procedure }
+    #
+    function 'EnumChildWindows', [:ulong, :enum_callback, :long], :bool, &return_enum
 
     ##
     # GetForegroundWindow function returns a handle to the foreground window (the window with which the user
@@ -415,7 +510,7 @@ module Win
     # certain circumstances, such as when a window is losing activation.
     #
     #:call-seq:
-    #   win_handle = (get_)foreground_window()
+    #   win_handle = [get_]foreground_window()
     #
     function 'GetForegroundWindow', [], 'L'
 
@@ -436,7 +531,7 @@ module Win
     #  To get the window handle to the active window in the message queue for another thread, use GetGUIThreadInfo.
     #
     #:call-seq:
-    #   win_handle = (get_)active_window()
+    #   win_handle = [get_]active_window()
     #
     function 'GetActiveWindow', [], 'L'
 
@@ -452,9 +547,9 @@ module Win
     def keystroke(*keys)
       return if keys.empty?
       keybd_event keys.first, 0, KEYEVENTF_KEYDOWN, 0
-      sleep WG_KEY_DELAY
+      sleep WIN_KEY_DELAY
       keystroke *keys[1..-1]
-      sleep WG_KEY_DELAY
+      sleep WIN_KEY_DELAY
       keybd_event keys.first, 0, KEYEVENTF_KEYUP, 0
     end
 
@@ -476,7 +571,7 @@ module Win
       return d
     end
 
-    # Thin wrapper around window handle
+    # Thin wrapper class around window handle
     class Window
       include Win::Window
       extend Win::Window

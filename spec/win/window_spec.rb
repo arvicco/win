@@ -30,7 +30,29 @@ module WinWindowTest
 
     yield app
     close_test_app
-  end  
+  end
+
+  def commands_should_show_window *cmds, tests
+    cmds.each do |cmd|
+      test_app do |app|
+        show_window(app.handle, cmd)
+        tests.each{|test, result| send(test.to_sym, app.handle).should == result}
+
+        hide_window(app.handle) # hiding window first
+        show_window(app.handle, cmd)
+        tests.each{|test, result| send(test.to_sym, app.handle).should == result}
+
+        show_window(app.handle, SW_MAXIMIZE) # now maximizing window
+        show_window(app.handle, cmd)
+        tests.each{|test, result| send(test.to_sym, app.handle).should == result}
+
+        show_window(app.handle, SW_MINIMIZE) # now minimizing window
+        show_window(app.handle, cmd)
+        tests.each{|test, result| send(test.to_sym, app.handle).should == result}
+      end
+    end
+  end
+
 
   describe Win::Window, ' defines a set user32 API functions related to Window manipulation' do
     describe '#window?' do
@@ -57,7 +79,7 @@ module WinWindowTest
         window?(@ta_handle).should == false
       end
     end
-    
+
     describe '#window_visible?' do
       spec{ use{ IsWindowVisible(any_handle) }}
       spec{ use{ is_window_visible(any_handle) }}
@@ -311,6 +333,218 @@ module WinWindowTest
           get_window_rect(app.handle).should == TEST_WIN_RECT
         end
       end
+    end
+
+    describe '#show_window ', 'LI', 'I' do
+      spec{ use{ was_visible = show_window(handle = any_handle, cmd = SW_SHOWNA) }}
+
+      it 'was_visible = hide_window(handle = any_handle)  # derived method (not a separate API function)' do
+        test_app do |app|
+          use{ @was_visible = hide_window(app.handle) }
+          @was_visible.should == true
+          visible?(app.handle).should == false
+          hide_window(app.handle).should == false
+          visible?(app.handle).should == false
+        end
+      end
+
+      it 'returns true if the window was PREVIOUSLY visible, false otherwise' do
+        test_app do |app|
+          show_window(app.handle, SW_HIDE).should == true
+          show_window(app.handle, SW_HIDE).should == false
+        end
+      end
+
+      it 'hides window with SW_HIDE command ' do
+        test_app do |app|
+          show_window(app.handle, SW_HIDE)
+          visible?(app.handle).should == false
+        end
+      end
+
+      it 'shows hidden window with SW_SHOW command' do
+        test_app do |app|
+          hide_window(app.handle)
+          show_window(app.handle, SW_SHOW)
+          visible?(app.handle).should == true
+        end
+      end
+
+      it 'SW_MAXIMIZE, SW_SHOWMAXIMIZED maximize window and activate it' do
+        commands_should_show_window SW_MAXIMIZE, SW_SHOWMAXIMIZED,
+                                    :minimized? => false, :maximized? => true, :visible? => true, :foreground? => true
+      end
+
+      it 'SW_MINIMIZE minimizes window and activates the next top-level window in the Z order' do
+        commands_should_show_window SW_MINIMIZE,
+                                    :minimized? => true, :maximized? => false, :visible? => true, :foreground? => false
+      end
+
+      it 'SW_SHOWMINNOACTIVE, SW_SHOWMINIMIZED displays the window as a minimized foreground window' do
+        commands_should_show_window SW_SHOWMINNOACTIVE, SW_SHOWMINIMIZED,
+                                    :minimized? => true, :maximized? => false, :visible? => true, :foreground? => true
+      end
+
+      it 'SW_SHOWNORMAL, SW_RESTORE, SW_SHOWNOACTIVATE activate/display a window(if min/maximized it is restored' do
+        commands_should_show_window SW_SHOWNORMAL, SW_RESTORE, SW_SHOWNOACTIVATE,
+                                    :minimized? => false, :maximized? => false, :visible? => true, :foreground? => true
+      end
+
+      it 'SW_SHOWNA displays the window in its current size and position (similar to SW_SHOW, but window is not activated)'
+      it 'SW_SHOWDEFAULT sets the show state based on the SW_ value specified in the STARTUPINFO structure passed to the CreateProcess function by the program that started the application'
+      it 'SW_FORCEMINIMIZE minimizes a window, even if the thread that owns the window is not responding - only Win2000/XP'
+    end
+
+    describe '#keydb_event' do
+      spec{ use{ keybd_event(vkey = 0, bscan = 0, flags = 0, extra_info = 0) }}
+      # vkey (I) - Specifies a virtual-key code. The code must be a value in the range 1 to 254. For a complete list, see msdn:Virtual Key Codes.
+      # bscan (I) - Specifies a hardware scan code for the key.
+      # flags (L) - Specifies various aspects of function operation. This parameter can be one or more of the following values.
+      #   KEYEVENTF_EXTENDEDKEY - If specified, the scan code was preceded by a prefix byte having the value 0xE0 (224).
+      #   KEYEVENTF_KEYUP - If specified, the key is being released. If not specified, the key is being depressed.
+      # extra_info (L) - Specifies an additional value associated with the key stroke.
+      # no return value
+
+      it 'synthesizes a numeric keystrokes, emulating keyboard driver' do
+        test_app do |app|
+          text = '123 456'
+          text.upcase.each_byte do |b| # upcase needed since user32 keybd_event expects upper case chars
+            keybd_event(b.ord, 0, KEYEVENTF_KEYDOWN, 0)
+            sleep TEST_KEY_DELAY
+            keybd_event(b.ord, 0, KEYEVENTF_KEYUP, 0)
+            sleep TEST_KEY_DELAY
+          end
+          app.textarea.text.should =~ Regexp.new(text)
+          7.times {keystroke(VK_CONTROL, 'Z'.ord)} # dirty hack!
+        end
+      end
+
+      it 'synthesizes a letter keystroke, emulating keyboard driver'
+    end
+
+    describe '#post_message' do
+      spec{ use{ success = post_message(handle = 0, msg = 0, w_param = 0, l_param = 0) }}
+      # handle (L) - Handle to the window whose window procedure will receive the message.
+      #   If this parameter is HWND_BROADCAST, the message is sent to all top-level windows in the system, including disabled or
+      #   invisible unowned windows, overlapped windows, and pop-up windows; but the message is not sent to child windows.
+      # msg (L) - Specifies the message to be posted.
+      # w_param (L) - Specifies additional message-specific information.
+      # l_param (L) - Specifies additional message-specific information.
+      # returns (L) - Nonzero if success, zero if function failed. To get extended error information, call GetLastError.
+
+      it 'places (posts) a message in the message queue associated with the thread that created the specified window'
+      it 'returns without waiting for the thread to process the message'
+    end
+
+    describe '#send_message' do
+      spec{ use{ success = send_message(handle = 0, msg = 0, w_param = 1024, l_param = "\x0"*1024) }}
+      # handle (L) - Handle to the window whose window procedure is to receive the message. The following values have special meanings.
+      #   HWND_BROADCAST - The message is posted to all top-level windows in the system, including disabled or invisible unowned windows,
+      #     overlapped windows, and pop-up windows. The message is not posted to child windows.
+      #   NULL - The function behaves like a call to PostThreadMessage with the dwThreadId parameter set to the identifier of the current thread.
+      # msg (L) - Specifies the message to be posted.
+      # w_param (L) - Specifies additional message-specific information.
+      # l_param (L) - Specifies additional message-specific information.
+      # return (L) - Nonzero if success, zero if function failed. To get extended error information, call GetLastError.
+
+      it 'sends the specified message to a window or windows'
+      it 'calls the window procedure and does not return until the window procedure has processed the message'
+    end
+
+    describe '#get_dlg_item' do
+      spec{ use{ control_handle = get_dlg_item(handle = 0, item_id = 1) }}
+      # handle (L) - Handle of the dialog box that contains the control.
+      # item_id (I) - Specifies the identifier of the control to be retrieved.
+      # Returns (L) - handle of the specified control if success or nil for invalid dialog box handle or a nonexistent control.
+      #   To get extended error information, call GetLastError.
+      #   You can use the GetDlgItem function with any parent-child window pair, not just with dialog boxes. As long as the handle
+      #   parameter specifies a parent window and the child window has a unique id (as specified by the hMenu parameter in the
+      #   CreateWindow or CreateWindowEx function that created the child window), GetDlgItem returns a valid handle to the child window.
+
+      it 'returns handle to correctly specified control'
+    end
+
+    describe '#enum_windows' do
+      before(:all){@app = launch_test_app}
+      after(:all){close_test_app}
+
+      spec{ use{ handles = enum_windows(value = 13)   }}
+      spec{ use{ enum_windows do |handle, message|
+      end  }}
+
+      it 'iterates through all the top-level windows, passing each top level window handle and value to a given block' do
+        enum_windows(13) do |handle, message|
+          handle.should be_an Integer
+          handle.should be > 0
+          message.should == 13
+        end
+      end
+
+      it 'returns an array of top-level window handles if block is not given' do
+        enum = enum_windows(13)
+        enum.should be_a_kind_of Array
+        enum.should_not be_empty
+        enum.should have_at_least(50).elements # typical number of top windows in WinXP system?
+        enum.each do |handle|
+          handle.should be_an Integer
+          handle.should be > 0
+        end
+        enum.any?{|handle| handle == @app.handle}.should == true
+      end
+
+      it 'returned array that contains handle of launched test app' do
+        enum = enum_windows(13)
+        enum.any?{|handle| handle == @app.handle}.should == true
+      end
+
+      it 'defaults message to 0 if it is omitted from method call' do
+        enum_windows do |handle, message|
+          message.should == 0
+        end
+      end
+    end
+
+    describe '#enum_child_windows' do
+      before(:all){@app = launch_test_app}
+      after(:all){close_test_app}
+
+      spec{ use{ enum_child_windows(parent = any_handle, value = 13) }}
+
+      it 'return an array of child window handles if block is not given' do
+        enum = enum_child_windows(@app.handle, 13)
+        enum.should be_a_kind_of Array
+        enum.should have(2).elements
+        class_name(enum.first).should == TEST_STATUSBAR_CLASS
+        class_name(enum.last).should == TEST_TEXTAREA_CLASS
+      end
+
+      it 'loops through all children of given window, passing each found window handle and a message to a given block' do
+        enum = []
+        enum_child_windows(@app.handle, 13) do |handle, message|
+          enum << handle
+          message.should == 13
+        end
+        enum.should have(2).elements
+        class_name(enum.first).should == TEST_STATUSBAR_CLASS
+        class_name(enum.last).should == TEST_TEXTAREA_CLASS
+      end
+
+      it 'breaks loop if given block returns false' do
+        enum = []
+        enum_child_windows(@app.handle) do |handle, message|
+          enum << handle
+          false
+        end
+        enum.should have(1).element
+        class_name(enum.first).should == TEST_STATUSBAR_CLASS
+      end
+
+      it 'defaults message to 0 if it is omitted from method call' do
+        enum_child_windows(@app.handle) do |handle, message|
+          message.should == 0
+        end
+      end
+
     end
 
   end

@@ -394,7 +394,7 @@ module Win
       end
 
       ##
-      # Wrapper for FFI::Library#callback() that converts Win32/shortcut types into FFI format
+      # Wrapper for FFI::Library#callback() that converts Win32/shortcut argument types into FFI-compliant types
       #
       def callback(name, params, returns)
         params, returns = generate_signature(params, returns)

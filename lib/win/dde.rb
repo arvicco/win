@@ -132,7 +132,7 @@ module Win
         id = status == 0 ? id.unpack('L').first : nil
         [id, status] }
 
-    # DdeCallabck declaration
+    # DdeCallaback declaration
     # MSDN syntax: HDDEDATA CALLBACK DdeCallback( UINT uType, UINT uFmt, HCONV hconv, HDDEDATA hsz1, HDDEDATA hsz2,
     #                                             HDDEDATA hdata, HDDEDATA dwData1, HDDEDATA dwData2);
     callback :dde_callback, [:uint, :uint, :HCONV, :HDDEDATA, :HDDEDATA, :HDDEDATA, :HDDEDATA, :HDDEDATA], :HDDEDATA
@@ -209,7 +209,7 @@ module Win
     # Return Value (L) or nil: If the function succeeds, the return value is a string handle.
     #   If the function fails, the return value is 0(changed to nil in enhanced version).
     #   The DdeGetLastError function can be used to get the error code, which can be one of the following values:
-    #DMLERR_NO_ERROR, DMLERR_INVALIDPARAMETER, DMLERR_SYS_ERROR
+    # DMLERR_NO_ERROR, DMLERR_INVALIDPARAMETER, DMLERR_SYS_ERROR
     #
     # Remarks: The value of a string handle is not related to the case of the string it identifies.
     #   When an application either creates a string handle or receives one in the callback function

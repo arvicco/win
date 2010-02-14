@@ -5,8 +5,8 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "win"
-    gem.summary = %Q{A collection of pre-defined Windows API functions with Rubyesque interfaces}
-    gem.description = %Q{A collection of pre-defined Windows API functions with Rubyesque interfaces}
+    gem.summary = %Q{Rubyesque interfaces and wrappers for Windows API functions pre-defined using FFI }
+    gem.description = %Q{Rubyesque interfaces and wrappers for Windows API functions pre-defined using FFI }
     gem.email = "arvitallian@gmail.com"
     gem.homepage = "http://github.com/arvicco/win"
     gem.authors = ["arvicco"]

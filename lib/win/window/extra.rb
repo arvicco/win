@@ -39,7 +39,7 @@ module Win
     end
 
 
-    # Thin class is a thin wrapper around window handle
+    # This class is a thin wrapper around window handle
     class Window
       include Win::Window
       extend Win::Window

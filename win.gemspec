@@ -5,12 +5,12 @@
 
 Gem::Specification.new do |s|
   s.name = %q{win}
-  s.version = "0.0.4"
+  s.version = "0.0.6"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["arvicco"]
-  s.date = %q{2010-02-11}
-  s.description = %q{A collection of Windows functions predefined for you using FFI}
+  s.date = %q{2010-02-14}
+  s.description = %q{A collection of pre-defined Windows API functions with Rubyesque interfaces}
   s.email = %q{arvitallian@gmail.com}
   s.extra_rdoc_files = [
     "LICENSE",
@@ -26,14 +26,18 @@ Gem::Specification.new do |s|
      "features/step_definitions/win_steps.rb",
      "features/support/env.rb",
      "features/win.feature",
+     "lib/win/dde.rb",
      "lib/win/extensions.rb",
      "lib/win/library.rb",
      "lib/win/window.rb",
+     "lib/win/window/extra.rb",
      "spec/spec.opts",
      "spec/spec_helper.rb",
      "spec/test_apps/locknote/LockNote.exe",
+     "spec/win/dde_spec.rb",
      "spec/win/extensions_spec.rb",
      "spec/win/library_spec.rb",
+     "spec/win/window/extra_spec.rb",
      "spec/win/window_spec.rb",
      "win.gemspec"
   ]
@@ -41,11 +45,13 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.5}
-  s.summary = %q{A collection of Windows functions predefined for you using FFI}
+  s.summary = %q{A collection of pre-defined Windows API functions with Rubyesque interfaces}
   s.test_files = [
     "spec/spec_helper.rb",
+     "spec/win/dde_spec.rb",
      "spec/win/extensions_spec.rb",
      "spec/win/library_spec.rb",
+     "spec/win/window/extra_spec.rb",
      "spec/win/window_spec.rb"
   ]
 
@@ -54,13 +60,16 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<ffi>, [">= 0.6.0"])
       s.add_development_dependency(%q<rspec>, [">= 1.2.9"])
       s.add_development_dependency(%q<cucumber>, [">= 0"])
     else
+      s.add_dependency(%q<ffi>, [">= 0.6.0"])
       s.add_dependency(%q<rspec>, [">= 1.2.9"])
       s.add_dependency(%q<cucumber>, [">= 0"])
     end
   else
+    s.add_dependency(%q<ffi>, [">= 0.6.0"])
     s.add_dependency(%q<rspec>, [">= 1.2.9"])
     s.add_dependency(%q<cucumber>, [">= 0"])
   end

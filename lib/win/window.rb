@@ -1,36 +1,16 @@
 require 'win/library'
 
-# Monkey patch for segfault issue
-#module FFI::Library
-#    def callback(*args)
-#      raise ArgumentError, "wrong number of arguments" if args.length < 2 || args.length > 3
-#      name, params, ret = if args.length == 3
-#        args
-#      else
-#        [ nil, args[0], args[1] ]
-#      end
-#
-#      options = Hash.new
-#      options[:convention] = defined?(@ffi_convention) ? @ffi_convention : :default
-#      options[:enums] = @ffi_enums if defined?(@ffi_enums)
-#      cb = FFI::CallbackInfo.new(find_type(ret), params.map { |e| find_type(e) }, options)
-#
-#      # Add to the symbol -> type map (unless there was no name)
-#      unless name.nil?
-#        @ffi_callbacks = Hash.new unless defined?(@ffi_callbacks)
-#        @ffi_callbacks[name] = cb
-#      end
-#
-#      cb
-#    end
-#end
-
-
 module Win
 
   # Contains constants, functions and wrappers related to Windows manipulation
   #
   module Window
+    # Internal constants:
+
+    # Windows keyboard-related Constants:
+    # ? move to keyboard.rb?
+    KEY_DELAY  = 0.00001
+
     include Win::Library
 
     #General constants:
@@ -42,15 +22,14 @@ module Win
     # Sys Command Close
     SC_CLOSE = 0xF060
 
-    # Windows keyboard-related Constants:
-    # ? move to keyboard.rb?
-    WIN_KEY_DELAY  = 0.00001
-
-    # Key down keyboard event
+    # Key down keyboard event (the key is being depressed)
     KEYEVENTF_KEYDOWN = 0
-    # Key up keyboard event
+    # Key up keyboard event (the key is being released)
     KEYEVENTF_KEYUP = 2
-    #   Virtual key codes:
+    # Extended kb event. If specified, the scan code was preceded by a prefix byte having the value 0xE0 (224).
+    KEYEVENTF_EXTENDEDKEY = 1
+
+    # Virtual key codes:
 
     # Control-break processing
     VK_CANCEL   = 0x03
@@ -142,6 +121,50 @@ module Win
     # flag when minimizing windows from a different thread.
     SW_FORCEMINIMIZE  = 11
 
+    class << self
+      # Def_block that calls API function expecting EnumWindowsProc callback (EnumWindows, EnumChildWindows, ...).
+      # Default callback just pushes all passed handles into Array that is returned if Enum function call was successful.
+      # If runtime block is given it is added to the end of default callback (handles Array is still collected/returned).
+      # If Enum function call failed, method returns nil, otherwise an Array of window handles.
+      #
+      def return_enum #:nodoc:
+        lambda do |api, *args, &block|
+          args.push 0 if args.size == api.prototype.size - 2 # If value is missing, it defaults to 0
+          handles = []
+
+          # Insert callback proc into appropriate place of args Array
+          args[api.prototype.find_index(:enum_callback), 0] =
+                  proc do |handle, message|
+                    handles << handle
+                    block ? block[handle, message] : true
+                  end
+          handles if api.call *args
+        end
+      end
+
+      # Helper method that creates def_block returning (possibly encoded) string as a result of
+      # api function call or nil if zero characters was returned by api call
+      #
+      def return_string( encode = nil )  #:nodoc:
+        lambda do |api, *args|
+          namespace.enforce_count( args, api.prototype, -2)
+          buffer = FFI::MemoryPointer.new :char, 1024
+          buffer.put_string(0, "\x00" * 1023)
+          args += [buffer, 1024]
+          num_chars = api.call(*args)
+          return nil if num_chars == 0
+          if encode
+            string = buffer.get_bytes(0, num_chars*2)
+            string = string.force_encoding('utf-16LE').encode(encode)
+          else
+            string = buffer.get_bytes(0, num_chars)
+          end
+          string.rstrip
+        end
+      end
+
+      private :return_enum, :return_string
+    end
 
     # Windows GUI API definitions:
 
@@ -238,20 +261,6 @@ module Win
     #   win_handle = find_window_ex( win_handle, after_child, class_name, win_name )
     #
     function 'FindWindowEx', 'LLPP', 'L', zeronil: true
-
-    # Helper method that creates def_block returning (possibly encoded) string as a result of
-    # api function call or nil if zero characters was returned by api call
-    # TODO: should be private
-    def self.return_string( encode = nil )  #:nodoc:
-      lambda do |api, *args|
-        namespace.enforce_count( args, api.prototype, -2)
-        args += [string = buffer, string.length]
-        num_chars = api.call(*args)
-        return nil if num_chars == 0
-        string = string.force_encoding('utf-16LE').encode(encode) if encode
-        string.rstrip
-      end
-    end                 
 
     ##
     # Returns the text of the specified window's title bar (if it has one).
@@ -356,12 +365,6 @@ module Win
       show_window(win_handle, SW_HIDE)
     end
 
-    return_thread_process = lambda do |api, *args|
-      namespace.enforce_count( args, api.prototype, -1)
-      thread = api.call(args.first, process = [1].pack('L'))
-      nonzero_array(thread, *process.unpack('L'))
-    end
-
     ##
     # Retrieves the identifier of the thread that created the specified window
     #   and, optionally, the identifier of the process that created the window.
@@ -380,14 +383,13 @@ module Win
     #:call-seq:
     #   thread, process_id = [get_]window_tread_process_id( win_handle )
     #
-    function 'GetWindowThreadProcessId', 'LP', 'L', &return_thread_process
-
-    return_rect = lambda do |api, *args|
-      namespace.enforce_count( args, api.prototype, -1)
-      rectangle = [0, 0, 0, 0].pack('L*')
-      res = api.call args.first, rectangle
-      res == 0 ? [nil, nil, nil, nil] : rectangle.unpack('L*')
-    end
+    function 'GetWindowThreadProcessId', [:long, :pointer], :long, &->(api, *args) {
+    namespace.enforce_count( args, api.prototype, -1)
+    process = FFI::MemoryPointer.new(:long)
+    process.write_long(1)
+    thread = api.call(args.first, process)
+    thread == 0 ? [nil, nil] : [thread, process.read_long()] }
+    # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
 
     ##
     # Retrieves the dimensions of the specified window bounding rectangle.
@@ -411,23 +413,16 @@ module Win
     #:call-seq:
     #   rect = [get_]window_rect( win_handle )
     #
-    function 'GetWindowRect', 'LP', 'I', &return_rect
-
-    # Procedure that calls api function expecting EnumWindowsProc callback. If runtime block is given
-    # it is converted into callback, otherwise procedure returns an array of all handles
-    # pushed into callback by api enumeration
-    #
-    return_enum = lambda do |api, *args, &block|
-      args.push 0 if args.size == api.prototype.size - 2 # Value missing, defaults to 0
-      handles = []
-      block ||= proc {|handle, message| handles << handle; true }
-      callback_key = api.prototype.find {|k, v| k.to_s =~ /callback/}
-      args[api.prototype.find_index(callback_key), 0] = block # Insert callback into appropriate place of args Array
-      handles if api.call *args
-    end
+    function 'GetWindowRect', 'LP', 'I', &->(api, *args) {
+    namespace.enforce_count( args, api.prototype, -1)
+    rect = FFI::MemoryPointer.new(:long, 4)
+    rect.write_array_of_long([0, 0, 0, 0])
+    res = api.call args.first, rect
+    res == 0 ? [nil, nil, nil, nil] : rect.read_array_of_long(4) }
+    # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
 
     # This is an application-defined callback function that receives top-level window handles as a result of a call
-    # to the EnumWindows or EnumDesktopWindows function.
+    # to the EnumWindows, EnumChildWindows or EnumDesktopWindows function.
     #
     # Syntax: BOOL CALLBACK EnumWindowsProc( HWND hwnd, LPARAM lParam );
     #
@@ -467,9 +462,49 @@ module Win
     #   caught in an infinite loop or referencing a handle to a window that has been destroyed.
     #
     #:call-seq:
-    #   status = enum_windows( [value] ) {|win_handle, message| callback procedure }
+    #   handles = enum_windows( [value] ) {|handle, message| your callback procedure }
     #
     function'EnumWindows', [:enum_callback, :long], :bool, &return_enum
+
+    ##
+    #EnumDesktopWindows Function
+    #
+    #Enumerates all top-level windows associated with the specified desktop. It passes the handle to each window, in turn, to an application-defined callback function.
+    #
+    #
+    #Syntax
+    #BOOL WINAPI EnumDesktopWindows(
+    #  __in_opt  HDESK hDesktop,
+    #  __in      WNDENUMPROC lpfn,
+    #  __in      LPARAM lParam
+    #);
+    #
+    #Parameters
+    #hDesktop
+    #A handle to the desktop whose top-level windows are to be enumerated. This handle is returned by the CreateDesktop, GetThreadDesktop, OpenDesktop, or OpenInputDesktop function, and must have the DESKTOP_ENUMERATE access right. For more information, see Desktop Security and Access Rights.
+    #
+    #If this parameter is NULL, the current desktop is used.
+    #
+    #lpfn
+    #A pointer to an application-defined EnumWindowsProc callback function.
+    #
+    #lParam
+    #An application-defined value to be passed to the callback function.
+    #
+    #Return Value
+    #If the function fails or is unable to perform the enumeration, the return value is zero.
+    #
+    #To get extended error information, call GetLastError.
+    #
+    #You must ensure that the callback function sets SetLastError if it fails.
+    #
+    #Windows Server 2003 and Windows XP/2000:  If there are no windows on the desktop, GetLastError returns ERROR_INVALID_HANDLE.
+    #Remarks
+    #The EnumDesktopWindows function repeatedly invokes the lpfn callback function until the last top-level window is enumerated or the callback function returns FALSE.
+    #
+    #Requirements
+    #Client Requires Windows Vista, Windows XP, or Windows 2000 Professional.
+    function'EnumDesktopWindows', [:ulong, :enum_callback, :long], :bool, &return_enum
 
     ##
     # Enumerates child windows to a given window.
@@ -483,10 +518,10 @@ module Win
     #   call SetLastError to obtain a meaningful error code to be returned to the caller of EnumWindows.
     #   If it is nil, this function is equivalent to EnumWindows. Windows 95/98/Me: parent cannot be NULL.
     #
-    # API improved to accept blocks (instead of callback objects) and two args: parent handle and message.
+    # API improved to accept blocks (instead of callback objects) and parent handle (value is optional, default 0)
     # New Parameters:
     #   parent (L) - Handle to the parent window whose child windows are to be enumerated.
-    #   message (P) - Specifies an application-defined value(message) to be passed to the callback function.
+    #   value (P) - Specifies an application-defined value(message) to be passed to the callback function.
     #   block given to method invocation serves as an application-defined callback function (see EnumChildProc).
     #
     # Remarks:
@@ -495,7 +530,7 @@ module Win
     #   The function does not enumerate a child window that is destroyed before being enumerated or that is created during the enumeration process.
     #
     #:call-seq:
-    #   enum_child_windows( parent_handle, message ) {|win_handle, message| callback procedure }
+    #   handles = enum_child_windows( parent_handle, [value = 0] ) {|handle, message| your callback procedure }
     #
     function 'EnumChildWindows', [:ulong, :enum_callback, :long], :bool, &return_enum
 
@@ -514,6 +549,9 @@ module Win
     #
     function 'GetForegroundWindow', [], 'L'
 
+    ##
+    # Tests if given window handle points to foreground (topmost) window
+    #
     def foreground?(win_handle)
       win_handle == foreground_window
     end
@@ -535,111 +573,36 @@ module Win
     #
     function 'GetActiveWindow', [], 'L'
 
+    ##
+    # The keybd_event function synthesizes a keystroke. The system can use such a synthesized keystroke to generate
+    # a WM_KEYUP or WM_KEYDOWN message. The keyboard driver's interrupt handler calls the keybd_event function.
+    #
+    # !!!! Windows NT/2000/XP/Vista:This function has been superseded. Use SendInput instead.
+    #
+    # Syntax: VOID keybd_event( BYTE bVk, BYTE bScan, DWORD dwFlags, PTR dwExtraInfo);
+    #
+    # Parameters:
+    #   bVk [C] - [in] Specifies a virtual-key code. The code must be a value in the range 1 to 254.
+    #      For a complete list, see Virtual-Key Codes.
+    #   bScan [C] - [in] Specifies a hardware scan code for the key.
+    #   dwFlags [L] - [in] Specifies various aspects of function operation. This parameter can be
+    #     one or more of the following values:
+    # KEYEVENTF_EXTENDEDKEY, KEYEVENTF_KEYUP, KEYEVENTF_KEYDOWN
+    #   dwExtraInfo [L] -[in] Specifies an additional value associated with the key stroke.
+    #
+    # Return Value: none
+    #
+    # Remarks: An application can simulate a press of the PRINTSCRN key in order to obtain a screen snapshot and save
+    # it to the clipboard. To do this, call keybd_event with the bVk parameter set to VK_SNAPSHOT.
+    #
+    # Windows NT/2000/XP: The keybd_event function can toggle the NUM LOCK, CAPS LOCK, and SCROLL LOCK keys.
+    # Windows 95/98/Me: The keybd_event function can toggle only the CAPS LOCK and SCROLL LOCK keys.
+    #
     function 'keybd_event', 'IILL', 'V'
+
     function 'PostMessage', 'LLLL', 'L'
     function 'SendMessage', 'LLLP', 'L'
     function 'GetDlgItem', 'LL', 'L'
 
-
-    # Convenience wrapper methods:
-
-    # emulates combinations of keys pressed (Ctrl+Alt+P+M, etc)
-    def keystroke(*keys)
-      return if keys.empty?
-      keybd_event keys.first, 0, KEYEVENTF_KEYDOWN, 0
-      sleep WIN_KEY_DELAY
-      keystroke *keys[1..-1]
-      sleep WIN_KEY_DELAY
-      keybd_event keys.first, 0, KEYEVENTF_KEYUP, 0
-    end
-
-    # types text message into window holding the focus
-    def type_in(message)
-      message.scan(/./m) do |char|
-        keystroke(*char.to_vkeys)
-      end
-    end
-
-    # finds top-level dialog window by title and yields it to given block
-    def dialog(title, seconds=3)
-      d = begin
-        win = Window.top_level(title, seconds)
-        yield(win) ? win : nil
-      rescue TimeoutError
-      end
-      d.wait_for_close if d
-      return d
-    end
-
-    # Thin wrapper class around window handle
-    class Window
-      include Win::Window
-      extend Win::Window
-
-      attr_reader :handle
-
-      # find top level window by title, return wrapped Window object
-      def self.top_level(title, seconds=3)
-        @handle = timeout(seconds) do
-          sleep WG_SLEEP_DELAY while (h = find_window nil, title) == nil; h
-        end
-        Window.new @handle
-      end
-
-      def initialize(handle)
-        @handle = handle
-      end
-
-      # find child window (control) by title, window class, or control ID:
-      def child(id)
-        result = case id
-          when String
-          by_title = find_window_ex @handle, 0, nil, id.gsub('_' , '&' )
-          by_class = find_window_ex @handle, 0, id, nil
-          by_title ? by_title : by_class
-          when Fixnum
-          get_dlg_item @handle, id
-          when nil
-          find_window_ex @handle, 0, nil, nil
-        else
-          nil
-        end
-        raise "Control '#{id}' not found" unless result
-        Window.new result
-      end
-
-      def children
-        enum_child_windows(@handle,'Msg').map{|child_handle| Window.new child_handle}
-      end
-
-      # emulate click of the control identified by id
-      def click(id)
-        h = child(id).handle
-        rectangle = [0, 0, 0, 0].pack 'LLLL'
-        get_window_rect h, rectangle
-        left, top, right, bottom = rectangle.unpack 'LLLL'
-        center = [(left + right) / 2, (top + bottom) / 2]
-        set_cursor_pos *center
-        mouse_event MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0
-        mouse_event MOUSEEVENTF_LEFTUP, 0, 0, 0, 0
-      end
-
-      def close
-        post_message @handle, WM_SYSCOMMAND, SC_CLOSE, 0
-      end
-
-      def wait_for_close
-        timeout(WG_CLOSE_TIMEOUT) do
-          sleep WG_SLEEP_DELAY while window_visible?(@handle)
-        end
-      end
-
-      def text
-        buffer = "\x0" * 2048
-        length = send_message @handle, WM_GETTEXT, buffer.length, buffer
-        length == 0 ? '' : buffer[0..length - 1]
-      end
-    end
-    
   end
 end

@@ -22,15 +22,15 @@ preferably not turning your code base into an ugly spaghetty of CamelCase calls,
 String/Array pack/unpack gymnastics, buffer/pointer allocations, extracting return
 values from [in/out] parameters and checking return codes for 0.
 
-You have several options at this point. You can use either 'win32-api' or 'ffi' libraries
+You have several options at this point. You can use 'win32-api' or 'ffi' libraries
 to connect your ruby code to Windows API and manually define wrapper methods for
 needed function calls. This is definitely a valid approach, even if it is a bit
-low-level one: you'll still have to handle (somewhat) gory details of callback
-announcement, argument preparation, mimicking pointers with Strings (or declaring
-pointers explicitly with FFI) and other stuff (like manually defining about a gazillion
-obscure Windows constants). As an example, consider the amount of code needed to complete
-a task as simple as getting unicode title text for the window that you already have handle
-for (using win32-api):
+low-level one: you'll have to handle (somewhat) gory details of callback announcement,
+argument preparation, mimicking pointers with Strings or declaring pointers explicitly
+with FFI and other stuff (like manually defining about a gazillion obscure Windows
+constants). As an example, consider the amount of code needed to complete a task as
+simple as getting unicode title text for the window that you already have handle for
+(using win32-api):
 
   api = Win32::API.new( 'GetWindowTextW', ['L', 'P', 'I'], 'L', 'user32' )
   buffer = "\x00" * 1024  # I just hope it will be enough...
@@ -60,22 +60,21 @@ As an alternative, you can use 'windows-pr' (pure ruby) library that gives you l
 Windows functions pre-defined and sectioned into modules, declares Windows constants and
 adds some other niceties. Unfortunately this library works only with MRI (not JRuby or
 other Ruby implementations), and still lacks Ruby look-and-feel for declared functions.
-It helps you to cut some of the declaration slack:
+It helps you to cut some of the declaration slack though:
 
-  num_chars = GetWindowTextW(window_handle, buffer ="\x00" * 1024 , buffer.size)
-  title = if num_chars == 0
+  title = if GetWindowTextW(window_handle, buffer ="\x00" * 1024 , buffer.size) == 0
     nil
   else
      buffer.force_encoding('utf-16LE').encode('utf-8').rstrip
   end
 
-But still, does not it look like TOO MUCH code for something that should (ideally) look like this:
+But still it seems like TOO MUCH code for something that should (ideally) look like this:
 
   title = window_text_w(window_handle)
 
 This is an idea behind this library - make Windows API functions easier to use and feel more
 natural inside Ruby code. Following the principle of least surprise, we define wrapper methods that:
-* Have Rubyesque names (minimized? instead of IsMinimized, etc)
+* Have meaningful Rubyesque names (iconic? and minimized? instead of IsIconic, etc)
 * Require minimum arguments with sensible defaults
 * Return appropriate values explicitly (several return values if necessary)
 * Have sensible returns (false/true instead of 0/nonzero for test functions, nil if find function fails, etc)
@@ -103,7 +102,7 @@ and code blocks to give you reusable API wrapper methods with the exact behavior
 == REQUIREMENTS:
 
 Only works with Ruby 1.9 compatible implementations since it uses some of the most recent features
-(block arguments given to block, etc...)
+(block arguments given to block, etc...).
 
 == FEATURES/PROBLEMS:
 

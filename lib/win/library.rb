@@ -402,6 +402,11 @@ module Win
       end
 
       ##
+      # :method: namespace
+      # This method is meta-generated when Win::Library module is included into other module/class
+      # It returns reference to including (host) module for use by Win::Library::API and class methods.
+
+      ##
       # Ensures that args count is equal to params count plus diff
       #
       def enforce_count(args, params, diff = 0)
@@ -411,27 +416,6 @@ module Win
           raise ArgumentError, "wrong number of arguments (#{num_args} for #{num_params})"
         end
       end
-
-      ##
-      # Returns string buffer - used to supply string pointer reference to API functions
-      #
-      def buffer(size = 1024, code = "\x00")
-        code * size
-      end
-
-      ##
-      # :method: namespace
-      # This method is meta-generated when Win::Library module is included into other module/class
-      # It returns reference to including (host) module for use by Win::Library::API and class methods.
-
-      ##
-      # Returns array of given args if none of them is zero,
-      # if any arg is zero, returns array of nils
-      #
-      def nonzero_array(*args)
-        args.any?{|arg| arg == 0 } ? args.map{||nil} : args
-      end
-
 
     end
 

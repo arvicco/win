@@ -1,40 +1,10 @@
-require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
-require 'win/window'
+require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
+require 'win/gui/window'
 
 module WinWindowTest
 
-  include WinTest
-  include Win::Window
-
-  def launch_test_app
-    system TEST_APP_START
-    sleep TEST_SLEEP_DELAY until (handle = find_window(nil, TEST_WIN_TITLE))
-
-    @launched_test_app = Window.new handle
-#    app = "Test app"    #need to get rid of Window for JRuby
-#    class << app; self; end.send( :define_method, :handle, &lambda {handle})
-#    @launched_test_app = app
-  end
-
-  def close_test_app(app = @launched_test_app)
-    while app and app.respond_to? :handle and find_window(nil, TEST_WIN_TITLE)
-      post_message(app.handle, WM_SYSCOMMAND, SC_CLOSE, 0)
-      sleep TEST_SLEEP_DELAY
-    end
-    @launched_test_app = nil
-  end
-
-  # Creates test app object and yields it back to the block
-  def test_app
-    app = launch_test_app
-
-    def app.textarea #define singleton method retrieving app's text area
-      Window.new find_window_ex(self.handle, 0, TEST_TEXTAREA_CLASS, nil)
-    end
-
-    yield app
-    close_test_app
-  end
+  include WinTestApp
+  include Win::Gui::Window
 
   def commands_should_show_window *cmds, tests
     cmds.each do |cmd|
@@ -57,8 +27,7 @@ module WinWindowTest
     end
   end
 
-
-  describe Win::Window, ' defines a set user32 API functions related to Window manipulation' do
+  describe Win::Gui::Window, ' defines a set user32 API functions related to Window manipulation' do
     describe '#window?' do
       spec{ use{ IsWindow(any_handle) }}
       spec{ use{ is_window(any_handle) }}
@@ -479,66 +448,6 @@ module WinWindowTest
           message.should == 0
         end
       end
-    end
-
-    describe '#keydb_event' do
-      spec{ use{ keybd_event(vkey = 0, bscan = 0, flags = 0, extra_info = 0) }}
-
-      it 'synthesizes a numeric keystrokes, emulating keyboard driver' do
-        test_app do |app|
-          text = '123 456'
-          text.upcase.each_byte do |b| # upcase needed since user32 keybd_event expects upper case chars
-            keybd_event(b.ord, 0, KEYEVENTF_KEYDOWN, 0)
-            sleep TEST_KEY_DELAY
-            keybd_event(b.ord, 0, KEYEVENTF_KEYUP, 0)
-            sleep TEST_KEY_DELAY
-          end
-          app.textarea.text.should =~ Regexp.new(text)
-          7.times {keystroke(VK_CONTROL, 'Z'.ord)} # dirty hack!
-        end
-      end
-    end
-
-    describe '#post_message' do
-      spec{ use{ success = post_message(handle = 0, msg = 0, w_param = 0, l_param = 0) }}
-      # handle (L) - Handle to the window whose window procedure will receive the message.
-      #   If this parameter is HWND_BROADCAST, the message is sent to all top-level windows in the system, including disabled or
-      #   invisible unowned windows, overlapped windows, and pop-up windows; but the message is not sent to child windows.
-      # msg (L) - Specifies the message to be posted.
-      # w_param (L) - Specifies additional message-specific information.
-      # l_param (L) - Specifies additional message-specific information.
-      # returns (L) - Nonzero if success, zero if function failed. To get extended error information, call GetLastError.
-
-      it 'places (posts) a message in the message queue associated with the thread that created the specified window'
-      it 'returns without waiting for the thread to process the message'
-    end
-
-    describe '#send_message' do
-      spec{ use{ success = send_message(handle = 0, msg = 0, w_param = 1024, l_param = "\x0"*1024) }}
-      # handle (L) - Handle to the window whose window procedure is to receive the message. The following values have special meanings.
-      #   HWND_BROADCAST - The message is posted to all top-level windows in the system, including disabled or invisible unowned windows,
-      #     overlapped windows, and pop-up windows. The message is not posted to child windows.
-      #   NULL - The function behaves like a call to PostThreadMessage with the dwThreadId parameter set to the identifier of the current thread.
-      # msg (L) - Specifies the message to be posted.
-      # w_param (L) - Specifies additional message-specific information.
-      # l_param (L) - Specifies additional message-specific information.
-      # return (L) - Nonzero if success, zero if function failed. To get extended error information, call GetLastError.
-
-      it 'sends the specified message to a window or windows'
-      it 'calls the window procedure and does not return until the window procedure has processed the message'
-    end
-
-    describe '#get_dlg_item' do
-      spec{ use{ control_handle = get_dlg_item(handle = 0, item_id = 1) }}
-      # handle (L) - Handle of the dialog box that contains the control.
-      # item_id (I) - Specifies the identifier of the control to be retrieved.
-      # Returns (L) - handle of the specified control if success or nil for invalid dialog box handle or a nonexistent control.
-      #   To get extended error information, call GetLastError.
-      #   You can use the GetDlgItem function with any parent-child window pair, not just with dialog boxes. As long as the handle
-      #   parameter specifies a parent window and the child window has a unique id (as specified by the hMenu parameter in the
-      #   CreateWindow or CreateWindowEx function that created the child window), GetDlgItem returns a valid handle to the child window.
-
-      it 'returns handle to correctly specified control'
     end
   end
 end

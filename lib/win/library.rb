@@ -394,11 +394,11 @@ module Win
       end
 
       ##
-      # Wrapper for FFI::Library#callback() that converts Win32/shortcut argument types into FFI-compliant types
-      #
+      # Wrapper for FFI::Library#callback() that converts Win32/shortcut argument types into FFI-compliant types.
+      # This method overrides FFI.callback which must be aliased to FFI.attach_callback
       def callback(name, params, returns)
         params, returns = generate_signature(params, returns)
-        ffi_callback name.to_sym, params, returns
+        attach_callback name.to_sym, params, returns
       end
 
       ##
@@ -425,11 +425,12 @@ module Win
     def self.included(klass)
       klass.extend FFI::Library
 
-      eigenklass = class << klass; self; end  # Extracting host class's eigenclass
-      eigenklass.class_eval "
-        alias_method :ffi_callback, :callback
-        def namespace; #{klass}; end"
-
+      eigenklass = class << klass; self; end      # Extracting host class's eigenclass
+      eigenklass.class_eval do
+        define_method(:namespace) {klass}         # Defining new class method for host pointing to itself
+        alias_method :attach_callback, :callback
+      end
+      
       klass.extend ClassMethods
       klass.ffi_lib 'user32', 'kernel32'  # Default libraries
       klass.ffi_convention :stdcall

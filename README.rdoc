@@ -97,26 +97,7 @@ and be done with it.
 And if you do not see your favorite Windows API functions among those already defined, it is
 quite easy to 'include Win::Library' into your module and define new ones with 'function' macro -
 it does a lot of heavy lifting for you and can be customized with options and code blocks to give
-you reusable API wrapper methods with the exact behavior you need. It goes something like this:
-
-  require 'win/library'
-
-  module YourLibModule
-    include Win::Library
-
-    function :FindWindow [:pointer, :pointer], :ulong, zeronil: true   # forces function to return nil if nothing found
-
-    function :GetWindowText, [ :pointer, :pointer, :int ], :int do |api, handle| # your own method extension in a block
-      buffer = FFI::MemoryPointer.new :char, 1024
-      buffer.put_string(0, "\x00" * 1023)
-      num_chars = api.call(handle, buffer, 1024)
-      return nil if num_chars == 0
-      string = buffer.get_bytes(0, num_chars)
-    end
-  end
-
-  handle = find_window(nil, nil) # find ANY window
-  puts window_text(handle)       # print its title
+you reusable API wrapper methods with the exact behavior you need.
 
 == REQUIREMENTS:
 
@@ -133,6 +114,7 @@ Contributors always welcome!
   $ gem install win
 
 == SYNOPSIS
+=== Using pre-defined Windows API functions:
 
   require 'win/window'
 
@@ -145,6 +127,31 @@ Contributors always welcome!
     hide_window(fg_window) if maximized?(fg_window)
     ...
   end
+
+=== Defining your own Windows API functions:
+
+  require 'win/library'
+
+  module YourLibModule
+    include Win::Library
+
+    # Customizing method behavior: zeronil forces function to return nil instead of 0, rename renames method
+    function :FindWindow, [:pointer, :pointer], :ulong, zeronil: true, rename: my_find
+
+    # Customizing even further: your own method extension in attached block
+    function :GetWindowText, [ :pointer, :pointer, :int ], :int do |api, handle|
+      buffer = FFI::MemoryPointer.new :char, 512
+      buffer.put_string(0, "\x00" * 511)
+      num_chars = api.call(handle, buffer, 512)
+      return nil if num_chars == 0
+      string = buffer.get_bytes(0, num_chars)
+    end
+  end
+
+  extend YourLibModule
+
+  handle = my_find(nil, nil)    # find ANY window
+  puts window_text(handle)      # print window title
 
 == PRIOR ART:
 

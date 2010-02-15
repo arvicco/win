@@ -1,7 +1,9 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 require 'win/library'
 
-module WinTest
+module WinLibraryTest
+
+  include WinTest
 
   module MyLib # namespace for defined functions
     include Win::Library
@@ -38,10 +40,6 @@ module WinTest
   def any_handle
     MyLib.function 'FindWindow', 'PP', 'L' unless respond_to? :find_window
     find_window(nil, nil)
-  end
-
-  def not_a_handle
-    123
   end
 
   def redefined_methods

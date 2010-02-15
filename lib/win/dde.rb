@@ -122,16 +122,6 @@ module Win
     #
     function 'RegisterClipboardFormat', 'P', 'I', zeronil: true
 
-    # Procedure that calls (DdeInitialize) function expecting a DdeCallback. Runtime block is converted
-    # into Dde callback and registered with DdeInitialize. Returns DDE init status and DDE instance id.
-    #
-    return_id_status = ->(api, id=0, cmd, &block){
-        raise ArgumentError, 'No callback block' unless block
-
-        status = api.call(id = [id].pack('L'), block, cmd, 0)
-        id = status == 0 ? id.unpack('L').first : nil
-        [id, status] }
-
     # DdeCallaback declaration
     # MSDN syntax: HDDEDATA CALLBACK DdeCallback( UINT uType, UINT uFmt, HCONV hconv, HDDEDATA hsz1, HDDEDATA hsz2,
     #                                             HDDEDATA hdata, HDDEDATA dwData1, HDDEDATA dwData2);
@@ -187,7 +177,15 @@ module Win
     # :call-seq:
     # id_inst, status = dde_initialize( id_inst = 0, cmd ) {|callback args| callback block}
     #
-    function 'DdeInitialize', [:pointer, :dde_callback, :DWORD, :DWORD], :uint, &return_id_status
+    function 'DdeInitialize', [:pointer, :dde_callback, :DWORD, :DWORD], :uint,
+             &->(api, old_id=0, cmd, &block){
+             raise ArgumentError, 'No callback block' unless block
+             id = FFI::MemoryPointer.new(:long)
+             id.write_long(old_id)
+             status = api.call(id, block, cmd, 0)
+             id = status == 0 ? id.read_long() : nil
+             [id, status] }
+    # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
 
     ##
     # The DdeCreateStringHandle function creates a handle that identifies the specified string.
@@ -217,7 +215,7 @@ module Win
     #   handle when it is no longer needed. An instance-specific string handle cannot be mapped from string
     #   handle to string and back to string handle.
     #
-    function 'DdeCreateStringHandle', [:DWORD, :pointer, :int], :HSZ
+    function 'DdeCreateStringHandle', [:DWORD, :pointer, :int], :HSZ, zeronil: true
 
   end
 end

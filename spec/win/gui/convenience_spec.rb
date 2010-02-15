@@ -174,5 +174,4 @@ module WinGuiTest
       it 'emulates clicking of the control identified by id'
     end
   end
-
 end

@@ -100,5 +100,4 @@ module WinTestApp
     yield app
     close_test_app app
   end
-
 end

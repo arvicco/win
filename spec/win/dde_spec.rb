@@ -66,3 +66,4 @@ module WinDDETest
     end
   end
 end
+

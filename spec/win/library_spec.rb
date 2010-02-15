@@ -364,6 +364,5 @@ module WinLibraryTest
         expect { enum_windows('Message'){|handle, message| true } }.to_not raise_error
       end
     end
-
   end
 end

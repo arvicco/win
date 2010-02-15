@@ -250,7 +250,6 @@ module Win
       #   success = set_cursor_pos(x,y)
       #
       function :SetCursorPos, [:int, :int], :bool
-      
     end
   end
 end

@@ -367,6 +367,7 @@ module Win
       # sets boolean flag for test functions (Is...)
       #
       def generate_names(name, options={})
+        name = name.to_s
         effective_names = [name]
         effective_names += ["#{name}A", "#{name}W"] unless name =~ /[WA]$/
         aliases = ([options[:alias]] + [options[:aliases]]).flatten.compact
@@ -435,6 +436,5 @@ module Win
       klass.ffi_lib 'user32', 'kernel32'  # Default libraries
       klass.ffi_convention :stdcall
     end
-
   end
 end

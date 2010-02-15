@@ -116,15 +116,14 @@ Contributors always welcome!
 == SYNOPSIS
 === Using pre-defined Windows API functions:
 
-  require 'win/window'
+  require 'win/gui'
 
   class MyClass
-    include Win::Window
+    include Win::Gui::Window
 
     fg_window = foreground_window
     puts window_text(fg_window)
     show_window(fg_window) unless minimized?(fg_window)
-    hide_window(fg_window) if maximized?(fg_window)
     ...
   end
 

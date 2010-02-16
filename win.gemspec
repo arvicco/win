@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{win}
-  s.version = "0.1.0"
+  s.version = "0.1.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["arvicco"]
-  s.date = %q{2010-02-15}
+  s.date = %q{2010-02-16}
   s.description = %q{Rubyesque interfaces and wrappers for Windows API functions pre-defined using FFI }
   s.email = %q{arvitallian@gmail.com}
   s.extra_rdoc_files = [
@@ -29,21 +29,21 @@ Gem::Specification.new do |s|
      "lib/win/dde.rb",
      "lib/win/extensions.rb",
      "lib/win/gui.rb",
-     "lib/win/gui/convenience.rb",
      "lib/win/gui/dialog.rb",
      "lib/win/gui/input.rb",
      "lib/win/gui/message.rb",
      "lib/win/gui/window.rb",
+     "lib/win/gui/window/window.rb",
      "lib/win/library.rb",
      "spec/spec.opts",
      "spec/spec_helper.rb",
      "spec/test_apps/locknote/LockNote.exe",
      "spec/win/dde_spec.rb",
      "spec/win/extensions_spec.rb",
-     "spec/win/gui/convenience_spec.rb",
      "spec/win/gui/dialog_spec.rb",
      "spec/win/gui/input_spec.rb",
      "spec/win/gui/message_spec.rb",
+     "spec/win/gui/window/window_spec.rb",
      "spec/win/gui/window_spec.rb",
      "spec/win/library_spec.rb",
      "win.gemspec"
@@ -57,10 +57,10 @@ Gem::Specification.new do |s|
     "spec/spec_helper.rb",
      "spec/win/dde_spec.rb",
      "spec/win/extensions_spec.rb",
-     "spec/win/gui/convenience_spec.rb",
      "spec/win/gui/dialog_spec.rb",
      "spec/win/gui/input_spec.rb",
      "spec/win/gui/message_spec.rb",
+     "spec/win/gui/window/window_spec.rb",
      "spec/win/gui/window_spec.rb",
      "spec/win/library_spec.rb"
   ]

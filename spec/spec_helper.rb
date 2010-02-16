@@ -47,7 +47,7 @@ module WinTest
   TEST_KEY_DELAY = 0.001
   TEST_IMPOSSIBLE = 'Impossible'
   TEST_CONVERSION_ERROR = /Can.t convert/
-  TEST_SLEEP_DELAY = 0.01
+  TEST_SLEEP_DELAY = 0.02
   TEST_APP_PATH = File.join(File.dirname(__FILE__), "test_apps/locknote/LockNote.exe" )
   TEST_APP_START = 'start "" "' + TEST_APP_PATH + '"'
   TEST_WIN_TITLE = 'LockNote - Steganos LockNote'
@@ -69,13 +69,13 @@ module WinTestApp
 
   include WinTest
   include Win::Gui
-  include Win::Gui::Convenience
+  #include Win::Gui::Convenience
 
   def launch_test_app
     system TEST_APP_START
     sleep TEST_SLEEP_DELAY until (handle = find_window(nil, TEST_WIN_TITLE))
 
-    @launched_test_app = WrapWindow.new handle
+    @launched_test_app = Window::Window.new handle
 #    app = "Test app"    #need to get rid of Window for JRuby
 #    class << app; self; end.send( :define_method, :handle, &lambda {handle})
 #    @launched_test_app = app
@@ -94,7 +94,7 @@ module WinTestApp
     app = launch_test_app
 
     def app.textarea #define singleton method retrieving app's text area
-      WrapWindow.new find_window_ex(self.handle, 0, TEST_TEXTAREA_CLASS, nil)
+      Window::Window.new find_window_ex(self.handle, 0, TEST_TEXTAREA_CLASS, nil)
     end
 
     yield app

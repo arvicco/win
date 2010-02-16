@@ -28,11 +28,41 @@ module WinWindowTest
     end
     
     describe '#mouse_event' do
+      spec { use {mouse_event( flags = MOUSEEVENTF_ABSOLUTE , dx = 0, dy = 0, data=0, extra_info=0 )}}
       it 'Emulates Mouse clicks'
     end
 
     describe '#set_cursor_pos' do
+      spec { use {success = set_cursor_pos(x=0, y=0)}}
       it 'how to test set_cursor_pos?'
+    end
+  end
+
+  describe Win::Gui::Input, ' defines convenience/service methods on top of Windows API' do
+    describe '#keystroke' do
+      spec{ use{ keystroke( vkey = 30, vkey = 30) }}
+
+      it 'emulates combinations of keys pressed (Ctrl+Alt+P+M, etc)' do
+        test_app do |app|
+          keystroke(VK_CONTROL, 'A'.ord)
+          keystroke(VK_SPACE)
+          app.textarea.text.should == ' '
+          2.times {keystroke(VK_CONTROL, 'Z'.ord)} # dirty hack!
+        end
+      end
+    end
+
+    describe '#type_in' do
+      spec{ use{ type_in(message = '') }}
+
+      it 'types text message into the window holding the focus' do
+        test_app do |app|
+          text = '12 34'
+          type_in(text)
+          app.textarea.text.should =~ Regexp.new(text)
+          5.times {keystroke(VK_CONTROL, 'Z'.ord)} # dirty hack!
+        end
+      end
     end
   end
 end

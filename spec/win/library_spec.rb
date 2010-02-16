@@ -162,33 +162,6 @@ module WinLibraryTest
       end
     end
 
-    context 'auto-defining Ruby-like boolean methods if API function name starts with "Is_"' do
-      before(:each) {MyLib.function 'IsWindow', 'L', 'L'}
-
-      it 'defines new instance method name dropping Is_ and adding ?' do
-        respond_to?(:window?).should be_true
-        respond_to?(:is_window).should be_true
-        respond_to?(:IsWindow).should be_true
-      end
-
-      it 'defined CamelCase method returns zero/non-zero as expected' do
-        IsWindow(any_handle).should_not == true
-        IsWindow(any_handle).should_not == 0
-        IsWindow(not_a_handle).should == 0
-      end
-
-      it 'defined snake_case method returns false/true instead of zero/non-zero' do
-        window?(any_handle).should == true
-        window?(not_a_handle).should == false
-        is_window(any_handle).should == true
-        is_window(not_a_handle).should == false
-      end
-
-      it 'defined methods enforce the argument count' do
-        should_count_args :window?, :is_window, :IsWindow,  [not_a_handle], [nil, not_a_handle, any_handle]
-      end
-    end
-
     context 'defining API with :boolean option converts result to boolean' do
       before(:each) { MyLib.function 'FindWindow', 'PP', 'L', :boolean => true }
 

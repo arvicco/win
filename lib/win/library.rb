@@ -364,7 +364,6 @@ module Win
       ##
       # Generates possible effective names for function in Win32 dll (name+A/W),
       # Rubyesque name and aliases for method(s) defined based on function name,
-      # sets boolean flag for test functions (Is...)
       #
       def generate_names(name, options={})
         name = name.to_s
@@ -375,7 +374,6 @@ module Win
         case method_name
           when /^is_/
             aliases << method_name.sub(/^is_/, '') + '?'
-            options[:boolean] = true
           when /^set_/
             aliases << method_name.sub(/^set_/, '')+ '='
           when /^get_/

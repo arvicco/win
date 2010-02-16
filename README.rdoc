@@ -116,41 +116,40 @@ Contributors always welcome!
 == SYNOPSIS
 === Using pre-defined Windows API functions:
 
-  require 'win/gui'
+    require 'win/gui'
 
-  class MyClass
+    class MyClass
     include Win::Gui::Window
 
     fg_window = foreground_window
     puts window_text(fg_window)
     show_window(fg_window) unless minimized?(fg_window)
     ...
-  end
+    end
 
 === Defining your own Windows API functions:
 
-  require 'win/library'
+    require 'win/library'
 
-  module YourLibModule
-    include Win::Library
+    module YourLibModule
+      include Win::Library
 
-    # Customizing method behavior: zeronil forces function to return nil instead of 0, rename renames method
-    function :FindWindow, [:pointer, :pointer], :ulong, zeronil: true, rename: my_find
+      # Customizing even further: your own method extension in attached block
+      function :GetWindowText, [ :ulong, :pointer, :int ], :int do |api, handle|
+        buffer = FFI::MemoryPointer.new :char, 512
+        buffer.put_string(0, "\x00" * 511)
+        num_chars = api.call(handle, buffer, 512)
+        num_chars == 0 ? nil : buffer.get_bytes(0, num_chars)
+      end
 
-    # Customizing even further: your own method extension in attached block
-    function :GetWindowText, [ :pointer, :pointer, :int ], :int do |api, handle|
-      buffer = FFI::MemoryPointer.new :char, 512
-      buffer.put_string(0, "\x00" * 511)
-      num_chars = api.call(handle, buffer, 512)
-      return nil if num_chars == 0
-      string = buffer.get_bytes(0, num_chars)
+      # Customizing method behavior: zeronil forces function to return nil instead of 0, rename renames method
+      function :FindWindow, [:pointer, :pointer], :ulong, zeronil: true, rename: :my_find
     end
-  end
 
-  extend YourLibModule
+    include YourLibModule
 
-  handle = my_find(nil, nil)    # find ANY window
-  puts window_text(handle)      # print window title
+    handle = my_find(nil, 'cmd')          # find any shell window
+    puts handle, window_text(handle)      # print shell window handle and title
 
 == PRIOR ART:
 

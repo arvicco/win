@@ -266,9 +266,9 @@ module WinWindowTest
       it 'returns correct window class name' do
         test_app do |app|
           get_class_name(app.handle).should == TEST_WIN_CLASS
-          get_class_name_w(app.handle).should == TEST_WIN_CLASS #!!!! nil?
-          class_name_w(app.handle).should == TEST_WIN_CLASS  #!!!!!!! nil?
           class_name(app.handle).should == TEST_WIN_CLASS
+          class_name_w(app.handle).should == TEST_WIN_CLASS  #!!!!!!!!! nil?
+          get_class_name_w(app.handle).should == TEST_WIN_CLASS #!!!!!! nil?
         end
       end
     end
@@ -408,6 +408,17 @@ module WinWindowTest
       end
     end
 
+    describe '#enum_desktop_windows' do
+      before(:all){@app = launch_test_app}
+      after(:all){close_test_app}
+
+      spec{ use{ handles = enum_desktop_windows(0, value = 13)   }}
+      spec{ use{ enum_desktop_windows(0) do |handle, message|
+      end  }}
+
+      it 'iterates through all the top-level windows for a given desktop'
+    end
+    
     describe '#enum_child_windows' do
       before(:all){@app = launch_test_app}
       after(:all){close_test_app}
@@ -449,6 +460,21 @@ module WinWindowTest
         end
       end
     end
+
+    describe Win::Gui::Window, ' defines convenience/service methods on top of Windows API' do
+      describe '#foreground' do
+        spec{ use{ foreground?( any_handle) }}
+      end
+      describe '#hide_window' do
+        spec{ use{ hide_window(any_handle) }}
+
+      end
+        it 'hides window: same as show_window(handle, SW_HIDE)' do
+          test_app do |app|
+            hide_window(app.handle)
+            visible?(app.handle).should == false
+          end
+        end
+      end
   end
 end
-

@@ -11,13 +11,6 @@ module WinGuiMessageTest
 
     describe '#post_message' do
       spec{ use{ success = post_message(handle = 0, msg = 0, w_param = 0, l_param = 0) }}
-      # handle (L) - Handle to the window whose window procedure will receive the message.
-      #   If this parameter is HWND_BROADCAST, the message is sent to all top-level windows in the system, including disabled or
-      #   invisible unowned windows, overlapped windows, and pop-up windows; but the message is not sent to child windows.
-      # msg (L) - Specifies the message to be posted.
-      # w_param (L) - Specifies additional message-specific information.
-      # l_param (L) - Specifies additional message-specific information.
-      # returns (L) - Nonzero if success, zero if function failed. To get extended error information, call GetLastError.
 
       it 'places (posts) a message in the message queue associated with the thread that created the specified window'
       it 'returns without waiting for the thread to process the message'

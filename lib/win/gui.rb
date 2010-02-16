@@ -2,7 +2,7 @@ require 'win/gui/window'
 require 'win/gui/input'
 require 'win/gui/message'
 require 'win/gui/dialog'
-require 'win/gui/convenience'
+require 'win/gui/window/window'
 
 module Win
   # Contains several modules defining Win32 API functions and constants related to Windows GUI (Graphical User Interface)
@@ -12,6 +12,5 @@ module Win
     include Win::Gui::Input
     include Win::Gui::Message
     include Win::Gui::Dialog
-    include Win::Gui::Convenience
   end
 end

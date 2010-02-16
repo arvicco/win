@@ -100,84 +100,141 @@ module Win
     # The RegisterClipboardFormat function registers a new clipboard format.
     # This format can then be used as a valid clipboard format.
     #
-    # Syntax: UINT RegisterClipboardFormat( LPCTSTR lpszFormat )
+    # [*Syntax*] UINT RegisterClipboardFormat( LPCTSTR lpszFormat )
     #
-    # Params:
-    #   format_name (P) - [in] Pointer to a null-terminated string that names the new format.
+    # lpszFormat:: [in] Pointer to a null-terminated string that names the new format.
     #
-    # Returns: (I) or nil
-    #   If the function succeeds, the return value identifies the registered clipboard format.
-    #   If the function fails, the return value is nil(not zero). For error information, call GetLastError.
-    #
-    # Remarks:
-    #   If a registered format with the specified name already exists, a new format is not registered and the
-    #   return value identifies the existing format. This enables more than one application to copy and paste
-    #   data using the same registered clipboard format. Note that the comparison is case-insensitive.
-    #   Registered clipboard formats are identified by values in the range 0xC000 through 0xFFFF.
-    #   When registered clipboard formats are placed on or retrieved from the clipboard, they must be in the
-    #   form of an HGLOBAL value.
+    # *Returns*:: :uint or nil. If the function succeeds, the return value identifies the registered clipboard format.
+    #             If the function fails, the return value is *nil*(not zero). For error info, call GetLastError.
+    # ---
+    # *Remarks*:
+    # If a registered format with the specified name already exists, a new format is not registered and the
+    # return value identifies the existing format. This enables more than one application to copy and paste
+    # data using the same registered clipboard format. Note that the comparison is case-insensitive.
+    # Registered clipboard formats are identified by values in the range 0xC000 through 0xFFFF.
+    # When registered clipboard formats are placed on or retrieved from the clipboard, they must be in the
+    # form of an HGLOBAL value.
     #
     # :call-seq:
-    # register_clipboard_format( format_name )
+    #   register_clipboard_format( format_name )
     #
-    function 'RegisterClipboardFormat', 'P', 'I', zeronil: true
+    function :RegisterClipboardFormat, [:pointer], :uint, zeronil: true
 
-    # DdeCallaback declaration
-    # MSDN syntax: HDDEDATA CALLBACK DdeCallback( UINT uType, UINT uFmt, HCONV hconv, HDDEDATA hsz1, HDDEDATA hsz2,
-    #                                             HDDEDATA hdata, HDDEDATA dwData1, HDDEDATA dwData2);
-    callback :dde_callback, [:uint, :uint, :HCONV, :HDDEDATA, :HDDEDATA, :HDDEDATA, :HDDEDATA, :HDDEDATA], :HDDEDATA
+    ##
+    # The DdeCallback function is an application-defined callback function used with the Dynamic Data Exchange
+    # Management Library (DDEML) functions. It processes Dynamic Data Exchange (DDE) transactions. The PFNCALLBACK
+    # type defines a pointer to this callback function. DdeCallback is a placeholder for the application-defined
+    # function name.
+    #
+    # [*Syntax*] HDDEDATA CALLBACK DdeCallback( UINT uType, UINT uFmt, HCONV hconv, HDDEDATA hsz1, HDDEDATA hsz2,
+    #            HDDEDATA hdata, HDDEDATA dwData1, HDDEDATA dwData2);
+    # uType:: [in] Specifies the type of the current transaction. This parameter consists of a combination of
+    #         transaction class flags and transaction type flags. The following table describes each of the
+    #         transaction classes and provides a list of the transaction types in each class. For information
+    #         about a specific transaction type, see the individual description of that type.
+    #         - XCLASS_BOOL - A DDE callback function should return TRUE or FALSE when it finishes processing a
+    #           transaction that belongs to this class. The XCLASS_BOOL class consists of the following types:
+    #           - XTYP_ADVSTART
+    #           - XTYP_CONNECT
+    #         - XCLASS_DATA - A DDE callback function should return a DDE handle, the CBR_BLOCK return code, or
+    #           NULL when it finishes processing a transaction that belongs to this class. The XCLASS_DATA
+    #           transaction class consists of the following types:
+    #           - XTYP_ADVREQ
+    #           - XTYP_REQUEST
+    #           - XTYP_WILDCONNECT
+    #         - XCLASS_FLAGS - A DDE callback function should return DDE_FACK, DDE_FBUSY, or DDE_FNOTPROCESSED
+    #           when it finishes processing a transaction that belongs to this class. The XCLASS_FLAGS transaction
+    #           class consists of the following types:
+    #           - XTYP_ADVDATA
+    #           - XTYP_EXECUTE
+    #           - XTYP_POKE
+    #         - XCLASS_NOTIFICATION - The transaction types that belong to this class are for notification purposes
+    #           only. The return value from the callback function is ignored. The XCLASS_NOTIFICATION transaction
+    #           class consists of the following types:
+    #           - XTYP_ADVSTOP
+    #           - XTYP_CONNECT_CONFIRM
+    #           - XTYP_DISCONNECT
+    #           - XTYP_ERROR
+    #           - XTYP_MONITOR
+    #           - XTYP_REGISTER
+    #           - XTYP_XACT_COMPLETE
+    #           - XTYP_UNREGISTER
+    # uFmt:: [in] Specifies the format in which data is sent or received.
+    # hconv:: [in] Handle to the conversation associated with the current transaction.
+    # hsz1:: [in] Handle to a string. The meaning of this parameter depends on the type of the current transaction.
+    #        For the meaning of this parameter, see the description of the transaction type.
+    # hsz2:: [in] Handle to a string. The meaning of this parameter depends on the type of the current transaction.
+    #        For the meaning of this parameter, see the description of the transaction type.
+    # hdata:: [in] Handle to DDE data. The meaning of this parameter depends on the type of the current transaction.
+    #         For the meaning of this parameter, see the description of the transaction type.
+    # dwData1:: [in] Specifies transaction-specific data. For the meaning, see the description of the transaction type.
+    # dwData2:: [in] Specifies transaction-specific data. For the meaning, see the description of the transaction type.
+    # *Returns*:: The return value depends on the transaction class. For more information about the return values,
+    #             see descriptions of the individual transaction types.
+    # ---
+    # *Remarks*:
+    # - The callback function is called asynchronously for transactions that do not involve the creation or termination
+    #   of conversations. An application that does not frequently accept incoming messages will have reduced DDE
+    #   performance because the Dynamic Data Exchange Management Library (DDEML) uses messages to initiate transactions.
+    # - An application must register the callback function by specifying a pointer to the function in a call to the
+    #   DdeInitialize function.
+    #
+    # :call-seq:
+    #  DdeCallback block: {|type, format, hconv, hsz1, hsz2, hdata, data1, data2| your code }
+    #
+    callback :DdeCallback, [:uint, :uint, :HCONV, :HDDEDATA, :HDDEDATA, :HDDEDATA, :HDDEDATA, :HDDEDATA], :HDDEDATA
 
     ##
     # The DdeInitialize function registers an application with the Dynamic Data Exchange Management Library (DDEML).
     # An application must call this function before calling any other DDEML function.
     #
-    # Syntax: UINT DdeInitialize( LPDWORD pidInst, PFNCALLBACK pfnCallback, DWORD afCmd, DWORD ulRes );
+    # [*Syntax*] UINT DdeInitialize( LPDWORD pidInst, PFNCALLBACK pfnCallback, DWORD afCmd, DWORD ulRes );
     #
-    # Params:
-    #   pidInst (P) - [in, out] Pointer to the application instance identifier.
-    #     At initialization, this parameter should point to 0. If the function succeeds, this parameter points to
-    #     the instance identifier for the application. This value should be passed as the idInst parameter in all
-    #     other DDEML functions that require it. If an application uses multiple instances of the DDEML dynamic-link
-    #     library (DLL), the application should provide a different callback function for each instance.
-    #     If pidInst points to a nonzero value, reinitialization of the DDEML is implied. In this case, pidInst must
-    #     point to a valid application-instance identifier.
-    #   pfnCallback (K) - [in] Pointer to the application-defined Dynamic Data Exchange (DDE) callback function.
-    #     This function processes DDE transactions sent by the system. For more information, see the DdeCallback.
-    #   afCmd (L) - [in] Specifies a set of APPCMD_, CBF_, and MF_ flags. The APPCMD_ flags provide special
-    #     instructions to DdeInitialize. The CBF_ flags specify filters that prevent specific types of transactions
-    #     from reaching the callback function. The MF_ flags specify the types of DDE activity that a DDE monitoring
-    #     application monitors. Using these flags enhances the performance of a DDE application by eliminating
-    #     unnecessary calls to the callback function. This parameter can be one or more of the following values:
-    # APPCLASS_MONITOR, APPCLASS_STANDARD, APPCMD_CLIENTONLY, APPCMD_FILTERINITS, 
-    # CBF_FAIL_ALLSVRXACTIONS, CBF_FAIL_ADVISES, CBF_FAIL_CONNECTIONS, CBF_FAIL_EXECUTES, CBF_FAIL_POKES
-    # CBF_FAIL_REQUESTS, CBF_FAIL_SELFCONNECTIONS, CBF_SKIP_ALLNOTIFICATIONS, CBF_SKIP_CONNECT_CONFIRMS
-    # CBF_SKIP_DISCONNECTS, CBF_SKIP_REGISTRATIONS, CBF_SKIP_UNREGISTRATIONS
-    # MF_CALLBACKS, MF_CONV, MF_ERRORS, MF_HSZ_INFO, MF_LINKS, MF_POSTMSGS, MF_SENDMSGS
-    #   ulRes (L) - Reserved; must be set to zero.
+    # pidInst:: [in, out] Pointer to the application instance identifier.
+    #           At initialization, this parameter should point to 0. If the function succeeds, this parameter points
+    #           to the instance identifier for the application. This value should be passed as the idInst parameter
+    #           in all other DDEML functions that require it. If an application uses multiple instances of the DDEML
+    #           dynamic-link library (DLL), the application should provide a different callback function for each
+    #           instance. If pidInst points to a nonzero value, reinitialization of the DDEML is implied. In this
+    #           case, pidInst must point to a valid application-instance identifier.
+    # pfnCallback:: Pointer to the application-defined Dynamic Data Exchange DdeCallback function. This function
+    #               processes DDE transactions sent by the system. For more information, see the DdeCallback.
+    # afCmd:: [in] Specifies a set of APPCMD_, CBF_, and MF_ flags. The APPCMD_ flags provide special
+    #         instructions to DdeInitialize. The CBF_ flags specify filters that prevent specific types of transactions
+    #         from reaching the callback function. The MF_ flags specify the types of DDE activity that a DDE monitoring
+    #         application monitors. Using these flags enhances the performance of a DDE application by eliminating
+    #         unnecessary calls to the callback function. This parameter can be one or more of the following values:
+    #         APPCLASS_MONITOR, APPCLASS_STANDARD, APPCMD_CLIENTONLY, APPCMD_FILTERINITS;
+    #         CBF_FAIL_ALLSVRXACTIONS, CBF_FAIL_ADVISES, CBF_FAIL_CONNECTIONS, CBF_FAIL_EXECUTES, CBF_FAIL_POKES
+    #         CBF_FAIL_REQUESTS, CBF_FAIL_SELFCONNECTIONS, CBF_SKIP_ALLNOTIFICATIONS, CBF_SKIP_CONNECT_CONFIRMS
+    #         CBF_SKIP_DISCONNECTS, CBF_SKIP_REGISTRATIONS, CBF_SKIP_UNREGISTRATIONS;
+    #         MF_CALLBACKS, MF_CONV, MF_ERRORS, MF_HSZ_INFO, MF_LINKS, MF_POSTMSGS, MF_SENDMSGS
+    # ulRes:: Reserved; must be set to zero.
     #
-    # Return Value:
-    #  If the function succeeds, the return value is DMLERR_NO_ERROR.
-    #  If the function fails, the return value is one of the following values:
-    #     DMLERR_DLL_USAGE
-    #     DMLERR_INVALIDPARAMETER
-    #     DMLERR_SYS_ERROR
-    #
-    #  Remarks:
-    #    An application that uses multiple instances of the DDEML must not pass DDEML objects between instances.
-    #    A DDE monitoring application should not attempt to perform DDE operations (establish conversations,
-    #    issue transactions, and so on) within the context of the same application instance. A synchronous
-    #    transaction fails with a DMLERR_REENTRANCY error if any instance of the same task has a synchronous
-    #    transaction already in progress. The CBF_FAIL_ALLSVRXACTIONS flag causes the DDEML to filter all server
-    #    transactions and can be changed by a subsequent call to DdeInitialize. The APPCMD_CLIENTONLY flag prevents
-    #    the DDEML from creating key resources for the server and cannot be changed by a subsequent call to
-    #    DdeInitialize. There is an ANSI version and a Unicode version of DdeInitialize. The version called
-    #    determines the type of the window procedures used to control DDE conversations (ANSI or Unicode),
-    #    and the default value for the iCodePage member of the CONVCONTEXT structure (CP_WINANSI or CP_WINUNICODE).
+    # *Returns*:: If the function succeeds, the return value is DMLERR_NO_ERROR. If the function fails, the return
+    #             value is one of the following values:
+    #             - DMLERR_DLL_USAGE
+    #             - DMLERR_INVALIDPARAMETER
+    #             - DMLERR_SYS_ERROR
+    # ---
+    # *Remarks*:
+    # - An application that uses multiple instances of the DDEML must not pass DDEML objects between instances.
+    # - A DDE monitoring application should not attempt to perform DDE operations (establish conversations,
+    #   issue transactions, and so on) within the context of the same application instance.
+    # - A synchronous transaction fails with a DMLERR_REENTRANCY error if any instance of the same task has
+    #   a synchronous transaction already in progress.
+    # - The CBF_FAIL_ALLSVRXACTIONS flag causes the DDEML to filter all server transactions and can be changed
+    #   by a subsequent call to DdeInitialize. The APPCMD_CLIENTONLY flag prevents the DDEML from creating key
+    #   resources for the server and cannot be changed by a subsequent call to DdeInitialize.
+    # - There is an ANSI version and a Unicode version of DdeInitialize. The version called determines the
+    #   type of the window procedures used to control DDE conversations (ANSI or Unicode), and the default
+    #   value for the iCodePage member of the CONVCONTEXT structure (CP_WINANSI or CP_WINUNICODE).
     #
     # :call-seq:
-    # id_inst, status = dde_initialize( id_inst = 0, cmd ) {|callback args| callback block}
+    #  instance_id, status = dde_initialize( instance_id = 0, cmd )
+    #  {|type, format, hconv, hsz1, hsz2, hdata, data1, data2| your dde_callback block}
     #
-    function 'DdeInitialize', [:pointer, :dde_callback, :DWORD, :DWORD], :uint,
+    function :DdeInitialize, [:pointer, :DdeCallback, :DWORD, :DWORD], :uint,
              &->(api, old_id=0, cmd, &block){
              raise ArgumentError, 'No callback block' unless block
              id = FFI::MemoryPointer.new(:long)
@@ -192,30 +249,32 @@ module Win
     # A Dynamic Data Exchange (DDE) client or server application can pass the string handle as a
     # parameter to other Dynamic Data Exchange Management Library (DDEML) functions.
     #
-    # Syntax: HSZ DdeCreateStringHandle( DWORD idInst, LPTSTR psz, int iCodePage );
+    # [*Syntax*] HSZ DdeCreateStringHandle( DWORD idInst, LPTSTR psz, int iCodePage );
     #
-    # Parameters:
-    #   idInst (L) - [in] Specifies the application instance identifier obtained by a previous call to the
-    #     DdeInitialize function.
-    #   psz (P) - [in] Pointer to a buffer that contains the null-terminated string for which a handle
-    #     is to be created. This string can be up to 255 characters. The reason for this limit is that
-    #     DDEML string management functions are implemented using global atoms.
-    #   iCodePage (I) -  [in] Specifies the code page used to render the string. This value should be either
-    #     CP_WINANSI (the default code page) or CP_WINUNICODE, depending on whether the ANSI or Unicode
-    #     version of DdeInitialize was called by the client application.
+    # idInst:: [in] Specifies the application instance identifier obtained by a previous call to the
+    #          DdeInitialize function.
+    # psz:: [in] Pointer to a buffer that contains the null-terminated string for which a handle
+    #       is to be created. This string can be up to 255 characters. The reason for this limit is that
+    #       DDEML string management functions are implemented using global atoms.
+    # iCodePage:: [in] Specifies the code page used to render the string. This value should be either
+    #             CP_WINANSI (the default code page) or CP_WINUNICODE, depending on whether the ANSI or Unicode
+    #             version of DdeInitialize was called by the client application.
     #
-    # Return Value (L) or nil: If the function succeeds, the return value is a string handle.
-    #   If the function fails, the return value is 0(changed to nil in enhanced version).
-    #   The DdeGetLastError function can be used to get the error code, which can be one of the following values:
-    # DMLERR_NO_ERROR, DMLERR_INVALIDPARAMETER, DMLERR_SYS_ERROR
+    # *Returns*:: (L) or nil: If the function succeeds, the return value is a string handle.
+    #             If the function fails, the return value is 0(changed to nil in enhanced version).
+    #             The DdeGetLastError function can be used to get the error code, which can be one of the
+    #             following values: DMLERR_NO_ERROR, DMLERR_INVALIDPARAMETER, DMLERR_SYS_ERROR
+    # ---
+    # *Remarks*: The value of a string handle is not related to the case of the string it identifies.
+    # When an application either creates a string handle or receives one in the callback function
+    # and then uses the DdeKeepStringHandle function to keep it, the application must free that string
+    # handle when it is no longer needed. An instance-specific string handle cannot be mapped from string
+    # handle to string and back to string handle.
     #
-    # Remarks: The value of a string handle is not related to the case of the string it identifies.
-    #   When an application either creates a string handle or receives one in the callback function
-    #   and then uses the DdeKeepStringHandle function to keep it, the application must free that string
-    #   handle when it is no longer needed. An instance-specific string handle cannot be mapped from string
-    #   handle to string and back to string handle.
+    # :call-seq:
+    #  string_handle = dde_create_string_handle( instance_id, string, code_page_id )
     #
-    function 'DdeCreateStringHandle', [:DWORD, :pointer, :int], :HSZ, zeronil: true
+    function :DdeCreateStringHandle, [:DWORD, :pointer, :int], :HSZ, zeronil: true
 
   end
 end

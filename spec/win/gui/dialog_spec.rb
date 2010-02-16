@@ -11,13 +11,6 @@ module WinWindowTest
 
     describe '#get_dlg_item' do
       spec{ use{ control_handle = get_dlg_item(handle = 0, item_id = 1) }}
-      # handle (L) - Handle of the dialog box that contains the control.
-      # item_id (I) - Specifies the identifier of the control to be retrieved.
-      # Returns (L) - handle of the specified control if success or nil for invalid dialog box handle or a nonexistent control.
-      #   To get extended error information, call GetLastError.
-      #   You can use the GetDlgItem function with any parent-child window pair, not just with dialog boxes. As long as the handle
-      #   parameter specifies a parent window and the child window has a unique id (as specified by the hMenu parameter in the
-      #   CreateWindow or CreateWindowEx function that created the child window), GetDlgItem returns a valid handle to the child window.
 
       it 'returns handle to correctly specified control'
 
@@ -37,6 +30,28 @@ module WinWindowTest
       end
     end
 
+    describe Win::Gui::Dialog, ' defines convenience/service methods on top of Windows API' do
+      describe 'dialog' do
+        spec{ use{ dialog( title ='Dialog Title', timeout_sec = 0.001, &any_block)  }}
+
+        it 'finds top-level dialog window by title' do
+          pending 'Some problems (?with timeouts?) leave window open ~half of the runs'
+          test_app do |app|
+            keystroke(VK_ALT, 'F'.ord, 'A'.ord)
+            @found = false
+            dialog('Save As', 0.5) do |dialog_window|
+              @found = true
+              keystroke(VK_ESCAPE)
+              dialog_window
+            end
+            @found.should == true
+          end
+        end
+
+        it 'yields found dialog window to a given block'
+
+      end
+    end
   end
 end
 

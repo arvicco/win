@@ -394,8 +394,7 @@ module Win
       function :GetWindowThreadProcessId, [:ulong, :pointer], :long,
                &->(api, *args) {
                namespace.enforce_count( args, api.prototype, -1)
-               process = FFI::MemoryPointer.new(:long)
-               process.write_long(1)
+               process = FFI::MemoryPointer.new(:long).write_long(1)
                thread = api.call(args.first, process)
                thread == 0 ? [nil, nil] : [thread, process.read_long()] }
       # weird lambda literal instead of normal block is needed because current version of RDoc
@@ -429,7 +428,7 @@ module Win
                &->(api, *args) {
                namespace.enforce_count( args, api.prototype, -1)
                rect = FFI::MemoryPointer.new(:long, 4)
-               rect.write_array_of_long([0, 0, 0, 0])
+               #rect.write_array_of_long([0, 0, 0, 0])
                res = api.call args.first, rect
                res == 0 ? [nil, nil, nil, nil] :  rect.read_array_of_long(4) }
       # weird lambda literal instead of normal block is needed because current version of RDoc

@@ -13,6 +13,10 @@ module WinDDETest
     ->{}
   end
 
+  def zero_id
+    FFI::MemoryPointer.new(:long).write_long(0)
+  end
+
   describe Win::DDE, ' contains a set of pre-defined Windows API functions' do
     describe 'register_clipboard_format' do
       spec{ use{ RegisterClipboardFormat(format_name = "XlTable") }}
@@ -36,7 +40,7 @@ module WinDDETest
     end
 
     describe 'dde_initialize' do
-      spec{ use{ status = DdeInitialize( id = [0].pack('L'), dde_callback, dde_cmd, unused = 0)}}
+      spec{ use{ status = DdeInitialize( zero_id, dde_callback, dde_cmd, unused = 0)}}
       spec{ use{ id, status = dde_initialize( id = 0, dde_cmd) do|*args|  end }}
 
       it 'returns integer id and DMLERR_NO_ERROR if initialization successful' do
@@ -65,6 +69,7 @@ module WinDDETest
       after(:each) {dde_uninitialize(@instance_id)}
 
       describe '#dde_uninitialize' do
+        
         spec{ use{ status = DdeUninitialize( @instance_id ) }}
         spec{ use{ id, status = dde_uninitialize( @instance_id) }}
 

@@ -235,7 +235,7 @@ module Win
       # App-specific (non-reserved) messages above this one (WM_App+1, etc...)
       WM_APP                        = 0x8000
 
-      # Sys Commands: 
+      # Sys Commands:
 
       #
       SC_SIZE         = 0xF000
@@ -373,8 +373,48 @@ module Win
       #
       function :PostMessage, [:ulong, :uint, :long, :uint], :bool
 
+      ##
+      # The SendMessage function sends the specified message to a window or windows. It calls the window procedure for
+      # the specified window and does not return until the window procedure has processed the message.
+      #
+      # To send a message and return immediately, use the SendMessageCallback or SendNotifyMessage function. To post a
+      # message to a thread's message queue and return immediately, use the PostMessage or PostThreadMessage function.
+      #
+      #
+      # [*Syntax*] LRESULT SendMessage( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam );
+      #
+      # hWnd:: [in] Handle to the window whose window procedure will receive the message. If this parameter is
+      #        HWND_BROADCAST, the message is sent to all top-level windows in the system, including disabled or
+      #        invisible unowned windows, overlapped windows, and pop-up windows; but the message is not sent to
+      #        child windows.
+      #        Microsoft Windows Vista and later. Message sending is subject to User Interface Privilege Isolation
+      #        (UIPI). The thread of a process can send messages only to message queues of threads in processes of
+      #        lesser or equal integrity level.
+      # Msg:: [in] Specifies the message to be sent.
+      # wParam:: [in] Specifies additional message-specific information.
+      # lParam:: [in] Specifies additional message-specific information.
+      #
+      # *Return*:: The return value specifies the result of the message processing; it depends on the message sent.
+      # ---
+      # *Remarks*:
+      # - Microsoft Windows Vista and later. When a message is blocked by UIPI the last error, retrieved with
+      #   GetLastError, is set to 5 (access denied).
+      # - Applications that need to communicate using HWND_BROADCAST should use the RegisterWindowMessage function
+      #   to obtain a unique message for inter-application communication.
+      # - The system only does marshalling for system messages (those in the range 0 to (WM_USER-1)). To send other
+      #   messages (those >= WM_USER) to another process, you must do custom marshalling.
+      # - If the specified window was created by the calling thread, the window procedure is called immediately as
+      #   a subroutine. If the specified window was created by a different thread, the system switches to that thread
+      #   and calls the appropriate window procedure. Messages sent between threads are processed only when the
+      #   receiving thread executes message retrieval code. The sending thread is blocked until the receiving thread
+      #   processes the message. However, the sending thread will process incoming nonqueued messages while waiting
+      #   for its message to be processed. To prevent this, use SendMessageTimeout with SMTO_BLOCK set. For more
+      #   information on nonqueued messages, see Nonqueued Messages.
+      #
+      #:call-seq:
+      # send_message(handle, msg, w_param, l_param)
+      #
       function :SendMessage, 'LLLP', 'L'
-
 
     end
   end

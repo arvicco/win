@@ -10,6 +10,7 @@ module WinGuiMessageTest
   describe Win::Gui::Message do
 
     describe '#post_message' do
+      spec{ use{ success = PostMessage(handle = 0, msg = 0, w_param = 0, l_param = 0) }}
       spec{ use{ success = post_message(handle = 0, msg = 0, w_param = 0, l_param = 0) }}
 
       it 'places (posts) a message in the message queue associated with the thread that created the specified window'
@@ -17,6 +18,7 @@ module WinGuiMessageTest
     end
 
     describe '#send_message' do
+      spec{ use{ success = SendMessage(handle = 0, msg = 0, w_param = 1024, l_param = "\x0"*1024) }}
       spec{ use{ success = send_message(handle = 0, msg = 0, w_param = 1024, l_param = "\x0"*1024) }}
       # handle (L) - Handle to the window whose window procedure is to receive the message. The following values have special meanings.
       #   HWND_BROADCAST - The message is posted to all top-level windows in the system, including disabled or invisible unowned windows,

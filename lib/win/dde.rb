@@ -252,8 +252,7 @@ module Win
     function :DdeInitialize, [:pointer, :DdeCallback, :uint32, :uint32], :uint,
              &->(api, old_id=0, cmd, &block){
              raise ArgumentError, 'No callback block' unless block
-             id = FFI::MemoryPointer.new(:long)
-             id.write_long(old_id)
+             id = FFI::MemoryPointer.new(:long).write_long(old_id)
              status = api.call(id, block, cmd, 0)
              id = status == 0 ? id.read_long() : nil
              [id, status] }

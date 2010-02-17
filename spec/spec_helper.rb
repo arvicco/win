@@ -13,16 +13,25 @@ module ClassMacros
   # spec { use{    function(arg1 = 4, arg2 = 'string')  }}
   def spec &block
     if RUBY_PLATFORM =~ /java/
-      it 'not able to extract description', &block
+#      it 'not able to extract description', &block
+      it description_from(caller[0]), &block # it description_from(*block.source_location), &block
     else
-      it description_from(*block.source_location), &block
+      it description_from(caller[0]), &block # it description_from(*block.source_location), &block
+      #do lambda(&block).should_not raise_error end
     end
   end
 
-  # reads description line from source file and drops external brackets (like its{}, use{}
-  def description_from(file, line)
+  # reads description line from source file and drops external brackets like its{}, use{}
+  # accepts as arguments either file name and line or call stack member (caller[0])
+  def description_from(*args)
+    case args.size
+      when 1
+        file, line = args.first.scan(/\A(.*?):(\d+)/).first
+      when 2
+        file, line = args
+    end
     File.open(file) do |f|
-      f.lines.to_a[line-1].gsub( /(spec.*?{)|(use.*?{)|}/, '' ).strip
+      f.lines.to_a[line.to_i-1].gsub( /(spec.*?{)|(use.*?{)|}/, '' ).strip
     end
   end
 end
@@ -32,6 +41,7 @@ module InstanceMacros
   def use
     lambda{yield}.should_not raise_error
   end
+
   def any_block
     lambda{|*args| args}
   end
@@ -40,6 +50,12 @@ end
 Spec::Runner.configure do |config|
   config.extend(ClassMacros)
   config.include(InstanceMacros)
+
+  class << Spec::ExampleGroup
+#    def spoc &block
+#      it description_from(caller[0]), &block
+#    end
+  end
 end
 
 module WinTest

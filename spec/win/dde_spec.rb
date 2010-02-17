@@ -37,8 +37,7 @@ module WinDDETest
 
     describe 'dde_initialize' do
       spec{ use{ status = DdeInitialize( id = [0].pack('L'), dde_callback, dde_cmd, unused = 0)}}
-      spec{ use{ id, status = dde_initialize( id = 0, dde_cmd) do|*args|
-      end }}
+      spec{ use{ id, status = dde_initialize( id = 0, dde_cmd) do|*args|  end }}
 
       it 'returns integer id and DMLERR_NO_ERROR if initialization successful' do
         id, status = dde_initialize(APPCLASS_STANDARD) {|*args| }
@@ -61,36 +60,79 @@ module WinDDETest
       end
     end
 
-    describe '#dde_create_string_handle' do
-      spec{ use{ string_handle = DdeCreateStringHandle(instance_id=0, string='Any String', code_page_id=CP_WINANSI) }}
-      spec{ use{ string_handle = dde_create_string_handle(instance_id=0, string='Any String', code_page_id=CP_WINANSI)}}
+    context 'after initialization:' do
+      before(:each) {@instance_id, status = dde_initialize(APPCLASS_STANDARD) {|*args| }}
+      after(:each) {dde_uninitialize(@instance_id)}
 
-      it 'returns nonzero Integer handle to a string (passable to other DDEML functions)' do
-        id, status = dde_initialize(APPCLASS_STANDARD) {|*args| }
+      describe '#dde_uninitialize' do
+        spec{ use{ status = DdeUninitialize( @instance_id ) }}
+        spec{ use{ id, status = dde_uninitialize( @instance_id) }}
 
-        string_handle = dde_create_string_handle(id, 'My String', CP_WINANSI)
-        string_handle.should be_an Integer
-        string_handle.should_not == 0
+        it 'returns true if uninitialization successful' do
+          res = dde_uninitialize(@instance_id)
+          res.should == true
+        end
+
+        it 'returns false if initialization unsuccessful' do
+          res = dde_uninitialize(12345)
+          res.should == false
+        end
       end
 
-    end
+      describe '#dde_create_string_handle' do
+        spec{ use{ string_handle = DdeCreateStringHandle(instance_id=0, string='Any String', code_page_id=CP_WINANSI) }}
+        spec{ use{ string_handle = dde_create_string_handle(instance_id=0, string='Any String', code_page_id=CP_WINANSI)}}
 
-    describe '#dde_name_service' do
-      spec{ use{ success = dde_name_service( instance_id=0, string_handle=0, cmd=DNS_UNREGISTER ) }}
-      spec{ use{ success = DdeNameService( instance_id=0, string_handle=0, reserved=0, cmd=DNS_UNREGISTER) }}
+        it 'returns nonzero Integer handle to a string (passable to other DDEML functions)' do
+          string_handle = dde_create_string_handle(@instance_id, 'My String', CP_WINANSI)
+          string_handle.should be_an Integer
+          string_handle.should_not == 0
+        end
 
-      it 'registers or unregisters the service names that DDE server supports' do
-        id, status = dde_initialize(APPCLASS_STANDARD) {|*args| }
-        name_handle = dde_create_string_handle(id, 'MyServer', CP_WINANSI)
+        it 'returns nil if unable to register handle to a string' do
+          string_handle = dde_create_string_handle(@instance_id, "", CP_WINANSI)
+          string_handle.should == nil
+        end
 
-        success = dde_name_service( id, name_handle, DNS_REGISTER )
-        success.should == true
-
-        success = dde_name_service( id, name_handle, DNS_UNREGISTER )
-        success.should == true
       end
 
-    end
+      context "with dde string handle 'MyString':" do
+        before(:each) {@string_handle = dde_create_string_handle(@instance_id, 'My String', CP_WINANSI)}
+        after(:each) {dde_free_string_handle(@instance_id, @string_handle)}
 
+        describe '#dde_free_string_handle' do
+
+          spec{ use{ success = DdeFreeStringHandle( @instance_id, @string_handle)}}
+          spec{ use{ success = dde_free_string_handle( @instance_id, @string_handle )}}
+
+          it 'returns true when freeing string handle registered with DDEML' do
+            res = dde_free_string_handle(@instance_id, @string_handle)
+            res.should == true
+          end
+
+          it 'returns false attempting to free unregistered handle' do
+            res = dde_free_string_handle(@instance_id, 12345)
+            res.should == false
+          end
+
+        end
+
+        describe '#dde_name_service' do
+          spec{ use{ success = dde_name_service(@instance_id, @string_handle, cmd=DNS_UNREGISTER ) }}
+          spec{ use{ success = DdeNameService(@instance_id, @string_handle, reserved=0, cmd=DNS_UNREGISTER) }}
+
+          it 'registers or unregisters the service names that DDE server supports' do
+
+            success = dde_name_service( @instance_id, @string_handle, DNS_REGISTER )
+            success.should == true
+
+            success = dde_name_service( @instance_id, @string_handle, DNS_UNREGISTER )
+            success.should == true
+          end
+        end
+
+
+      end
+    end
   end
 end

@@ -12,11 +12,20 @@ module Win
 
     # DDE name service afCmd commands used by DdeNameService function:
 
-    #
+    # Registers the service name.
+
     DNS_REGISTER = 1
+    # Unregisters the service name. If the hsz1 parameter is 0L, all service names registered by the server will be unregistered.
     DNS_UNREGISTER = 2
-    DNS_FILTERON   = 4,
-            DNS_FILTEROFF  = 8
+    # Turns on service name initiation filtering. The filter prevents a server from receiving
+    # XTYP_CONNECT transactions for service names it has not registered. This is the default
+    # setting for this filter. If a server application does not register any service names,
+    # the application cannot receive XTYP_WILDCONNECT transactions.
+    DNS_FILTERON   = 4
+    # Turns off service name initiation filtering. If this flag is specified, the server
+    # receives an XTYP_CONNECT transaction whenever another DDE application calls the
+    # DdeConnect function, regardless of the service name.
+    DNS_FILTEROFF  = 8
 
     XTYP_CONNECT = 0x60
     XTYP_DISCONNECT = 0xC0
@@ -122,7 +131,7 @@ module Win
     # form of an HGLOBAL value.
     #
     # :call-seq:
-    #   register_clipboard_format( format_name )
+    #   format_id = register_clipboard_format( format_name )
     #
     function :RegisterClipboardFormat, [:pointer], :uint, zeronil: true
 
@@ -251,6 +260,25 @@ module Win
     # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
 
     ##
+    # The DdeUninitialize function frees all Dynamic Data Exchange Management Library (DDEML) resources associated
+    # with the calling application.
+    #
+    # [*Syntax*] BOOL DdeUninitialize( DWORD idInst);
+    #
+    # idInst:: [in] Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
+    # *Returns*:: If the function succeeds, the return value is nonzero.
+    #             If the function fails, the return value is zero.
+    # ---
+    # *Remarks*
+    # DdeUninitialize terminates any conversations currently open for the application.
+    #
+    # :call-seq:
+    #  success = dde_uninitialize( instance_id )
+    #
+    function :DdeUninitialize, [:uint32], :int, boolean: true
+
+
+    ##
     # The DdeCreateStringHandle function creates a handle that identifies the specified string.
     # A Dynamic Data Exchange (DDE) client or server application can pass the string handle as a
     # parameter to other Dynamic Data Exchange Management Library (DDEML) functions.
@@ -282,6 +310,29 @@ module Win
     #
     function :DdeCreateStringHandle, [:uint32, :pointer, :int], :ulong, zeronil: true
 
+    ##
+    # The DdeFreeStringHandle function frees a string handle in the calling application.
+    #
+    # [*Syntax*] BOOL DdeFreeStringHandle( DWORD idInst, HSZ hsz );
+    #
+    # idInst:: [in] Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
+    # hsz:: [in, out] Handle to the string handle to be freed. This handle must have been created by a previous call
+    #       to the DdeCreateStringHandle function.
+    # *Returns*:: If the function succeeds, the return value is nonzero. If the function fails, it is zero.
+    # ---
+    # <b> Enhanced snake_case API returns boolean true/false as a success indicator. </b>
+    # ---
+    # *Remarks*:
+    # An application can free string handles it creates with DdeCreateStringHandle but should not free those that
+    # the system passed to the application's Dynamic Data Exchange (DDE) callback function or those returned in the
+    # CONVINFO structure by the DdeQueryConvInfo function.
+    #
+    # :call-seq:
+    #  success = dde_free_string_handle( instance_id, string_handle )
+    #
+    function :DdeFreeStringHandle, [:uint32, :ulong], :int, boolean: true
+
+    ##
     # The DdeNameService function registers or unregisters the service names a Dynamic Data Exchange (DDE) server
     # supports. This function causes the system to send XTYP_REGISTER or XTYP_UNREGISTER transactions to other running
     # Dynamic Data Exchange Management Library (DDEML) client applications.
@@ -293,8 +344,8 @@ module Win
     #        An application that is unregistering all of its service names should set this parameter to 0L.
     # hsz2:: Reserved; should be set to 0L.
     # afCmd:: [in] Specifies the service name options. This parameter can be one of the following values.
-    #         DNS_REGISTER::  Registers the error code service name.
-    #         DNS_UNREGISTER:: Unregisters the error code service name. If the hsz1 parameter is 0L,
+    #         DNS_REGISTER::  Registers the service name.
+    #         DNS_UNREGISTER:: Unregisters the service name. If the hsz1 parameter is 0L,
     #                          all service names registered by the server will be unregistered.
     #         DNS_FILTERON:: Turns on service name initiation filtering. The filter prevents a server from receiving
     #                        XTYP_CONNECT transactions for service names it has not registered. This is the default
@@ -303,15 +354,17 @@ module Win
     #         DNS_FILTEROFF:: Turns off service name initiation filtering. If this flag is specified, the server
     #                         receives an XTYP_CONNECT transaction whenever another DDE application calls the
     #                         DdeConnect function, regardless of the service name.
-    # *Returns*:: - If the function succeeds, it returns a nonzero value. That value is not a true HDDEDATA value,
-    #               merely a Boolean indicator of success. The function is typed HDDEDATA to allow for possible
-    #               future expansion of the function and a more sophisticated return value.
-    #             - If the function fails, the return value is 0L.
-    #             The DdeGetLastError function can be used to get the error code, which can be one of the following:
+    # *Returns*:: If the function succeeds, it returns nonzero (*true* in snake_case method). For CamelCase, that
+    #             value is not really HDDEDATA value, but merely a Boolean indicator of success. The function is
+    #             typed HDDEDATA to allow for future expansion of the function and more sophisticated returns.
+    #             If the function fails, the return value is 0L (*false* in snake_case method). The DdeGetLastError
+    #             function can be used to get the error code, which can be one of the following:
     #             - DMLERR_DLL_NOT_INITIALIZED
     #             - DMLERR_DLL_USAGE
     #             - DMLERR_INVALIDPARAMETER
     #             - DMLERR_NO_ERROR
+    # ---
+    # <b> Enhanced API accepts only 3 parameters (get rid of reserved hsz2) and returns boolean true/false. </b>
     # ---
     # *Remarks*:
     # The service name identified by the hsz1 parameter should be a base name (that is, the name should contain no
@@ -325,6 +378,7 @@ module Win
     function :DdeNameService, [:uint32, :ulong, :ulong, :uint], :ulong,
              &->(api, id, string_handle, cmd){ api.call(id, string_handle, 0, cmd) != 0 }
     # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
+
 
   end
 end

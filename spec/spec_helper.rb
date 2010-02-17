@@ -12,13 +12,8 @@ module ClassMacros
   # wrapper for it method that extracts description from example source code, such as:
   # spec { use{    function(arg1 = 4, arg2 = 'string')  }}
   def spec &block
-    if RUBY_PLATFORM =~ /java/
-#      it 'not able to extract description', &block
-      it description_from(caller[0]), &block # it description_from(*block.source_location), &block
-    else
-      it description_from(caller[0]), &block # it description_from(*block.source_location), &block
-      #do lambda(&block).should_not raise_error end
-    end
+    it description_from(caller[0]), &block # it description_from(*block.source_location), &block
+    #do lambda(&block).should_not raise_error end
   end
 
   # reads description line from source file and drops external brackets like its{}, use{}

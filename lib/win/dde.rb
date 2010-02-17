@@ -232,6 +232,11 @@ module Win
     #             - DMLERR_INVALIDPARAMETER
     #             - DMLERR_SYS_ERROR
     # ---
+    # <b> Enhanced API accepts only 2 parameters (get rid of reserved hsz2):
+    # instance_id:: (optional) Application instance identifier. At initialization, this parameter should be 0, nil
+    #               or omitted altogether. If it is nonzero/non-nil, reinitialization of the DDEML is implied.
+    # cmd(afCmd):: obligatory set of flags
+    # ---
     # *Remarks*:
     # - An application that uses multiple instances of the DDEML must not pass DDEML objects between instances.
     # - A DDE monitoring application should not attempt to perform DDE operations (establish conversations,
@@ -246,12 +251,13 @@ module Win
     #   value for the iCodePage member of the CONVCONTEXT structure (CP_WINANSI or CP_WINUNICODE).
     #
     # :call-seq:
-    #  instance_id, status = dde_initialize( instance_id = 0, cmd )
+    #  instance_id, status = dde_initialize( [instance_id = 0], cmd )
     #  {|type, format, hconv, hsz1, hsz2, hdata, data1, data2| your dde_callback block}
     #
     function :DdeInitialize, [:pointer, :DdeCallback, :uint32, :uint32], :uint,
              &->(api, old_id=0, cmd, &block){
              raise ArgumentError, 'No callback block' unless block
+             old_id = 0 unless old_id
              id = FFI::MemoryPointer.new(:long).write_long(old_id)
              status = api.call(id, block, cmd, 0)
              id = status == 0 ? id.read_long() : nil

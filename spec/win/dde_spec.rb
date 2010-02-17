@@ -41,9 +41,23 @@ module WinDDETest
 
     describe 'dde_initialize' do
       spec{ use{ status = DdeInitialize( zero_id, dde_callback, dde_cmd, unused = 0)}}
-      spec{ use{ id, status = dde_initialize( id = 0, dde_cmd) do|*args|  end }}
+      spec{ use{ id, status = dde_initialize( instance_id = 0, dde_cmd) do|*args|  end }}
 
-      it 'returns integer id and DMLERR_NO_ERROR if initialization successful' do
+      it 'with zero instance_id, returns integer id and DMLERR_NO_ERROR if initialization successful' do
+        id, status = dde_initialize(0, APPCLASS_STANDARD) {|*args| }
+        id.should be_an Integer
+        id.should_not == 0
+        status.should == DMLERR_NO_ERROR
+      end
+
+      it 'with nil instance_id, returns integer id and DMLERR_NO_ERROR if initialization successful' do
+        id, status = dde_initialize(nil, APPCLASS_STANDARD) {|*args| }
+        id.should be_an Integer
+        id.should_not == 0
+        status.should == DMLERR_NO_ERROR
+      end
+
+      it 'with omitted instance_id, returns integer id and DMLERR_NO_ERROR if initialization successful' do
         id, status = dde_initialize(APPCLASS_STANDARD) {|*args| }
         id.should be_an Integer
         id.should_not == 0

@@ -10,14 +10,20 @@ module Win
     # Windows ANSI codepage:
     CP_WINANSI = 1004
 
+    # DDE name service afCmd commands used by DdeNameService function:
+
     #
     DNS_REGISTER = 1
     DNS_UNREGISTER = 2
+    DNS_FILTERON   = 4,
+            DNS_FILTEROFF  = 8
 
     XTYP_CONNECT = 0x60
     XTYP_DISCONNECT = 0xC0
     XTYP_POKE = 0x90
     XTYP_ERROR = 0x00
+
+    # DdeInitialize afCmd flaggs:
 
     # Registers the application as a standard (nonmonitoring) DDEML application.
     APPCLASS_STANDARD         = 0
@@ -234,7 +240,7 @@ module Win
     #  instance_id, status = dde_initialize( instance_id = 0, cmd )
     #  {|type, format, hconv, hsz1, hsz2, hdata, data1, data2| your dde_callback block}
     #
-    function :DdeInitialize, [:pointer, :DdeCallback, :DWORD, :DWORD], :uint,
+    function :DdeInitialize, [:pointer, :DdeCallback, :uint32, :uint32], :uint,
              &->(api, old_id=0, cmd, &block){
              raise ArgumentError, 'No callback block' unless block
              id = FFI::MemoryPointer.new(:long)
@@ -274,7 +280,51 @@ module Win
     # :call-seq:
     #  string_handle = dde_create_string_handle( instance_id, string, code_page_id )
     #
-    function :DdeCreateStringHandle, [:DWORD, :pointer, :int], :HSZ, zeronil: true
+    function :DdeCreateStringHandle, [:uint32, :pointer, :int], :ulong, zeronil: true
+
+    # The DdeNameService function registers or unregisters the service names a Dynamic Data Exchange (DDE) server
+    # supports. This function causes the system to send XTYP_REGISTER or XTYP_UNREGISTER transactions to other running
+    # Dynamic Data Exchange Management Library (DDEML) client applications.
+    #
+    # [*Syntax*] HDDEDATA DdeNameService( DWORD idInst, UINT hsz1, UINT hsz2, UINT afCmd );
+    #
+    # idInst:: [in] Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
+    # hsz1:: [in] Handle to the string that specifies the service name the server is registering or unregistering.
+    #        An application that is unregistering all of its service names should set this parameter to 0L.
+    # hsz2:: Reserved; should be set to 0L.
+    # afCmd:: [in] Specifies the service name options. This parameter can be one of the following values.
+    #         DNS_REGISTER::  Registers the error code service name.
+    #         DNS_UNREGISTER:: Unregisters the error code service name. If the hsz1 parameter is 0L,
+    #                          all service names registered by the server will be unregistered.
+    #         DNS_FILTERON:: Turns on service name initiation filtering. The filter prevents a server from receiving
+    #                        XTYP_CONNECT transactions for service names it has not registered. This is the default
+    #                        setting for this filter. If a server application does not register any service names,
+    #                        the application cannot receive XTYP_WILDCONNECT transactions.
+    #         DNS_FILTEROFF:: Turns off service name initiation filtering. If this flag is specified, the server
+    #                         receives an XTYP_CONNECT transaction whenever another DDE application calls the
+    #                         DdeConnect function, regardless of the service name.
+    # *Returns*:: - If the function succeeds, it returns a nonzero value. That value is not a true HDDEDATA value,
+    #               merely a Boolean indicator of success. The function is typed HDDEDATA to allow for possible
+    #               future expansion of the function and a more sophisticated return value.
+    #             - If the function fails, the return value is 0L.
+    #             The DdeGetLastError function can be used to get the error code, which can be one of the following:
+    #             - DMLERR_DLL_NOT_INITIALIZED
+    #             - DMLERR_DLL_USAGE
+    #             - DMLERR_INVALIDPARAMETER
+    #             - DMLERR_NO_ERROR
+    # ---
+    # *Remarks*:
+    # The service name identified by the hsz1 parameter should be a base name (that is, the name should contain no
+    # instance-specific information). The system generates an instance-specific name and sends it along with the
+    # base name during the XTYP_REGISTER and XTYP_UNREGISTER transactions. The receiving applications can then
+    # connect to the specific application instance.
+    #
+    # :call-seq:
+    #  success = dde_name_service( instance_id, string_handle, cmd )
+    #
+    function :DdeNameService, [:uint32, :ulong, :ulong, :uint], :ulong,
+             &->(api, id, string_handle, cmd){ api.call(id, string_handle, 0, cmd) != 0 }
+    # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
 
   end
 end

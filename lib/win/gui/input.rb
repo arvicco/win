@@ -251,7 +251,7 @@ module Win
       # Y:: [in] Specifies the new y-coordinate of the cursor, in screen coordinates.
       #
       # *Returns*:: Nonzero(*true*) if successful or zero(*false*) otherwise. To get extended error information,
-      #           call GetLastError. Enhanced to return true/false instead of nonzero/zero
+      #             call GetLastError. Enhanced to return true/false instead of nonzero/zero
       # ---
       # *Remarks*: The cursor is a shared resource. A window should move the cursor only when the cursor is in the
       # window's client area. The calling process must have WINSTA_WRITEATTRIBUTES access to the window station.

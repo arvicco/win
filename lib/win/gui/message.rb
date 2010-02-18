@@ -259,26 +259,67 @@ module Win
       SC_MONITORPOWER = 0xF170
       SC_CONTEXTHELP  = 0xF180
 
+      ##
       function :BroadcastSystemMessage, 'LPIIL', 'L'
+
+      ##
       function :DefWindowProc, 'LLLL', 'L'
+
+      ##
       function :DispatchMessage, 'P', 'L'
+
+      ##
       function :GetInputState, 'V', 'B'
+
+      ##
       function :GetMessage, 'PLII', 'B'
+
+      ##
       function :GetMessageExtraInfo, 'V', 'L'
+
+      ##
       function :GetMessagePos, 'V', 'L'
+
+      ##
       function :GetMessageTime, 'V', 'L'
+
+      ##
       function :GetQueueStatus, 'I', 'L'
+
+      ##
       function :InSendMessage, 'V', 'B'
+
+      ##
       function :InSendMessageEx, 'L', 'L'
+
+      ##
       function :PeekMessage, 'PLIII', 'B'
+
+      ##
       function :PostQuitMessage, 'I', 'V'
+
+      ##
       function :PostThreadMessage, 'LILL', 'B'
+
+      ##
       function :RegisterWindowMessage, 'P', 'I'
+
+      ##
       function :ReplyMessage, 'L', 'B'
+
+      ##
       function :SendMessageTimeout, 'LILLIIP', 'L'
+
+      ##
       function :SendNotifyMessage, 'LILLIIP', 'L'
+
+      ##
       function :SetMessageExtraInfo, 'L', 'L'
+
+      ##
       function :TranslateMessage, 'P', 'B'
+
+      ##
       function :WaitMessage, 'V', 'B'
 
       ##
@@ -296,7 +337,7 @@ module Win
       # lResult:: [in] Specifies the result of the message processing. This value depends on the message.
       #
       # :call-seq:
-      #  SendAsyncProc callback block: {|handle, msg, w_param, l_param| your code }
+      #  SendAsyncProc callback block: {|handle, msg, data, l_result| your callbackcode }
       #
       callback :SendAsyncProc, [:long, :uint, :ulong, :ulong, :long], :void
 
@@ -334,7 +375,11 @@ module Win
       #  - The callback function is called only when the thread that called SendMessageCallback also calls GetMessage,
       #    PeekMessage, or WaitMessage.
       #
-      function :SendMessageCallback, [:long, :uint, :uint, :long, :SendAsyncProc, :ulong], :bool
+      # :call-seq:
+      #  success = send_message_callback(handle, msg, w_param, l_param, data)
+      #            {|handle, msg, data, l_result| callback code }
+      #
+      function :SendMessageCallback, [:long, :uint, :uint, :long, :SendAsyncProc, :ulong], :int, boolean: true
 
       ##
       # The PostMessage function places (posts) a message in the message queue associated with the thread that
@@ -343,14 +388,14 @@ module Win
       #
       # [*Syntax*] BOOL PostMessage( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
       #
-      # handle:: [in] Handle to the window whose window procedure will receive the message. If this parameter is
+      # hWnd::   [in] Handle to the window whose window procedure will receive the message. If this parameter is
       #          HWND_BROADCAST, the message is sent to all top-level windows in the system, including disabled or
       #          invisible unowned windows, overlapped windows, and pop-up windows; but the message is not posted to
       #          child windows. If it is NULL, the function behaves like a call to PostThreadMessage()
       #          with the dwThreadId parameter set to the identifier of the current thread.
-      # msg:: [in] Specifies the message to be posted.
-      # w_param:: [in] Specifies additional message-specific information.
-      # l_param:: [in] Specifies additional message-specific information.
+      # Msg:: [in] Specifies the message to be posted.
+      # wParam:: [in] Specifies additional message-specific information.
+      # lParam:: [in] Specifies additional message-specific information.
       #
       # *Returns*:: Nonzero if the function succeeds, zero if it fails. For extended error info, call GetLastError.
       # ---
@@ -371,7 +416,7 @@ module Win
       #:call-seq:
       # success = post_message(handle, msg, w_param, l_param)
       #
-      function :PostMessage, [:ulong, :uint, :long, :uint], :bool
+      function :PostMessage, [:ulong, :uint, :long, :uint], :int, boolean: true
 
       ##
       # The SendMessage function sends the specified message to a window or windows. It calls the window procedure for
@@ -392,7 +437,7 @@ module Win
       #        lesser or equal integrity level.
       # Msg:: [in] Specifies the message to be sent.
       # wParam:: [in] Specifies additional message-specific information.
-      # lParam:: [in] Specifies additional message-specific information.
+      # lParam:: [in/out?] Specifies additional message-specific information.
       #
       # *Return*:: The return value specifies the result of the message processing; it depends on the message sent.
       # ---
@@ -414,7 +459,7 @@ module Win
       #:call-seq:
       # send_message(handle, msg, w_param, l_param)
       #
-      function :SendMessage, 'LLLP', 'L'
+      function :SendMessage, [:ulong, :uint, :long, :pointer], :int   # LPARAM different from PostMessage!
 
     end
   end

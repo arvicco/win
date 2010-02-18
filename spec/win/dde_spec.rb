@@ -41,7 +41,8 @@ module WinDDETest
 
     describe 'dde_initialize' do
       spec{ use{ status = DdeInitialize( zero_id, dde_callback, dde_cmd, unused = 0)}}
-      spec{ use{ id, status = dde_initialize( instance_id = 0, dde_cmd) do|*args|  end }}
+      spec{ use{ id, status = dde_initialize( instance_id = 0, dde_cmd) do|*args|
+      end }}
 
       it 'with zero instance_id, returns integer id and DMLERR_NO_ERROR if initialization successful' do
         id, status = dde_initialize(0, APPCLASS_STANDARD) {|*args| }
@@ -83,7 +84,7 @@ module WinDDETest
       after(:each) {dde_uninitialize(@instance_id)}
 
       describe '#dde_uninitialize' do
-        
+
         spec{ use{ status = DdeUninitialize( @instance_id ) }}
         spec{ use{ id, status = dde_uninitialize( @instance_id) }}
 
@@ -149,7 +150,20 @@ module WinDDETest
             success.should == true
           end
         end
+      end
 
+      describe '#dde_get_data' do
+        spec{ use{ buffer, success = dde_get_data( data_handle = 123, max = 1073741823, offset = 0) }}
+        spec{ use{ length = DdeGetData( data_handle = 123, nil, 0, 0) }} # returns dde data set length
+        spec{ use{ length = DdeGetData( data_handle = 123, FFI::MemoryPointer.new(:char, 1024), max = 1024, offset = 0) }}
+
+        it 'original API returns 0 if trying to address invalid dde data handle' do
+          DdeGetData( data_handle = 123, nil, 0, 0).should == 0
+        end
+
+        it 'snake_case API returns nil if trying to address invalid dde data handle' do
+          dde_get_data( data_handle = 123, 3741823, 0).should == nil          
+        end
 
       end
     end

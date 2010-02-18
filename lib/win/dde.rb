@@ -15,7 +15,8 @@ module Win
     # Registers the service name.
 
     DNS_REGISTER = 1
-    # Unregisters the service name. If the hsz1 parameter is 0L, all service names registered by the server will be unregistered.
+    # Unregisters the service name. If the hsz1 parameter is 0L, ALL service names registered by the server will be
+    # unregistered.
     DNS_UNREGISTER = 2
     # Turns on service name initiation filtering. The filter prevents a server from receiving
     # XTYP_CONNECT transactions for service names it has not registered. This is the default
@@ -27,8 +28,14 @@ module Win
     # DdeConnect function, regardless of the service name.
     DNS_FILTEROFF  = 8
 
+    # A client uses the XTYP_CONNECT transaction to establish a conversation. A DDE server callback function,
+    # DdeCallback, receives this transaction when a client specifies a service name that the server supports
+    # (and a topic name that is not NULL) in a call to the DdeConnect function.
     XTYP_CONNECT = 0x60
     XTYP_DISCONNECT = 0xC0
+
+    # A client uses the XTYP_POKE transaction to send unsolicited data to the server. DDE server callback function, 
+    # DdeCallback, receives this transaction when a client specifies XTYP_POKE in the DdeClientTransaction function.
     XTYP_POKE = 0x90
     XTYP_ERROR = 0x00
 
@@ -384,6 +391,45 @@ module Win
              &->(api, id, string_handle, cmd){ api.call(id, string_handle, 0, cmd) != 0 }
     # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
 
+    # The DdeGetData function copies data from the specified Dynamic Data Exchange (DDE) object to the specified
+    # local buffer.
+    #
+    # [*Syntax*] DWORD DdeGetData( HDDEDATA hData, LPBYTE pDst, DWORD cbMax, DWORD cbOff );
+    #
+    # hData:: [in] Handle to the DDE object that contains the data to copy.
+    # pDst:: [out] Pointer to the buffer that receives the data. If this parameter is NULL, the DdeGetData
+    #        function returns the amount of data, in bytes, that would be copied to the buffer.
+    # cbMax:: [in] Specifies the maximum amount of data, in bytes, to copy to the buffer pointed to by the pDst
+    #         parameter. Typically, this parameter specifies the length of the buffer pointed to by pDst.
+    # cbOff:: [in] Specifies an offset within the DDE object. Data is copied from the object beginning at this offset.
+    #
+    # *Returns*:: If the pDst parameter points to a buffer, return value is the size, in bytes, of the memory object
+    #             associated with the data handle or the size specified in the cbMax parameter, whichever is lower.
+    #             If the pDst parameter is NULL, the return value is the size, in bytes, of the memory object
+    #             associated with the data handle.
+    #             The DdeGetLastError function can be used to get the error code, which can be one of the following:
+    #             - DMLERR_DLL_NOT_INITIALIZED
+    #             - DMLERR_INVALIDPARAMETER
+    #             - DMLERR_NO_ERROR
+    # ---
+    # <b> Enhanced (snake_case) API accepts only data handle, and optionally max and offset (no need to pre-allocate
+    # buffer). It returns buffer with copied DDE data (FFI::MemoryPointer) or nil for failure. DDE data length is
+    # determined internally, no need to call function twice (first time with nil buffer just to determine length).</b>
+    # ---
+    #
+    # :call-seq:
+    #  buffer, success = dde_get_data( data_handle, [max = infinite, offset = 0] )
+    #
+    function :DdeGetData, [:ulong, :pointer, :uint32, :uint32], :uint,
+             &->(api, data_handle, max=1073741823, offset=0){     # max is maximum DWORD Fixnum
+             length = api.call(data_handle, nil, 0, 0)   # determining data set length
+             if length != 0
+               copy_length = length < max ? length : max
+               buffer = FFI::MemoryPointer.new(:char, offset + copy_length)
+               length = api.call(data_handle, buffer, copy_length, offset)
+             end
+             length != 0 ? buffer: nil }
+    # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
 
   end
 end

@@ -75,7 +75,7 @@ module Win
               c:  :char, # 8-bit character (byte)
               #   :int8       – 8-bit signed integer
               #   :uint8      – 8-bit unsigned integer
-              S:  :ushort, # – 16-bit unsigned integer (Win32API: used for string)
+              S:  :ushort, # – 16-bit unsigned integer (Win32/API: S used for string params)
               s:  :short, # – 16-bit signed integer
               #   :uint16     – 16-bit unsigned integer
               #   :int16      – 16-bit signed integer

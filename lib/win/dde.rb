@@ -130,12 +130,36 @@ module Win
 
     # Returned if DDE Init successful
     DMLERR_NO_ERROR           = 0x00
-    # Returned if DDE Init failed due to wrong DLL usage
+    # An application initialized as APPCLASS_MONITOR has attempted to perform a Dynamic Data Exchange (DDE) transaction,
+    # or an application initialized as APPCMD_CLIENTONLY has attempted to perform server transactions. 
     DMLERR_DLL_USAGE          = 0x4004
-    # Returned if DDE Init failed due to invalid params
+    # DMLERR_INVALIDPARAMETER A parameter failed to be validated by the DDEML. Some of the possible causes follow:
+    # - The application used a data handle initialized with a different item name handle than was required by the
+    #   transaction.
+    # - The application used a data handle that was initialized with a different clipboard data format than was
+    #   required by the transaction.
+    # - The application used a client-side conversation handle with a server-side function or vice versa.
+    # - The application used a freed data handle or string handle.
+    # - More than one instance of the application used the same object.
     DMLERR_INVALIDPARAMETER   = 0x4006
-    # Returned if DDE Init failed due to system error
+    # DMLERR_SYS_ERROR An internal error has occurred in the DDEML.
     DMLERR_SYS_ERROR          = 0x400f
+    #  DMLERR_ADVACKTIMEOUT A request for a synchronous advise transaction has timed out.
+    #  DMLERR_BUSY The response to the transaction caused the DDE_FBUSY flag to be set.
+    #  DMLERR_DATAACKTIMEOUT A request for a synchronous data transaction has timed out.
+    #  DMLERR_DLL_NOT_INITIALIZED A DDEML function was called without first calling the DdeInitialize function, or an invalid instance identifier was passed to a DDEML function.
+    #  DMLERR_DLL_USAGE
+    #  DMLERR_EXECACKTIMEOUT A request for a synchronous execute transaction has timed out.
+    #  DMLERR_LOW_MEMORY A DDEML application has created a prolonged race condition (in which the server application outruns the client), causing large amounts of memory to be consumed.
+    #  DMLERR_MEMORY_ERROR A memory allocation has failed.
+    #  DMLERR_NO_CONV_ESTABLISHED A client's attempt to establish a conversation has failed.
+    #  DMLERR_NOTPROCESSED A transaction has failed.
+    #  DMLERR_POKEACKTIMEOUT A request for a synchronous poke transaction has timed out.
+    #  DMLERR_POSTMSG_FAILED An internal call to the PostMessage function has failed.
+    #  DMLERR_REENTRANCY An application instance with a synchronous transaction already in progress attempted to initiate another synchronous transaction, or the DdeEnableCallback function was called from within a DDEML callback function.
+    #  DMLERR_SERVER_DIED A server-side transaction was attempted on a conversation terminated by the client, or the server terminated before completing a transaction.
+    #  DMLERR_UNADVACKTIMEOUT A request to end an advise transaction has timed out.
+    #  DMLERR_UNFOUND_QUEUE_ID An invalid transaction identifier was passed to a DDEML function. Once the application has returned from an XTYP_XACT_COMPLETE callback, the transaction identifier for that callback function is no longer valid.
 
     ##
     # The RegisterClipboardFormat function registers a new clipboard format.
@@ -390,6 +414,45 @@ module Win
     function :DdeFreeStringHandle, [:uint32, :ulong], :int, boolean: true
 
     ##
+    # The DdeQueryString function copies text associated with a string handle into a buffer.
+    #
+    # [*Syntax*] DWORD DdeQueryString( DWORD idInst, HSZ hsz, LPTSTR psz, DWORD cchMax, int iCodePage);
+    #
+    # idInst:: [in] Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
+    # hsz:: [in] Handle to the string to copy. This handle must have been created by a previous call to the
+    #            DdeCreateStringHandle function.
+    # psz:: [in, out] Pointer to a buffer that receives the string. To obtain the length of the string, this parameter
+    #       should be set to NULL.
+    # cchMax::  [in] Specifies the length, in TCHARs, of the buffer pointed to by the psz parameter. For the ANSI
+    #           version of the function, this is the number of bytes; for the Unicode version, this is the number of
+    #           characters. If the string is longer than ( cchMax– 1), it will be truncated. If the psz parameter is
+    #           set to NULL, this parameter is ignored.
+    # iCodePage:: [in] Code page used to render the string. This value should be either CP_WINANSI or CP_WINUNICODE.
+    #
+    # *Returns*:: If the psz parameter specified a valid pointer, the return value is the length, in TCHARs, of the
+    #             returned text (not including the terminating null character). If the psz parameter specified a NULL
+    #             pointer, the return value is the length of the text associated with the hsz parameter (not including
+    #             the terminating null character). If an error occurs, the return value is 0L.
+    # ---
+    # <b> Enhanced (snake_case) API makes all args optional except for first (dde instance id), and returns nil if
+    # the function was unsuccessful.</b>
+    # ---
+    # *Remarks*
+    # - The string returned in the buffer is always null-terminated. If the string is longer than ( cchMax– 1),
+    #   only the first ( cchMax– 1) characters of the string are copied.
+    # - If the psz parameter is NULL, the DdeQueryString function obtains the length, in bytes, of the string
+    #   associated with the string handle. The length does not include the terminating null character.
+    #
+    # :call-seq:
+    #  string = dde_query_string( instance_id, handle, [code_page = CP_WINANSI ] )
+    #
+    function :DdeQueryString, [:uint32, :ulong, :pointer, :uint32, :int], :uint32,
+             &->(api, instance_id, handle, code_page = CP_WINANSI){
+             buffer = FFI::MemoryPointer.new :char, 1024
+             num_chars = api.call(instance_id, handle, buffer, buffer.size, code_page)
+             num_chars == 0 ? nil : buffer.get_bytes(0, num_chars) }
+
+    ##
     # The DdeNameService function registers or unregisters the service names a Dynamic Data Exchange (DDE) server
     # supports. This function causes the system to send XTYP_REGISTER or XTYP_UNREGISTER transactions to other running
     # Dynamic Data Exchange Management Library (DDEML) client applications.
@@ -436,6 +499,7 @@ module Win
              &->(api, id, string_handle, cmd){ api.call(id, string_handle, 0, cmd) != 0 }
     # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
 
+    ##
     # The DdeGetData function copies data from the specified Dynamic Data Exchange (DDE) object to the specified
     # local buffer.
     #
@@ -520,44 +584,23 @@ module Win
              &->(api, instance_id, service = nil, topic = nil, context = nil){
              api.call(instance_id, service, topic, context) }
 
-    # The DdeQueryString function copies text associated with a string handle into a buffer.
+    ##
+    # The DdeGetLastError function retrieves the most recent error code set by the failure of a Dynamic Data Exchange
+    # Management Library (DDEML) function and resets the error code to DMLERR_NO_ERROR.
     #
-    # [*Syntax*] DWORD DdeQueryString( DWORD idInst, HSZ hsz, LPTSTR psz, DWORD cchMax, int iCodePage);
+    # [*Syntax*] UINT DdeGetLastError( DWORD idInst );
     #
-    # idInst:: [in] Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
-    # hsz:: [in] Handle to the string to copy. This handle must have been created by a previous call to the
-    #            DdeCreateStringHandle function.
-    # psz:: [in, out] Pointer to a buffer that receives the string. To obtain the length of the string, this parameter
-    #       should be set to NULL.
-    # cchMax::  [in] Specifies the length, in TCHARs, of the buffer pointed to by the psz parameter. For the ANSI
-    #           version of the function, this is the number of bytes; for the Unicode version, this is the number of
-    #           characters. If the string is longer than ( cchMax– 1), it will be truncated. If the psz parameter is
-    #           set to NULL, this parameter is ignored.
-    # iCodePage:: [in] Code page used to render the string. This value should be either CP_WINANSI or CP_WINUNICODE.
+    # idInst::  [in] Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
     #
-    # *Returns*:: If the psz parameter specified a valid pointer, the return value is the length, in TCHARs, of the
-    #             returned text (not including the terminating null character). If the psz parameter specified a NULL
-    #             pointer, the return value is the length of the text associated with the hsz parameter (not including
-    #             the terminating null character). If an error occurs, the return value is 0L.
-    # ---
-    # <b> Enhanced (snake_case) API makes all args optional except for first (dde instance id), and returns nil if
-    # the function was unsuccessful.</b>
-    # ---
-    # *Remarks*
-    #  The string returned in the buffer is always null-terminated. If the string is longer than ( cchMax– 1), only the first ( cchMax– 1) characters of the string are copied.
-    #
-    #  If the psz parameter is NULL, the DdeQueryString function obtains the length, in bytes, of the string associated with the string handle. The length does not include the terminating null character.
+    # *Returns*:: If the function succeeds, the return value is the last error code, which can be one of the following:
+    # DMLERR_ADVACKTIMEOUT, DMLERR_EXECACKTIMEOUT, DMLERR_INVALIDPARAMETER, DMLERR_LOW_MEMORY, DMLERR_MEMORY_ERROR,
+    # DMLERR_NO_CONV_ESTABLISHED, DMLERR_NOTPROCESSED, DMLERR_POKEACKTIMEOUT, DMLERR_POSTMSG_FAILED, DMLERR_REENTRANCY,
+    # DMLERR_SERVER_DIED, DMLERR_SYS_ERROR, DMLERR_UNADVACKTIMEOUT, DMLERR_UNFOUND_QUEUE_ID
     #
     # :call-seq:
-    #  string = dde_query_string( instance_id, handle, [code_page = CP_WINANSI ] )
+    #  string = dde_get_last_error( instance_id )
     #
-    function :DdeQueryString, [:uint32, :ulong, :pointer, :uint32, :int], :uint32,
-             &->(api, instance_id, handle, code_page = CP_WINANSI){
-             buffer = FFI::MemoryPointer.new :char, 1024
-             num_chars = api.call(instance_id, handle, buffer, buffer.size, code_page)
-             num_chars == 0 ? nil : buffer.get_bytes(0, num_chars) }
-
-
+    function :DdeGetLastError, [:uint32], :int, zeronil: true
 
   end
 end

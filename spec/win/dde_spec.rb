@@ -121,7 +121,7 @@ module WinDDETest
 
         it 'creating two handles for the SAME string (inside one instance) USUALLY returns same handle' do
           string_handle1 = dde_create_string_handle(@instance_id, 'My String')
-          1000.times do
+          10.times do
             string_handle2 = dde_create_string_handle(@instance_id, 'My String')
             string_handle1.should == string_handle2
           end
@@ -134,7 +134,7 @@ module WinDDETest
 
       end
 
-      context "with dde string handle 'MyString':" do
+      context "with dde string handle to 'My String':" do
         before(:each) {@string_handle = dde_create_string_handle(@instance_id, 'My String', CP_WINANSI)}
         after(:each) {dde_free_string_handle(@instance_id, @string_handle)}
 
@@ -188,6 +188,25 @@ module WinDDETest
             success.should == true
           end
         end
+
+        describe '#dde_get_last_error' do
+          spec{ use{ error_code = DdeGetLastError( @instance_id) }}
+          spec{ use{ error_code = dde_get_last_error( @instance_id) }}
+
+          it 'original API returns DMLERR_NO_ERROR if there is no last DDE error for given app instance' do
+            DdeGetLastError( @instance_id).should == DMLERR_NO_ERROR
+          end
+
+          it 'snake_case API returns nil if there is no last DDE error for given app instance' do
+            dde_get_last_error( @instance_id).should == nil
+          end
+
+          it 'returns error code of last DDE error for given app instance' do
+            dde_name_service( @instance_id, 1234, DNS_REGISTER )
+            dde_get_last_error( @instance_id).should == DMLERR_INVALIDPARAMETER
+          end
+        end
+
       end
 
       describe '#dde_get_data' do
@@ -205,7 +224,10 @@ module WinDDETest
 
       end
 
-      describe '#dde_connect'
+      describe '#dde_connect' do
+        it 'connects to existing DDE server'
+      end
+
     end
   end
 end

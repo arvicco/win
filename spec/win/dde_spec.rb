@@ -17,6 +17,10 @@ module WinDDETest
     FFI::MemoryPointer.new(:long).write_long(0)
   end
 
+  def buffer
+    FFI::MemoryPointer.new(:char, 1024)
+  end
+
   describe Win::DDE, ' contains a set of pre-defined Windows API functions' do
     describe 'register_clipboard_format' do
       spec{ use{ RegisterClipboardFormat(format_name = "XlTable") }}
@@ -109,6 +113,20 @@ module WinDDETest
           string_handle.should_not == 0
         end
 
+        it 'creates handle even if code_page is omitted' do
+          string_handle = dde_create_string_handle(@instance_id, 'My String')
+          string_handle.should be_an Integer
+          string_handle.should_not == 0
+        end
+
+        it 'creating two handles for the SAME string (inside one instance) USUALLY returns same handle' do
+          string_handle1 = dde_create_string_handle(@instance_id, 'My String')
+          1000.times do
+            string_handle2 = dde_create_string_handle(@instance_id, 'My String')
+            string_handle1.should == string_handle2
+          end
+        end
+
         it 'returns nil if unable to register handle to a string' do
           string_handle = dde_create_string_handle(@instance_id, "", CP_WINANSI)
           string_handle.should == nil
@@ -119,6 +137,27 @@ module WinDDETest
       context "with dde string handle 'MyString':" do
         before(:each) {@string_handle = dde_create_string_handle(@instance_id, 'My String', CP_WINANSI)}
         after(:each) {dde_free_string_handle(@instance_id, @string_handle)}
+
+        describe '#dde_query_string' do
+
+          spec{ use{ string = DdeQueryString(@instance_id, @string_handle, buffer, buffer.size, code_page=CP_WINANSI)}}
+          spec{ use{ string = dde_query_string(@instance_id, @string_handle, code_page=CP_WINANSI )}}
+
+          it 'retrieves string that given string handle refers to' do
+            string = dde_query_string(@instance_id, @string_handle)
+            string.should == 'My String'
+          end
+
+          it 'retrieves string even if code_page is omitted' do
+            string = dde_query_string(@instance_id, @string_handle)
+            string.should == 'My String'
+          end
+
+          it 'returns nil attempting to retrieve invalid handle' do
+            string = dde_query_string(@instance_id, 12345)
+            string.should == nil
+          end
+        end
 
         describe '#dde_free_string_handle' do
 
@@ -134,7 +173,6 @@ module WinDDETest
             res = dde_free_string_handle(@instance_id, 12345)
             res.should == false
           end
-
         end
 
         describe '#dde_name_service' do
@@ -162,10 +200,12 @@ module WinDDETest
         end
 
         it 'snake_case API returns nil if trying to address invalid dde data handle' do
-          dde_get_data( data_handle = 123, 3741823, 0).should == nil          
+          dde_get_data( data_handle = 123, 3741823, 0).should == nil
         end
 
       end
+
+      describe '#dde_connect'
     end
   end
 end

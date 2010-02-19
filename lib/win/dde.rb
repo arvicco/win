@@ -28,6 +28,8 @@ module Win
     # DdeConnect function, regardless of the service name.
     DNS_FILTEROFF  = 8
 
+    # Transaction types:
+
     # A client uses the XTYP_CONNECT transaction to establish a conversation. A DDE server callback function,
     # DdeCallback, receives this transaction when a client specifies a service name that the server supports
     # (and a topic name that is not NULL) in a call to the DdeConnect function.
@@ -38,6 +40,20 @@ module Win
     # DdeCallback, receives this transaction when a client specifies XTYP_POKE in the DdeClientTransaction function.
     XTYP_POKE = 0x90
     XTYP_ERROR = 0x00
+
+    # Transaction confirmations:
+
+    # Transaction confirmation
+    DDE_FACK    = 0x8000
+    # Server is too busy to process transaction
+    DDE_FBUSY    = 0x4000
+    DDE_FDEFERUPD    = 0x4000
+    DDE_FACKREQ    = 0x8000
+    DDE_FRELEASE    = 0x2000
+    DDE_FREQUESTED =    0x1000
+    DDE_FAPPSTATUS =    0x00ff
+    # Transaction rejected
+    DDE_FNOTPROCESSED    = 0
 
     # DdeInitialize afCmd flaggs:
 
@@ -109,6 +125,9 @@ module Win
     MF_CONV                   = 0x40000000
     # ?
     MF_MASK                   = 0xFF000000
+
+    # Error codes:
+
     # Returned if DDE Init successful
     DMLERR_NO_ERROR           = 0x00
     # Returned if DDE Init failed due to wrong DLL usage
@@ -157,7 +176,22 @@ module Win
     #         - XCLASS_BOOL - A DDE callback function should return TRUE or FALSE when it finishes processing a
     #           transaction that belongs to this class. The XCLASS_BOOL class consists of the following types:
     #           - XTYP_ADVSTART
-    #           - XTYP_CONNECT
+    #           - *XTYP_CONNECT*: A client uses the XTYP_CONNECT transaction to establish a conversation.
+    #             hsz1:: Handle to the topic name.
+    #             hsz2:: Handle to the service name.
+    #             dwData1:: Pointer to a CONVCONTEXT structure that contains context information for the conversation.
+    #                       If the client is not a Dynamic Data Exchange Management Library (DDEML) application,
+    #                       this parameter is 0.
+    #             dwData2:: Specifies whether the client is the same application instance as the server. If the
+    #                       parameter is 1, the client is the same instance. If the parameter is 0, the client
+    #                       is a different instance.
+    #             *Returns*:: A server callback function should return TRUE to allow the client to establish a
+    #                         conversation on the specified service name and topic name pair, or the function
+    #                         should return FALSE to deny the conversation. If the callback function returns TRUE
+    #                         and a conversation is successfully established, the system passes the conversation
+    #                         handle to the server by issuing an XTYP_CONNECT_CONFIRM transaction to the server's
+    #                         callback function (unless the server specified the CBF_SKIP_CONNECT_CONFIRMS flag
+    #                         in the DdeInitialize function).
     #         - XCLASS_DATA - A DDE callback function should return a DDE handle, the CBR_BLOCK return code, or
     #           NULL when it finishes processing a transaction that belongs to this class. The XCLASS_DATA
     #           transaction class consists of the following types:
@@ -169,7 +203,15 @@ module Win
     #           class consists of the following types:
     #           - XTYP_ADVDATA
     #           - XTYP_EXECUTE
-    #           - XTYP_POKE
+    #           - *XTYP_POKE*: A client uses the XTYP_POKE transaction to send unsolicited data to the server.
+    #             uFmt:: Specifies the format of the data sent from the server.
+    #             hconv:: Handle to the conversation.
+    #             hsz1:: Handle to the topic name.
+    #             hsz2:: Handle to the item name.
+    #             hdata:: Handle to the data that the client is sending to the server.
+    #             *Returns*:: A server callback function should return the DDE_FACK flag if it processes this
+    #                         transaction, the DDE_FBUSY flag if it is too busy to process this transaction,
+    #                         or the DDE_FNOTPROCESSED flag if it rejects this transaction.
     #         - XCLASS_NOTIFICATION - The transaction types that belong to this class are for notification purposes
     #           only. The return value from the callback function is ignored. The XCLASS_NOTIFICATION transaction
     #           class consists of the following types:
@@ -311,6 +353,8 @@ module Win
     #             The DdeGetLastError function can be used to get the error code, which can be one of the
     #             following values: DMLERR_NO_ERROR, DMLERR_INVALIDPARAMETER, DMLERR_SYS_ERROR
     # ---
+    # <b> Enhanced (snake_case) API makes code_page param optional and returns *nil* if handle creation fails. </b>
+    # ---
     # *Remarks*: The value of a string handle is not related to the case of the string it identifies.
     # When an application either creates a string handle or receives one in the callback function
     # and then uses the DdeKeepStringHandle function to keep it, the application must free that string
@@ -320,7 +364,8 @@ module Win
     # :call-seq:
     #  string_handle = dde_create_string_handle( instance_id, string, code_page_id )
     #
-    function :DdeCreateStringHandle, [:uint32, :pointer, :int], :ulong, zeronil: true
+    function :DdeCreateStringHandle, [:uint32, :pointer, :int], :ulong, zeronil: true,
+             &->(api, instance_id, string, code_page=CP_WINANSI){ api.call(instance_id, string, code_page) }
 
     ##
     # The DdeFreeStringHandle function frees a string handle in the calling application.
@@ -430,6 +475,89 @@ module Win
              end
              length != 0 ? buffer: nil }
     # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
+
+    ##
+    # DdeConnect function establishes a conversation with a server application that supports the specified service
+    # name and topic name pair. If more than one such server exists, the system selects only one.
+    #
+    # [*Syntax*] HCONV DdeConnect( DWORD idInst, HSZ hszService, HSZ hszTopic, PCONVCONTEXT pCC );
+    #
+    # idInst::  [in] Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
+    # hszService:: [in] Handle to the string that specifies the service name of the server application with which
+    #              a conversation is to be established. This handle must have been created by a previous call to
+    #              the DdeCreateStringHandle function. If this parameter is 0L, a conversation is established with
+    #              any available server.
+    # hszTopic:: [in] Handle to the string that specifies the name of the topic on which a conversation is to be
+    #            established. This handle must have been created by a previous call to DdeCreateStringHandle.
+    #            If this parameter is 0L, a conversation on any topic supported by the selected server is established.
+    # pCC:: [in] Pointer to the CONVCONTEXT structure that contains conversation context information. If this
+    #            parameter is NULL, the server receives the default CONVCONTEXT structure during the XTYP_CONNECT
+    #            or XTYP_WILDCONNECT transaction.
+    # *Returns*:: If the function succeeds, the return value is the handle to the established conversation.
+    #              If the function fails, the return value is 0L. The DdeGetLastError function can be used to get
+    #              the error code, which can be one of the following values:
+    #              - DMLERR_DLL_NOT_INITIALIZED
+    #              - DMLERR_INVALIDPARAMETER
+    #              - DMLERR_NO_CONV_ESTABLISHED
+    #              - DMLERR_NO_ERROR
+    # ---
+    # <b> Enhanced (snake_case) API makes all args optional except for first (dde instance id), and returns nil if
+    # the function was unsuccessful.</b>
+    # ---
+    # *Remarks*
+    # - The client application cannot make assumptions regarding the server selected. If an instance-specific name
+    #   is specified in the hszService parameter, a conversation is established with only the specified instance.
+    #   Instance-specific service names are passed to an application's Dynamic Data Exchange (DDE) callback function
+    #   during the XTYP_REGISTER and XTYP_UNREGISTER transactions.
+    # - All members of the default CONVCONTEXT structure are set to zero except cb, which specifies the size of the
+    #   structure, and iCodePage, which specifies CP_WINANSI (the default code page) or CP_WINUNICODE, depending on
+    #   whether the ANSI or Unicode version of the DdeInitialize function was called by the client application. 
+    #
+    # :call-seq:
+    #  conversation_handle = dde_connect( instance_id, [service = nil, topic = nil, context = nil] )
+    #
+    function :DdeConnect, [:uint32, :ulong, :ulong, :pointer], :ulong, zeronil: true,
+             &->(api, instance_id, service = nil, topic = nil, context = nil){
+             api.call(instance_id, service, topic, context) }
+
+    # The DdeQueryString function copies text associated with a string handle into a buffer.
+    #
+    # [*Syntax*] DWORD DdeQueryString( DWORD idInst, HSZ hsz, LPTSTR psz, DWORD cchMax, int iCodePage);
+    #
+    # idInst:: [in] Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
+    # hsz:: [in] Handle to the string to copy. This handle must have been created by a previous call to the
+    #            DdeCreateStringHandle function.
+    # psz:: [in, out] Pointer to a buffer that receives the string. To obtain the length of the string, this parameter
+    #       should be set to NULL.
+    # cchMax::  [in] Specifies the length, in TCHARs, of the buffer pointed to by the psz parameter. For the ANSI
+    #           version of the function, this is the number of bytes; for the Unicode version, this is the number of
+    #           characters. If the string is longer than ( cchMax– 1), it will be truncated. If the psz parameter is
+    #           set to NULL, this parameter is ignored.
+    # iCodePage:: [in] Code page used to render the string. This value should be either CP_WINANSI or CP_WINUNICODE.
+    #
+    # *Returns*:: If the psz parameter specified a valid pointer, the return value is the length, in TCHARs, of the
+    #             returned text (not including the terminating null character). If the psz parameter specified a NULL
+    #             pointer, the return value is the length of the text associated with the hsz parameter (not including
+    #             the terminating null character). If an error occurs, the return value is 0L.
+    # ---
+    # <b> Enhanced (snake_case) API makes all args optional except for first (dde instance id), and returns nil if
+    # the function was unsuccessful.</b>
+    # ---
+    # *Remarks*
+    #  The string returned in the buffer is always null-terminated. If the string is longer than ( cchMax– 1), only the first ( cchMax– 1) characters of the string are copied.
+    #
+    #  If the psz parameter is NULL, the DdeQueryString function obtains the length, in bytes, of the string associated with the string handle. The length does not include the terminating null character.
+    #
+    # :call-seq:
+    #  string = dde_query_string( instance_id, handle, [code_page = CP_WINANSI ] )
+    #
+    function :DdeQueryString, [:uint32, :ulong, :pointer, :uint32, :int], :uint32,
+             &->(api, instance_id, handle, code_page = CP_WINANSI){
+             buffer = FFI::MemoryPointer.new :char, 1024
+             num_chars = api.call(instance_id, handle, buffer, buffer.size, code_page)
+             num_chars == 0 ? nil : buffer.get_bytes(0, num_chars) }
+
+
 
   end
 end

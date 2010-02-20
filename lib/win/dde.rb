@@ -30,28 +30,51 @@ module Win
 
     # Transaction types:
 
+    XTYPF_NOBLOCK       = 0x0002
+    XTYPF_NODATA        = 0x0004
+    XTYPF_ACKREQ        = 0x0008
+
+    XCLASS_MASK         = 0xFC00
+    XCLASS_BOOL         = 0x1000
+    XCLASS_DATA         = 0x2000
+    XCLASS_FLAGS        = 0x4000
+    XCLASS_NOTIFICATION = 0x8000
+
+    XTYP_ERROR           = XCLASS_NOTIFICATION | XTYPF_NOBLOCK
+    XTYP_ADVDATA         = 0x0010 | XCLASS_FLAGS
+    XTYP_ADVREQ          = 0x0020 | XCLASS_DATA | XTYPF_NOBLOCK
+    XTYP_ADVSTART        = 0x0030 | XCLASS_BOOL
+    XTYP_ADVSTOP         = 0x0040 | XCLASS_NOTIFICATION
+    XTYP_EXECUTE         = 0x0050 | XCLASS_FLAGS
     # A client uses the XTYP_CONNECT transaction to establish a conversation. A DDE server callback function,
     # DdeCallback, receives this transaction when a client specifies a service name that the server supports
     # (and a topic name that is not NULL) in a call to the DdeConnect function.
-    XTYP_CONNECT = 0x60
-    XTYP_DISCONNECT = 0xC0
-
-    # A client uses the XTYP_POKE transaction to send unsolicited data to the server. DDE server callback function, 
+    XTYP_CONNECT         = 0x0060 | XCLASS_BOOL | XTYPF_NOBLOCK
+    XTYP_CONNECT_CONFIRM = 0x0070 | XCLASS_NOTIFICATION | XTYPF_NOBLOCK
+    XTYP_XACT_COMPLETE   = 0x0080 | XCLASS_NOTIFICATION
+    # A client uses the XTYP_POKE transaction to send unsolicited data to the server. DDE server callback function,
     # DdeCallback, receives this transaction when a client specifies XTYP_POKE in the DdeClientTransaction function.
-    XTYP_POKE = 0x90
-    XTYP_ERROR = 0x00
+    XTYP_POKE            = 0x0090 | XCLASS_FLAGS
+    XTYP_REGISTER        = 0x00A0 | XCLASS_NOTIFICATION | XTYPF_NOBLOCK
+    XTYP_REQUEST         = 0x00B0 | XCLASS_DATA
+    XTYP_DISCONNECT      = 0x00C0 | XCLASS_NOTIFICATION | XTYPF_NOBLOCK
+    XTYP_UNREGISTER      = 0x00D0 | XCLASS_NOTIFICATION | XTYPF_NOBLOCK
+    XTYP_WILDCONNECT     = 0x00E0 | XCLASS_DATA | XTYPF_NOBLOCK
+    XTYP_MONITOR         = 0X00F0 | XCLASS_NOTIFICATION | XTYPF_NOBLOCK
+    XTYP_MASK            = 0x00F0
+    XTYP_SHIFT           = 0x0004
 
     # Transaction confirmations:
 
     # Transaction confirmation
-    DDE_FACK    = 0x8000
+    DDE_FACK        = 0x8000
     # Server is too busy to process transaction
-    DDE_FBUSY    = 0x4000
-    DDE_FDEFERUPD    = 0x4000
-    DDE_FACKREQ    = 0x8000
+    DDE_FBUSY       = 0x4000
+    DDE_FDEFERUPD   = 0x4000
+    DDE_FACKREQ     = 0x8000
     DDE_FRELEASE    = 0x2000
-    DDE_FREQUESTED =    0x1000
-    DDE_FAPPSTATUS =    0x00ff
+    DDE_FREQUESTED  = 0x1000
+    DDE_FAPPSTATUS  = 0x00ff
     # Transaction rejected
     DDE_FNOTPROCESSED    = 0
 
@@ -130,10 +153,23 @@ module Win
 
     # Returned if DDE Init successful
     DMLERR_NO_ERROR           = 0x00
+    # First (lowest) error code
+    DMLERR_FIRST         = 0x4000
+    # A request for a synchronous advise transaction has timed out.
+    DMLERR_ADVACKTIMEOUT = DMLERR_FIRST
+    # The response to the transaction caused the DDE_FBUSY flag to be set
+    DMLERR_BUSY = 0x4001
+    # A request for a synchronous data transaction has timed out.
+    DMLERR_DATAACKTIMEOUT = 0x4002
+    # A DDEML function was called without first calling the DdeInitialize function, or an invalid instance
+    # identifier was passed to a DDEML function.
+    DMLERR_DLL_NOT_INITIALIZED = 0x4003
     # An application initialized as APPCLASS_MONITOR has attempted to perform a Dynamic Data Exchange (DDE) transaction,
-    # or an application initialized as APPCMD_CLIENTONLY has attempted to perform server transactions. 
+    # or an application initialized as APPCMD_CLIENTONLY has attempted to perform server transactions.
     DMLERR_DLL_USAGE          = 0x4004
-    # DMLERR_INVALIDPARAMETER A parameter failed to be validated by the DDEML. Some of the possible causes follow:
+    # A request for a synchronous execute transaction has timed out.
+    DMLERR_EXECACKTIMEOUT = 0x4005
+    # A parameter failed to be validated by the DDEML. Some of the possible causes follow:
     # - The application used a data handle initialized with a different item name handle than was required by the
     #   transaction.
     # - The application used a data handle that was initialized with a different clipboard data format than was
@@ -142,24 +178,68 @@ module Win
     # - The application used a freed data handle or string handle.
     # - More than one instance of the application used the same object.
     DMLERR_INVALIDPARAMETER   = 0x4006
-    # DMLERR_SYS_ERROR An internal error has occurred in the DDEML.
-    DMLERR_SYS_ERROR          = 0x400f
-    #  DMLERR_ADVACKTIMEOUT A request for a synchronous advise transaction has timed out.
-    #  DMLERR_BUSY The response to the transaction caused the DDE_FBUSY flag to be set.
-    #  DMLERR_DATAACKTIMEOUT A request for a synchronous data transaction has timed out.
-    #  DMLERR_DLL_NOT_INITIALIZED A DDEML function was called without first calling the DdeInitialize function, or an invalid instance identifier was passed to a DDEML function.
-    #  DMLERR_DLL_USAGE
-    #  DMLERR_EXECACKTIMEOUT A request for a synchronous execute transaction has timed out.
     #  DMLERR_LOW_MEMORY A DDEML application has created a prolonged race condition (in which the server application outruns the client), causing large amounts of memory to be consumed.
+    DMLERR_LOW_MEMORY    = 0x4007
     #  DMLERR_MEMORY_ERROR A memory allocation has failed.
-    #  DMLERR_NO_CONV_ESTABLISHED A client's attempt to establish a conversation has failed.
+    DMLERR_MEMORY_ERROR    = 0x4008
     #  DMLERR_NOTPROCESSED A transaction has failed.
+    DMLERR_NOTPROCESSED    = 0x4009
+    #  DMLERR_NO_CONV_ESTABLISHED A client's attempt to establish a conversation has failed.
+    DMLERR_NO_CONV_ESTABLISHED    = 0x400a
     #  DMLERR_POKEACKTIMEOUT A request for a synchronous poke transaction has timed out.
+    DMLERR_POKEACKTIMEOUT    = 0x400b
     #  DMLERR_POSTMSG_FAILED An internal call to the PostMessage function has failed.
+    DMLERR_POSTMSG_FAILED    = 0x400c
     #  DMLERR_REENTRANCY An application instance with a synchronous transaction already in progress attempted to initiate another synchronous transaction, or the DdeEnableCallback function was called from within a DDEML callback function.
+    DMLERR_REENTRANCY    = 0x400d
     #  DMLERR_SERVER_DIED A server-side transaction was attempted on a conversation terminated by the client, or the server terminated before completing a transaction.
+    DMLERR_SERVER_DIED    = 0x400e
+    # DMLERR_SYS_ERROR An internal error has occurred in the DDEML.
+    DMLERR_SYS_ERROR    = 0x400f
     #  DMLERR_UNADVACKTIMEOUT A request to end an advise transaction has timed out.
+    DMLERR_UNADVACKTIMEOUT    = 0x4010
     #  DMLERR_UNFOUND_QUEUE_ID An invalid transaction identifier was passed to a DDEML function. Once the application has returned from an XTYP_XACT_COMPLETE callback, the transaction identifier for that callback function is no longer valid.
+    DMLERR_UNFOUND_QUEUE_ID = 0x4011
+    # Last (highest) error code
+    DMLERR_LAST          = DMLERR_UNFOUND_QUEUE_ID
+
+    # Hash {ERROR_CODE=>'Error description')}
+    ERRORS = {
+            DMLERR_ADVACKTIMEOUT => 'A request for a synchronous advise transaction has timed out.',
+            DMLERR_BUSY => 'The response to the transaction caused the DDE_FBUSY flag to be set.',
+            DMLERR_DATAACKTIMEOUT => 'A request for a synchronous data transaction has timed out.',
+            DMLERR_DLL_NOT_INITIALIZED => 'A DDEML function was called without first calling the DdeInitialize ' +
+                    'function, or an invalid instance identifier was passed to a DDEML function.',
+            DMLERR_DLL_USAGE => 'An application initialized as APPCLASS_MONITOR has attempted to perform a DDE ' +
+                    'transaction, or an application initialized as APPCMD_CLIENTONLY has attempted to perform ' +
+                    'server transactions.',
+            DMLERR_EXECACKTIMEOUT => 'A request for a synchronous execute transaction has timed out.',
+            DMLERR_INVALIDPARAMETER => 'A parameter failed to be validated by the DDEML. Possible causes: ' +
+                    'Application used a data handle initialized with a different item name handle than was required ' +
+                    'by the transaction.' +
+                    'The application used a data handle that was initialized with a different clipboard data format ' +
+                    'than was required by the transaction. ' +
+                    'The application used a client-side conversation handle with server-side function or vice versa. ' +
+                    'The application used a freed data handle or string handle. ' +
+                    'More than one instance of the application used the same object.',
+            DMLERR_LOW_MEMORY => 'A DDEML application has created a prolonged race condition (in which the server ' +
+                    'application outruns the client), causing large amounts of memory to be consumed.',
+            DMLERR_MEMORY_ERROR => 'A memory allocation has failed.',
+            DMLERR_NO_CONV_ESTABLISHED => 'A client`s attempt to establish a conversation has failed.',
+            DMLERR_NOTPROCESSED => 'A transaction has failed.',
+            DMLERR_POKEACKTIMEOUT => 'A request for a synchronous poke transaction has timed out.',
+            DMLERR_POSTMSG_FAILED => 'An internal call to the PostMessage function has failed.',
+            DMLERR_REENTRANCY => 'An application instance with a synchronous transaction already in progress ' +
+                    'attempted to initiate another synchronous transaction, or the DdeEnableCallback function ' +
+                    'was called from within a DDEML callback function.',
+            DMLERR_SERVER_DIED => 'A server-side transaction was attempted on a conversation terminated by the ' +
+                    'client, or the server terminated before completing a transaction.',
+            DMLERR_SYS_ERROR => 'An internal error has occurred in the DDEML.',
+            DMLERR_UNADVACKTIMEOUT => 'A request to end an advise transaction has timed out.',
+            DMLERR_UNFOUND_QUEUE_ID => 'An invalid transaction identifier was passed to a DDEML function. Once the ' +
+                    'application has returned from an XTYP_XACT_COMPLETE callback, the transaction identifier for ' +
+                    'that callback function is no longer valid.'
+    }
 
     ##
     # The RegisterClipboardFormat function registers a new clipboard format.
@@ -575,7 +655,7 @@ module Win
     #   during the XTYP_REGISTER and XTYP_UNREGISTER transactions.
     # - All members of the default CONVCONTEXT structure are set to zero except cb, which specifies the size of the
     #   structure, and iCodePage, which specifies CP_WINANSI (the default code page) or CP_WINUNICODE, depending on
-    #   whether the ANSI or Unicode version of the DdeInitialize function was called by the client application. 
+    #   whether the ANSI or Unicode version of the DdeInitialize function was called by the client application.
     #
     # :call-seq:
     #  conversation_handle = dde_connect( instance_id, [service = nil, topic = nil, context = nil] )

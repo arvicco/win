@@ -1,7 +1,7 @@
 require 'win/library'
 
 module Win
-  module Gui
+  module GUI
     # Contains constants and Win32API functions related to end user input
     #
     module Input

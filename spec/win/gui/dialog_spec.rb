@@ -5,9 +5,9 @@ require 'win/gui/input'
 module WinWindowTest
 
   include WinTestApp
-  include Win::Gui::Dialog
+  include Win::GUI::Dialog
 
-  describe Win::Gui::Dialog do
+  describe Win::GUI::Dialog do
 
     describe '#get_dlg_item' do
       spec{ use{ control_handle = get_dlg_item(handle = 0, item_id = 1) }}
@@ -30,7 +30,7 @@ module WinWindowTest
       end
     end
 
-    describe Win::Gui::Dialog, ' defines convenience/service methods on top of Windows API' do
+    describe Win::GUI::Dialog, ' defines convenience/service methods on top of Windows API' do
       describe 'dialog' do
         spec{ use{ dialog( title ='Dialog Title', timeout_sec = 0.001, &any_block)  }}
 

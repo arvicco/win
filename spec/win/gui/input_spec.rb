@@ -5,9 +5,9 @@ require 'win/gui/input'
 module WinWindowTest
 
   include WinTestApp
-  include Win::Gui::Input
+  include Win::GUI::Input
 
-  describe Win::Gui::Input do
+  describe Win::GUI::Input do
 
     describe '#keydb_event' do
       spec{ use{ keybd_event(vkey = 0, bscan = 0, flags = 0, extra_info = 0) }}
@@ -38,7 +38,7 @@ module WinWindowTest
     end
   end
 
-  describe Win::Gui::Input, ' defines convenience/service methods on top of Windows API' do
+  describe Win::GUI::Input, ' defines convenience/service methods on top of Windows API' do
     describe '#keystroke' do
       spec{ use{ keystroke( vkey = 30, vkey = 30) }}
 

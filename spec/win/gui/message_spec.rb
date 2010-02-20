@@ -2,12 +2,12 @@ require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 require 'win/gui/input'
 #require 'win/gui/window'
 
-module WinGuiMessageTest
+module WinGUIMessageTest
 
   include WinTestApp
-  include Win::Gui::Message
+  include Win::GUI::Message
 
-  describe Win::Gui::Message do
+  describe Win::GUI::Message do
 
     describe '#post_message' do
       spec{ use{ success = PostMessage(handle = 0, msg = 0, w_param = 0, l_param = 0) }}

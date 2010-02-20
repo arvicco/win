@@ -79,8 +79,8 @@ end
 module WinTestApp
 
   include WinTest
-  include Win::Gui
-  #include Win::Gui::Convenience
+  include Win::GUI
+  #include Win::GUI::Convenience
 
   def launch_test_app
     system TEST_APP_START

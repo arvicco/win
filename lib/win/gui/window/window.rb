@@ -4,19 +4,20 @@ require 'win/gui/message'
 require 'win/gui/input'
 
 module Win
-  module Gui
+  module GUI
     module Window
       # This class is a thin wrapper around window handle
+      # It should be probably moved out of this lib since it's supposed to be "close to metal"
       class Window
         # Wait delay
         SLEEP_DELAY = 0.001
         # Timeout waiting for Window to be closed
         CLOSE_TIMEOUT = 1
 
-        include Win::Gui::Window
-        extend Win::Gui::Window
-        include Win::Gui::Message
-        include Win::Gui::Input
+        include Win::GUI::Window
+        extend Win::GUI::Window
+        include Win::GUI::Message
+        include Win::GUI::Input
 
         attr_reader :handle
 

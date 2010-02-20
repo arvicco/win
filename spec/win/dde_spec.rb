@@ -127,6 +127,12 @@ module WinDDETest
           end
         end
 
+        it 'created different handles for two different strings ' do
+          string_handle1 = dde_create_string_handle(@instance_id, 'My String')
+          string_handle2 = dde_create_string_handle(@instance_id, 'My String1')
+          string_handle1.should_not == string_handle2
+        end
+
         it 'returns nil if unable to register handle to a string' do
           string_handle = dde_create_string_handle(@instance_id, "", CP_WINANSI)
           string_handle.should == nil

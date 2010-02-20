@@ -1,7 +1,7 @@
 require 'win/library'
 
 module Win
-  module Gui
+  module GUI
     # Contains constants and Win32API functions related to inter-Window messaging
     #
     module Message

@@ -2,12 +2,12 @@ require File.expand_path(File.dirname(__FILE__) + '/../../../spec_helper')
 require 'win/gui/window'
 require 'win/gui/window/window'
 
-module WinGuiTest
+module WinGUITest
   include WinTestApp
-  include Win::Gui::Window
-  include Win::Gui::Input    
+  include Win::GUI::Window
+  include Win::GUI::Input    
 
-  describe Win::Gui::Window::Window, ' thin wrapper class around window handle' do
+  describe Win::GUI::Window::Window, ' thin wrapper class around window handle' do
     before(:each) { @app = launch_test_app }
     after(:each){ close_test_app }
 
@@ -44,7 +44,7 @@ module WinGuiTest
         start = Time.now
         @app.close
         @app.wait_for_close
-        (Time.now - start).should be <= Win::Gui::Window::Window::CLOSE_TIMEOUT
+        (Time.now - start).should be <= Win::GUI::Window::Window::CLOSE_TIMEOUT
         window_visible?(@app.handle).should be false
       end
     end

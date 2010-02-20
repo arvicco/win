@@ -4,7 +4,7 @@ require 'win/gui/window'
 module WinWindowTest
 
   include WinTestApp
-  include Win::Gui::Window
+  include Win::GUI::Window
 
   def commands_should_show_window *cmds, tests
     cmds.each do |cmd|
@@ -27,7 +27,7 @@ module WinWindowTest
     end
   end
 
-  describe Win::Gui::Window, ' defines a set user32 API functions related to Window manipulation' do
+  describe Win::GUI::Window, ' defines a set user32 API functions related to Window manipulation' do
     describe '#window?' do
       spec{ use{ IsWindow(any_handle) }}
       spec{ use{ is_window(any_handle) }}
@@ -311,13 +311,11 @@ module WinWindowTest
     describe '#show_window ', 'LI', 'I' do
       spec{ use{ was_visible = show_window(handle = any_handle, cmd = SW_SHOWNA) }}
 
-      it 'was_visible = hide_window(handle = any_handle)  # derived method (not a separate API function)' do
+      it 'defaults to SW_SHOW if no command given' do
         test_app do |app|
-          use{ @was_visible = hide_window(app.handle) }
-          @was_visible.should == true
-          visible?(app.handle).should == false
-          hide_window(app.handle).should == false
-          visible?(app.handle).should == false
+          hide_window(app.handle)
+          use{show_window(app.handle)}
+          visible?(app.handle).should == true
         end
       end
 
@@ -354,7 +352,7 @@ module WinWindowTest
       end
 
       it 'SW_SHOWMINNOACTIVE, SW_SHOWMINIMIZED displays the window as a minimized foreground window' do
-        commands_should_show_window SW_SHOWMINNOACTIVE, SW_SHOWMINIMIZED,    #!
+        commands_should_show_window SW_SHOWMINNOACTIVE, SW_SHOWMINIMIZED, #!
                                     :minimized? => true, :maximized? => false, :visible? => true, :foreground? => true
       end
 
@@ -418,7 +416,7 @@ module WinWindowTest
 
       it 'iterates through all the top-level windows for a given desktop'
     end
-    
+
     describe '#enum_child_windows' do
       before(:all){@app = launch_test_app}
       after(:all){close_test_app}
@@ -461,20 +459,24 @@ module WinWindowTest
       end
     end
 
-    describe Win::Gui::Window, ' defines convenience/service methods on top of Windows API' do
+    describe Win::GUI::Window, ' defines convenience/service methods on top of Windows API' do
       describe '#foreground' do
         spec{ use{ foreground?( any_handle) }}
       end
-      describe '#hide_window' do
-        spec{ use{ hide_window(any_handle) }}
 
-      end
+      describe '#hide_window' do
+        spec{ use{ was_visible = hide_window(any_handle) }}
+
         it 'hides window: same as show_window(handle, SW_HIDE)' do
           test_app do |app|
-            hide_window(app.handle)
+            was_visible = hide_window(app.handle)
+            was_visible.should == true
+            visible?(app.handle).should == false
+            hide_window(app.handle).should == false
             visible?(app.handle).should == false
           end
         end
       end
+    end
   end
 end

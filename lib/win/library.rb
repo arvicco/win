@@ -5,8 +5,9 @@ require 'win/extensions'
 # that also contain related constants and convenience methods. For example, Win::DDE module
 # contains only functions related to DDE protocol such as DdeInitialize() as well as constants
 # such as DMLERR_NO_ERROR, APPCLASS_STANDARD, etc. So if you need only DDE-related functions,
-# there is no need to load all the other modules, clogging your namespaces - just require 'win/dde'
-# and be done with it. Win is just a top level namespace (container) that holds all the other modules. 
+# there is no need to load all the other modules, clogging your namespaces - just <b> require 'win/dde' </b>
+# and be done with it. Win is just a top level namespace (container) that holds all the other modules.
+#
 module Win
 
   module Errors                         # :nodoc:
@@ -23,6 +24,7 @@ module Win
   # and declare them using ‘function’ class method (macro) - it does a lot of heavy lifting for you and
   # can be customized with options and code blocks to give you reusable API wrapper methods with the exact
   # behavior you need.
+  #
   module Library
 
     # Win::Library::API is a wrapper for callable function API object that mimics Win32::API
@@ -287,34 +289,34 @@ module Win
 
       ##
       # Defines new method wrappers for Windows API function call:
-      #   - Defines method with original (CamelCase) API function name and original signature (matches MSDN description)
-      #   - Defines method with snake_case name (converted from CamelCase function name) with enhanced API signature
-      #       When defined snake_case method is called, it converts the arguments you provided into ones required by
-      #       original API (adding defaults, mute and transitory args as necessary), executes API function call
-      #       and (optionally) transforms the result before returning it. If a block is attached to
-      #       method invocation, raw result is yielded to this block before final transformation take place
-      #   - Defines aliases for enhanced method with more Rubyesque names for getters, setters and tests:
-      #       GetWindowText -> window_test, SetWindowText -> window_text=, IsZoomed -> zoomed?
-      #
-      # You may modify default behavior of defined method by providing optional &def_block to function.
-      #   If you do so, snake_case method is defined based on your def_block. It receives callable API
-      #   object for function being defined, arguments and (optional) runtime block with which the method
-      #   will be called. Results coming from &def_block are then transformed and returned.
-      #   So, your &def_block should define all the behavior of defined method. You can use define_block to:
-      #   - Change original signature of API function, provide argument defaults, check argument types
-      #   - Pack arguments into strings/structs for [in] or [in/out] parameters that expect a pointer
-      #   - Allocate buffers/structs for pointers required by API functions [out] parameters
-      #   - Unpack [out] and [in/out] parameters returned as pointers
-      #   - Explicitly return results of API call that are returned in [out] and [in/out] parameters
-      #   - Convert attached runtime blocks into callback functions and stuff them into [in] callback parameters
-      #   - do other stuff that you think is appropriate to make Windows API function behavior more Ruby-like
-      #
+      # - Defines method with original (CamelCase) API function name and original signature (matches MSDN description)
+      # - Defines method with snake_case name (converted from CamelCase function name) with enhanced API signature
+      #   When defined snake_case method is called, it converts the arguments you provided into ones required by
+      #   original API (adding defaults, mute and transitory args as necessary), executes API function call
+      #   and (optionally) transforms the result before returning it. If a block is attached to
+      #   method invocation, raw result is yielded to this block before final transformation take place
+      # - Defines aliases for enhanced method with more Rubyesque names for getters, setters and tests:
+      #   GetWindowText -> window_test, SetWindowText -> window_text=, IsZoomed -> zoomed?
+      # ---
+      # You may modify default behavior of defined method by providing optional *def_block* to function definition.
+      # If you do so, snake_case method is defined based on your *def_block*. It receives callable API
+      # object for function being defined, arguments and (optional) runtime block with which the method
+      # will be called. Results coming from &def_block are then transformed and returned.
+      # So, your *def_block* should specify all the behavior of the method being defined. You can use *def_block* to:
+      # - Change original signature of API function, provide argument defaults, check argument types
+      # - Pack arguments into strings/structs for [in] or [in/out] parameters that expect a pointer
+      # - Allocate buffers/structs for pointers required by API functions [out] parameters
+      # - Unpack [out] and [in/out] parameters returned as pointers
+      # - Explicitly return results of API call that are returned in [out] and [in/out] parameters
+      # - Convert attached runtime blocks into callback functions and stuff them into [in] callback parameters
+      # - do other stuff that you think is appropriate to make Windows API function behavior more Ruby-like...
+      # ---
       # Accepts following options:
-      #   :dll:: Use this dll instead of default 'user32'
-      #   :rename:: Use this name instead of standard (conventional) function name
-      #   :alias(es):: Provides additional alias(es) for defined method
-      #   :boolean:: Forces method to return true/false instead of nonzero/zero
-      #   :zeronil:: Forces method to return nil if function result is zero
+      # :dll:: Use this dll instead of default 'user32'
+      # :rename:: Use this name instead of standard (conventional) function name
+      # :alias(es):: Provides additional alias(es) for defined method
+      # :boolean:: Forces method to return true/false instead of nonzero/zero
+      # :zeronil:: Forces method to return nil if function result is zero
       #
       def function(name, params, returns, options={}, &def_block)
         method_name, effective_names, aliases = generate_names(name, options)
@@ -395,6 +397,7 @@ module Win
       ##
       # Wrapper for FFI::Library#callback() that converts Win32/shortcut argument types into FFI-compliant types.
       # This method overrides FFI.callback which must be aliased to FFI.attach_callback
+      #
       def callback(name, params, returns)
         params, returns = generate_signature(params, returns)
         attach_callback name.to_sym, params, returns
@@ -402,8 +405,8 @@ module Win
 
       ##
       # :method: namespace
-      # This method is meta-generated when Win::Library module is included into other module/class
-      # It returns reference to including (host) module for use by Win::Library::API and class methods.
+      # This method is meta-generated when Win::Library module is included into other module/class.
+      # It returns reference to including (host) class/module for use by Win::Library::API and class methods.
 
       ##
       # Ensures that args count is equal to params count plus diff
@@ -421,6 +424,7 @@ module Win
     ##
     # Hook executed when Win::Library is included into class or module. It extends host class/module
     # with both FFI::Library methods and Win::Library macro methods like 'function'.
+    #
     def self.included(klass)
       klass.extend FFI::Library
 

@@ -1,7 +1,7 @@
 require 'win/library'
 
 module Win
-  module Gui
+  module GUI
     # Contains constants and Win32API functions related to window manipulation
     #
     module Window
@@ -367,7 +367,8 @@ module Win
       #:call-seq:
       #   was_visible = show_window( win_handle, cmd )
       #
-      function :ShowWindow, [:ulong, :int], :int, boolean: true
+      function :ShowWindow, [:ulong, :int], :int, boolean: true,
+               &->(api, handle, cmd=SW_SHOW) { api.call handle, cmd }
 
       ##
       # GetWindowThreadProcessId retrieves the identifier of the thread that created the specified window

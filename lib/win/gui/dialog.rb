@@ -2,12 +2,12 @@ require 'win/library'
 require 'win/gui/window'
 
 module Win
-  module Gui
+  module GUI
     # Contains constants and Win32API functions related to dialog manipulation
     #
     module Dialog
       include Win::Library
-      include Win::Gui::Window
+      include Win::GUI::Window
 
       # The GetDlgItem function retrieves a handle to a control in the specified dialog box.
       #

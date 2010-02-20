@@ -13,10 +13,8 @@ module Win
     # DDE name service afCmd commands used by DdeNameService function:
 
     # Registers the service name.
-
     DNS_REGISTER = 1
-    # Unregisters the service name. If the hsz1 parameter is 0L, ALL service names registered by the server will be
-    # unregistered.
+    # Unregisters the service name. When hsz1 == 0L, ALL service names registered by the server will be unregistered.
     DNS_UNREGISTER = 2
     # Turns on service name initiation filtering. The filter prevents a server from receiving
     # XTYP_CONNECT transactions for service names it has not registered. This is the default

@@ -62,6 +62,36 @@ module Win
     XTYP_MASK            = 0x00F0
     XTYP_SHIFT           = 0x0004
 
+    # Types Hash {TRANSACTION_TYPE=>'Type description')}
+    TYPES = {
+            XTYPF_NOBLOCK       => 'XTYPF_NOBLOCK',
+            XTYPF_NODATA        => 'XTYPF_NODATA',
+            XTYPF_ACKREQ        => 'XTYPF_ACKREQ',
+            XCLASS_MASK         => 'XCLASS_MASK',
+            XCLASS_BOOL         => 'XCLASS_BOOL',
+            XCLASS_DATA         => 'XCLASS_DATA',
+            XCLASS_FLAGS        => 'XCLASS_FLAGS',
+            XCLASS_NOTIFICATION => 'XCLASS_NOTIFICATION',
+            XTYP_ERROR          => 'XTYP_ERROR',
+            XTYP_ADVDATA        => 'XTYP_ADVDATA',
+            XTYP_ADVREQ         => 'XTYP_ADVREQ',
+            XTYP_ADVSTART       => 'XTYP_ADVSTART',
+            XTYP_ADVSTOP        => 'XTYP_ADVSTOP',
+            XTYP_EXECUTE        => 'XTYP_EXECUTE',
+            XTYP_CONNECT        => 'XTYP_CONNECT',
+            XTYP_CONNECT_CONFIRM=> 'XTYP_CONNECT_CONFIRM',
+            XTYP_XACT_COMPLETE  => 'XTYP_XACT_COMPLETE',
+            XTYP_POKE           => 'XTYP_POKE',
+            XTYP_REGISTER       => 'XTYP_REGISTER',
+            XTYP_REQUEST        => 'XTYP_REQUEST',
+            XTYP_DISCONNECT     => 'XTYP_DISCONNECT',
+            XTYP_UNREGISTER     => 'XTYP_UNREGISTER',
+            XTYP_WILDCONNECT    => 'XTYP_WILDCONNECT',
+            XTYP_MONITOR        => 'XTYP_MONITOR',
+            XTYP_MASK           => 'XTYP_MASK',
+            XTYP_SHIFT          => 'XTYP_SHIFT'
+    }
+
     # Transaction confirmations:
 
     # Transaction confirmation
@@ -146,6 +176,36 @@ module Win
     MF_CONV                   = 0x40000000
     # ?
     MF_MASK                   = 0xFF000000
+
+    # Flags Hash {FLAG=>'Flag description')}
+    FLAGS = {
+            APPCLASS_STANDARD         => 'APPCLASS_STANDARD',
+            APPCLASS_MONITOR          => 'APPCLASS_MONITOR',
+            APPCLASS_MASK             => 'APPCLASS_MASK',
+            APPCMD_CLIENTONLY         => 'APPCMD_CLIENTONLY',
+            APPCMD_FILTERINITS        => 'APPCMD_FILTERINITS',
+            APPCMD_MASK               => 'APPCMD_MASK',
+            CBF_FAIL_SELFCONNECTIONS  => 'CBF_FAIL_SELFCONNECTIONS',
+            CBF_FAIL_CONNECTIONS      => 'CBF_FAIL_CONNECTIONS',
+            CBF_FAIL_ADVISES          => 'CBF_FAIL_ADVISES',
+            CBF_FAIL_EXECUTES         => 'CBF_FAIL_EXECUTES',
+            CBF_FAIL_POKES            => 'CBF_FAIL_POKES',
+            CBF_FAIL_REQUESTS         => 'CBF_FAIL_REQUESTS',
+            CBF_FAIL_ALLSVRXACTIONS   => 'CBF_FAIL_ALLSVRXACTIONS',
+            CBF_SKIP_CONNECT_CONFIRMS => 'CBF_SKIP_CONNECT_CONFIRMS',
+            CBF_SKIP_REGISTRATIONS    => 'CBF_SKIP_REGISTRATIONS',
+            CBF_SKIP_UNREGISTRATIONS  => 'CBF_SKIP_UNREGISTRATIONS',
+            CBF_SKIP_DISCONNECTS      => 'CBF_SKIP_DISCONNECTS',
+            CBF_SKIP_ALLNOTIFICATIONS => 'CBF_SKIP_ALLNOTIFICATIONS',
+            MF_HSZ_INFO               => 'MF_HSZ_INFO',
+            MF_SENDMSGS               => 'MF_SENDMSGS',
+            MF_POSTMSGS               => 'MF_POSTMSGS',
+            MF_CALLBACKS              => 'MF_CALLBACKS',
+            MF_ERRORS                 => 'MF_ERRORS',
+            MF_LINKS                  => 'MF_LINKS',
+            MF_CONV                   => 'MF_CONV',
+            MF_MASK                   => 'MF_MASK'
+    }
 
     # Error codes:
 

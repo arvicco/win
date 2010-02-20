@@ -176,32 +176,36 @@ module Win
     # - The application used a freed data handle or string handle.
     # - More than one instance of the application used the same object.
     DMLERR_INVALIDPARAMETER   = 0x4006
-    #  DMLERR_LOW_MEMORY A DDEML application has created a prolonged race condition (in which the server application outruns the client), causing large amounts of memory to be consumed.
+    # A DDEML application has created a prolonged race condition (in which the server application
+    # outruns the client), causing large amounts of memory to be consumed.
     DMLERR_LOW_MEMORY    = 0x4007
-    #  DMLERR_MEMORY_ERROR A memory allocation has failed.
+    # A memory allocation has failed.
     DMLERR_MEMORY_ERROR    = 0x4008
-    #  DMLERR_NOTPROCESSED A transaction has failed.
+    # A transaction has failed.
     DMLERR_NOTPROCESSED    = 0x4009
-    #  DMLERR_NO_CONV_ESTABLISHED A client's attempt to establish a conversation has failed.
+    # A client's attempt to establish a conversation has failed.
     DMLERR_NO_CONV_ESTABLISHED    = 0x400a
-    #  DMLERR_POKEACKTIMEOUT A request for a synchronous poke transaction has timed out.
+    # A request for a synchronous poke transaction has timed out.
     DMLERR_POKEACKTIMEOUT    = 0x400b
-    #  DMLERR_POSTMSG_FAILED An internal call to the PostMessage function has failed.
+    # An internal call to the PostMessage function has failed.
     DMLERR_POSTMSG_FAILED    = 0x400c
-    #  DMLERR_REENTRANCY An application instance with a synchronous transaction already in progress attempted to initiate another synchronous transaction, or the DdeEnableCallback function was called from within a DDEML callback function.
+    # An application instance with a synchronous transaction already in progress attempted to initiate another
+    # synchronous transaction, or the DdeEnableCallback function was called from within a DDEML callback function.
     DMLERR_REENTRANCY    = 0x400d
-    #  DMLERR_SERVER_DIED A server-side transaction was attempted on a conversation terminated by the client, or the server terminated before completing a transaction.
+    # A server-side transaction was attempted on a conversation terminated by the client, or the server terminated
+    # before completing a transaction.
     DMLERR_SERVER_DIED    = 0x400e
-    # DMLERR_SYS_ERROR An internal error has occurred in the DDEML.
+    # An internal error has occurred in the DDEML.
     DMLERR_SYS_ERROR    = 0x400f
-    #  DMLERR_UNADVACKTIMEOUT A request to end an advise transaction has timed out.
+    # A request to end an advise transaction has timed out.
     DMLERR_UNADVACKTIMEOUT    = 0x4010
-    #  DMLERR_UNFOUND_QUEUE_ID An invalid transaction identifier was passed to a DDEML function. Once the application has returned from an XTYP_XACT_COMPLETE callback, the transaction identifier for that callback function is no longer valid.
+    # An invalid transaction identifier was passed to a DDEML function. Once the application has returned from an
+    # XTYP_XACT_COMPLETE callback, the transaction identifier for that callback function is no longer valid.
     DMLERR_UNFOUND_QUEUE_ID = 0x4011
     # Last (highest) error code
     DMLERR_LAST          = DMLERR_UNFOUND_QUEUE_ID
 
-    # Hash {ERROR_CODE=>'Error description')}
+    # Errors Hash {ERROR_CODE=>'Error description')}
     ERRORS = {
             DMLERR_ADVACKTIMEOUT => 'A request for a synchronous advise transaction has timed out.',
             DMLERR_BUSY => 'The response to the transaction caused the DDE_FBUSY flag to be set.',
@@ -643,7 +647,7 @@ module Win
     #              - DMLERR_NO_CONV_ESTABLISHED
     #              - DMLERR_NO_ERROR
     # ---
-    # <b> Enhanced (snake_case) API makes all args optional except for first (dde instance id), and returns nil if
+    # <b>Enhanced (snake_case) API makes all args optional except for first (dde instance id), and returns nil if
     # the function was unsuccessful.</b>
     # ---
     # *Remarks*
@@ -656,11 +660,38 @@ module Win
     #   whether the ANSI or Unicode version of the DdeInitialize function was called by the client application.
     #
     # :call-seq:
-    #  conversation_handle = dde_connect( instance_id, [service = nil, topic = nil, context = nil] )
+    #  conversation_handle = dde_connect( instance_id, [service = 0, topic = 0, context = nil] )
     #
     function :DdeConnect, [:uint32, :ulong, :ulong, :pointer], :ulong, zeronil: true,
-             &->(api, instance_id, service = nil, topic = nil, context = nil){
+             &->(api, instance_id, service = 0, topic = 0, context = nil){
              api.call(instance_id, service, topic, context) }
+
+    ##
+    # The DdeDisconnect function terminates a conversation started by either the DdeConnect or DdeConnectList function
+    # and invalidates the specified conversation handle.
+    #
+    # [*Syntax*] BOOL DdeDisconnect( HCONV hConv );
+    #
+    # hConv:: [in, out] Handle to the active conversation to be terminated.
+    #
+    # *Returns*:: If the function succeeds, the return value is nonzero, otherwise zero. The DdeGetLastError function
+    #             can be used to get the error code, which can be one of the following values:
+    #             - DMLERR_DLL_NOT_INITIALIZED
+    #             - DMLERR_NO_CONV_ESTABLISHED
+    #             - DMLERR_NO_ERROR
+    # ---
+    # <b>Enhanced (snake_case) API returns *true/false* instead of nonzero/zero.</b>
+    # ---
+    # *Remarks*:
+    # Any incomplete transactions started before calling DdeDisconnect are immediately abandoned. The XTYP_DISCONNECT
+    # transaction is sent to the Dynamic Data Exchange (DDE) callback function of the partner in the conversation.
+    # Generally, only client applications must terminate conversations.
+    #
+    # :call-seq:
+    #  success = dde_disconnect(conversation_handle)
+    #
+    function :DdeDisconnect, [:ulong], :int, boolean: true
+
 
     ##
     # The DdeGetLastError function retrieves the most recent error code set by the failure of a Dynamic Data Exchange
@@ -674,6 +705,9 @@ module Win
     # DMLERR_ADVACKTIMEOUT, DMLERR_EXECACKTIMEOUT, DMLERR_INVALIDPARAMETER, DMLERR_LOW_MEMORY, DMLERR_MEMORY_ERROR,
     # DMLERR_NO_CONV_ESTABLISHED, DMLERR_NOTPROCESSED, DMLERR_POKEACKTIMEOUT, DMLERR_POSTMSG_FAILED, DMLERR_REENTRANCY,
     # DMLERR_SERVER_DIED, DMLERR_SYS_ERROR, DMLERR_UNADVACKTIMEOUT, DMLERR_UNFOUND_QUEUE_ID
+    # ---
+    # <b>Enhanced (snake_case) API returns *nil* if the function was unsuccessful (that is, no DDE errors raised).</b>
+    # ---
     #
     # :call-seq:
     #  string = dde_get_last_error( instance_id )

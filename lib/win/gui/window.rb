@@ -1,4 +1,5 @@
 require 'win/library'
+require 'win/gui/message' # needed because some convenience methods work via PostMessage
 
 module Win
   module GUI
@@ -106,7 +107,7 @@ module Win
       # :call-seq:
       # window?( win_handle )
       #
-      function :IsWindow, [:ulong], :int, boolean: true
+      function :IsWindow, [:HWND], :int, boolean: true
 
       ##
       # The IsWindowVisible function retrieves the visibility state of the specified window.
@@ -129,7 +130,7 @@ module Win
       # :call-seq:
       #   [window_]visible?( win_handle )
       #
-      function :IsWindowVisible, [:ulong], :int, boolean: true, aliases: :visible?
+      function :IsWindowVisible, [:HWND], :int, boolean: true, aliases: :visible?
 
       ##
       # Tests whether the specified window is maximized.
@@ -143,7 +144,7 @@ module Win
       # :call-seq:
       #   zoomed?( win_handle ), maximized?( win_handle )
       #
-      function :IsZoomed, [:ulong], :int, boolean: true, aliases: :maximized?
+      function :IsZoomed, [:HWND], :int, boolean: true, aliases: :maximized?
 
       ##
       # Tests whether the specified window is minimized.
@@ -157,7 +158,7 @@ module Win
       # :call-seq:
       #   iconic?( win_handle ), minimized?( win_handle )
       #
-      function :IsIconic, [:ulong], :int, boolean: true, aliases: :minimized?
+      function :IsIconic, [:HWND], :int, boolean: true, aliases: :minimized?
 
       ##
       # Tests whether a window is a child (or descendant) window of a specified parent window.
@@ -176,7 +177,7 @@ module Win
       # :call-seq:
       #   child?( win_handle )
       #
-      function :IsChild, [:ulong, :ulong], :int, boolean: true
+      function :IsChild, [:HWND, :HWND], :int, boolean: true
 
       ##
       # The FindWindow function retrieves a handle to the top-level window whose class name and window name
@@ -214,7 +215,7 @@ module Win
       # :call-seq:
       #   win_handle = find_window( class_name, win_name )
       #
-      function :FindWindow, [:pointer, :pointer], :ulong, zeronil: true
+      function :FindWindow, [:pointer, :pointer], :HWND, zeronil: true
 
       ##
       # Unicode version of FindWindow (strings must be encoded as utf-16LE AND terminate with "\x00\x00")
@@ -222,7 +223,7 @@ module Win
       # :call-seq:
       #   win_handle = find_window_w( class_name, win_name )
       #
-      function :FindWindowW, [:pointer, :pointer], :ulong, zeronil: true
+      function :FindWindowW, [:pointer, :pointer], :HWND, zeronil: true
 
       ##
       #  The FindWindowEx function retrieves a handle to a window whose class name and window name match the specified
@@ -265,7 +266,7 @@ module Win
       # :call-seq:
       #   win_handle = find_window_ex( win_handle, after_child, class_name, win_name )
       #
-      function :FindWindowEx, [:ulong, :ulong, :pointer, :pointer], :ulong, zeronil: true
+      function :FindWindowEx, [:HWND, :HWND, :pointer, :pointer], :HWND, zeronil: true
 
       ##
       # GetWindowText returns the text of the specified window's title bar (if it has one).
@@ -305,7 +306,7 @@ module Win
       #:call-seq:
       #   text = [get_]window_text( win_handle )
       #
-      function :GetWindowText, [:ulong, :pointer, :int], :int, &return_string
+      function :GetWindowText, [:HWND, :pointer, :int], :int, &return_string
 
       ##
       # GetWindowTextW is a Unicode version of GetWindowText (returns rstripped utf-8 string)
@@ -314,7 +315,7 @@ module Win
       #:call-seq:
       #   text = [get_]window_text_w( win_handle )
       #
-      function :GetWindowTextW, [:ulong, :pointer, :int], :int, &return_string('utf-8')
+      function :GetWindowTextW, [:HWND, :pointer, :int], :int, &return_string('utf-8')
 
       ##
       # GetClassName retrieves the name of the class to which the specified window belongs.
@@ -337,7 +338,7 @@ module Win
       #:call-seq:
       #   text = [get_]class_name( win_handle )
       #
-      function :GetClassName, [:ulong, :pointer, :int], :int, &return_string
+      function :GetClassName, [:HWND, :pointer, :int], :int, &return_string
 
       ##
       # GetClassNameW is a Unicode version of GetClassName (returns rstripped utf-8 string)
@@ -346,7 +347,7 @@ module Win
       #:call-seq:
       #   text = [get_]class_name_w( win_handle )
       #
-      function :GetClassNameW, [:ulong, :pointer, :int], :int, &return_string('utf-8')
+      function :GetClassNameW, [:HWND, :pointer, :int], :int, &return_string('utf-8')
 
       ##
       # ShowWindow shows and hides windows (sets the specified window's show state).
@@ -367,8 +368,50 @@ module Win
       #:call-seq:
       #   was_visible = show_window( win_handle, cmd )
       #
-      function :ShowWindow, [:ulong, :int], :int, boolean: true,
+      function :ShowWindow, [:HWND, :int], :int, boolean: true,
                &->(api, handle, cmd=SW_SHOW) { api.call handle, cmd }
+
+      ##
+      # The CloseWindow function minimizes (but does not destroy) the specified window.
+      #
+      # [*Syntax*]: BOOL CloseWindow( HWND hWnd );
+      #
+      # hWnd:: [in] Handle to the window to be minimized.
+      #
+      # *Returns*:: If the function succeeds, the return value is nonzero (*true* in snake_case method). If the function
+      #             fails, the return value is zero (*false). To get extended error information, call GetLastError.
+      # ---
+      # *Remarks*:
+      # To destroy a window, an application must use the DestroyWindow function.
+      #
+      function :CloseWindow, [:HWND], :int, boolean: true
+
+      ##
+      # DestroyWindow function destroys the specified window. The function sends WM_DESTROY and WM_NCDESTROY messages
+      # to the window to deactivate it and remove the keyboard focus from it. The function also destroys the window's
+      # menu, flushes the thread message queue, destroys timers, removes clipboard ownership, and breaks the clipboard
+      # viewer chain (if the window is at the top of the viewer chain).
+      #
+      # If the specified window is a parent or owner window, DestroyWindow automatically destroys the associated child
+      # or owned windows when it destroys the parent or owner window. The function first destroys child or owned
+      # windows, and then it destroys the parent or owner window.
+      #
+      # DestroyWindow also destroys modeless dialog boxes created by the CreateDialog function.
+      #
+      # [*Syntax*]: BOOL DestroyWindow( HWND hWnd );
+      #
+      # hWnd:: [in] Handle to the window to be destroyed.
+      #
+      # *Returns*:: If the function succeeds, the return value is nonzero (snake_case method: *true*). If the function
+      #             fails, the return value is zero (*false*). To get extended error information, call GetLastError.
+      # ---
+      # *Remarks*:
+      # A thread <b>cannot use DestroyWindow to destroy a window created by a different thread.</b> Use a convenience
+      # method destroy_unowned_window instead (it relies on 
+      # If the window being destroyed is a child window that does not have the WS_EX_NOPARENTNOTIFY style, a
+      # WM_PARENTNOTIFY message is sent to the parent.
+      #
+      function :DestroyWindow, [:HWND], :int, boolean: true
 
       ##
       # GetWindowThreadProcessId retrieves the identifier of the thread that created the specified window
@@ -392,11 +435,10 @@ module Win
       #:call-seq:
       #   thread, process_id = [get_]window_tread_process_id( win_handle )
       #
-      function :GetWindowThreadProcessId, [:ulong, :pointer], :long,
-               &->(api, *args) {
-               namespace.enforce_count( args, api.prototype, -1)
+      function :GetWindowThreadProcessId, [:HWND, :pointer], :long,
+               &->(api, handle) {
                process = FFI::MemoryPointer.new(:long).write_long(1)
-               thread = api.call(args.first, process)
+               thread = api.call(handle, process)
                thread == 0 ? [nil, nil] : [thread, process.read_long()] }
       # weird lambda literal instead of normal block is needed because current version of RDoc
       # goes crazy if block is attached to meta-definition
@@ -425,12 +467,11 @@ module Win
       #:call-seq:
       #   rect = [get_]window_rect( win_handle )
       #
-      function :GetWindowRect, [:ulong, :pointer], :int,
-               &->(api, *args) {
-               namespace.enforce_count( args, api.prototype, -1)
+      function :GetWindowRect, [:HWND, :pointer], :int,
+               &->(api, handle) {
                rect = FFI::MemoryPointer.new(:long, 4)
                #rect.write_array_of_long([0, 0, 0, 0])
-               res = api.call args.first, rect
+               res = api.call handle, rect
                res == 0 ? [nil, nil, nil, nil] :  rect.read_array_of_long(4) }
       # weird lambda literal instead of normal block is needed because current version of RDoc
       # goes crazy if block is attached to meta-definition
@@ -454,7 +495,7 @@ module Win
       # :call-seq:
       #  EnumWindowsProc callback block: {|win_handle, value| your callback code }
       #
-      callback :EnumWindowsProc, [:ulong, :long], :bool
+      callback :EnumWindowsProc, [:HWND, :long], :bool
 
       ##
       # The EnumWindows function enumerates all top-level windows on the screen by passing the handle to
@@ -561,7 +602,7 @@ module Win
       #:call-seq:
       #   handles = enum_child_windows( parent_handle, [value=0] ) {|handle, value| your callback procedure }
       #
-      function :EnumChildWindows, [:ulong, :EnumWindowsProc, :long], :bool, &return_enum
+      function :EnumChildWindows, [:HWND, :EnumWindowsProc, :long], :bool, &return_enum
 
       ##
       # GetForegroundWindow function returns a handle to the foreground window (the window with which the user
@@ -576,7 +617,7 @@ module Win
       #:call-seq:
       #   win_handle = [get_]foreground_window()
       #
-      function :GetForegroundWindow, [], :ulong, zeronil: true
+      function :GetForegroundWindow, [], :HWND, zeronil: true
 
       ##
       # The GetActiveWindow function retrieves the window handle to the active window attached to
@@ -593,7 +634,7 @@ module Win
       #:call-seq:
       #   win_handle = [get_]active_window()
       #
-      function :GetActiveWindow, [], :ulong, zeronil: true
+      function :GetActiveWindow, [], :HWND, zeronil: true
 
       # Convenience wrapper methods:
 
@@ -610,6 +651,28 @@ module Win
       def foreground?(win_handle)
         win_handle == foreground_window
       end
+
+      ##
+      # Destroys the window created by different thread by posting WM_SYSCOMMAND, SC_CLOSE message to it.
+      # This closely emulates user clicking on X button of the target window. As it would be expected, it
+      # actually gives the target window chance to close gracefully (it may ask user to save data and stuff).
+      # I have not find so far how to REALLY destroy window in different thread without it asking user anything.
+      #
+      def destroy_unowned_window( win_handle)
+        post_message(win_handle, Win::GUI::Message::WM_SYSCOMMAND, Win::GUI::Message::SC_CLOSE, 0)
+      end
+
+      ##
+      # Returns text associated with window by sending WM_GETTEXT message to it.
+      # ---
+      # *Remarks*: It is *different* from GetWindowText that returns only window title
+      #
+      def text( win_handle)
+        buffer = FFI::MemoryPointer.new :char, 1024
+        num_chars = send_message win_handle, Win::GUI::Message::WM_GETTEXT, buffer.size, buffer
+        num_chars == 0 ?  nil : buffer.get_bytes(0, num_chars)
+      end
+
     end
   end
 end

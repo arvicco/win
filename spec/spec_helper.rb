@@ -74,6 +74,10 @@ module WinTest
   def not_a_handle
     123
   end
+
+  def buffer
+    FFI::MemoryPointer.new(:char, 1024)
+  end
 end
 
 module WinTestApp
@@ -86,15 +90,21 @@ module WinTestApp
     system TEST_APP_START
     sleep TEST_SLEEP_DELAY until (handle = find_window(nil, TEST_WIN_TITLE))
 
-    @launched_test_app = Window::Window.new handle
-#    app = "Test app"    #need to get rid of Window for JRuby
-#    class << app; self; end.send( :define_method, :handle, &lambda {handle})
-#    @launched_test_app = app
+    textarea = find_window_ex(handle, 0, TEST_TEXTAREA_CLASS, nil)
+    app = "Locknote" # App identifier
+
+    eigenklass = class << app; self; end      # Extracting app's eigenclass
+    eigenklass.class_eval do                  # Defining singleton methods on app
+      define_method(:handle) {handle}
+      define_method(:textarea) {textarea}
+    end
+
+    @launched_test_app = app
   end
 
   def close_test_app(app = @launched_test_app)
-    while app and app.respond_to? :handle and find_window(nil, TEST_WIN_TITLE)
-      post_message(app.handle, WM_SYSCOMMAND, SC_CLOSE, 0)
+    while app && app.respond_to?( :handle) && find_window(nil, TEST_WIN_TITLE)
+      destroy_unowned_window app.handle
       sleep TEST_SLEEP_DELAY
     end
     @launched_test_app = nil
@@ -104,9 +114,9 @@ module WinTestApp
   def test_app
     app = launch_test_app
 
-    def app.textarea #define singleton method retrieving app's text area
-      Window::Window.new find_window_ex(self.handle, 0, TEST_TEXTAREA_CLASS, nil)
-    end
+#    def app.textarea #define singleton method retrieving app's text area
+#      Window::Window.new find_window_ex(self.handle, 0, TEST_TEXTAREA_CLASS, nil)
+#    end
 
     yield app
     close_test_app app

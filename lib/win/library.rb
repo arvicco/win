@@ -105,7 +105,7 @@ module Win
               # :buffer_inout – Similar to :pointer, but may be optimized for Buffers.
               # :varargs      – Variable arguments
 
-              # Windows-specific typedefs:
+              # Windows-specific type defs (ms-help://MS.MSDNQTR.v90.en/winprog/winprog/windows_data_types.htm):
               ATOM:      :ushort, # Atom ~= Symbol: Atom table stores strings and corresponding identifiers. Application
               # places a string in an atom table and receives a 16-bit integer, called an atom, that
               # can be used to access the string. Placed string is called an atom name.
@@ -128,6 +128,7 @@ module Win
               HACCEL:    :ulong, # (L) Handle to an accelerator table. WinDef.h: #typedef HANDLE HACCEL;
               # See http://msdn.microsoft.com/en-us/library/ms645526%28VS.85%29.aspx
               HANDLE:    :ulong, # (L) Handle to an object. WinNT.h: #typedef PVOID HANDLE;
+              # todo: Platform-dependent! Need to change to :uint64 for Win64
               HBITMAP:   :ulong, # (L) Handle to a bitmap: http://msdn.microsoft.com/en-us/library/dd183377%28VS.85%29.aspx
               HBRUSH:    :ulong, # (L) Handle to a brush. http://msdn.microsoft.com/en-us/library/dd183394%28VS.85%29.aspx
               HCOLORSPACE: :ulong, # (L) Handle to a color space. http://msdn.microsoft.com/en-us/library/ms536546%28VS.85%29.aspx
@@ -177,7 +178,7 @@ module Win
               LCTYPE:   :uint32, # Locale information type. For a list, see Locale Information Constants.
               LGRPID:   :uint32, # Language group identifier. For a list, see EnumLanguageGroupLocales.
               LONG:     :long, # 32-bit signed integer. The range is -2,147,483,648 through +...647 decimal.
-              LONG32:   :long, # 32-bit signed integer. The range is -2,147,483,648 through +...647 decimal.
+              LONG32:   :int32, # 32-bit signed integer. The range is -2,147,483,648 through +...647 decimal.
               LONG64:   :int64, # 64-bit signed integer. The range is –9,223,372,036,854,775,808 through +...807
               LONGLONG: :int64, # 64-bit signed integer. The range is –9,223,372,036,854,775,808 through +...807
               LONG_PTR: :long, # Signed long type for pointer precision. Use when casting a pointer to a long to

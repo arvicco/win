@@ -21,7 +21,7 @@ module WinWindowTest
             keybd_event(b.ord, 0, KEYEVENTF_KEYUP, 0)
             sleep TEST_KEY_DELAY
           end
-          app.textarea.text.should =~ Regexp.new(text)
+          text(app.textarea).should =~ Regexp.new(text)
           7.times {keystroke(VK_CONTROL, 'Z'.ord)} # dirty hack!
         end
       end
@@ -46,7 +46,7 @@ module WinWindowTest
         test_app do |app|
           keystroke(VK_CONTROL, 'A'.ord)
           keystroke(VK_SPACE)
-          app.textarea.text.should == ' '
+          text(app.textarea).should.should == ' '
           2.times {keystroke(VK_CONTROL, 'Z'.ord)} # dirty hack!
         end
       end
@@ -59,7 +59,7 @@ module WinWindowTest
         test_app do |app|
           text = '12 34'
           type_in(text)
-          app.textarea.text.should =~ Regexp.new(text)
+          text(app.textarea).should =~ Regexp.new(text)
           5.times {keystroke(VK_CONTROL, 'Z'.ord)} # dirty hack!
         end
       end

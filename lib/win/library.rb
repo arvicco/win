@@ -322,7 +322,7 @@ module Win
       # :zeronil:: Forces method to return nil if function result is zero
       #
       def function(name, params, returns, options={}, &def_block)
-        method_name, effective_names, aliases = generate_names(name, options)
+        snake_name, effective_names, aliases = generate_names(name, options)
         params, returns = generate_signature(params, returns)
         libs = ffi_libraries.map(&:name)
         boolean = options[:boolean]
@@ -342,32 +342,35 @@ module Win
         # Create API object that holds information about function names, params, etc
         api = API.new(namespace, name, effective_name, params, returns, libs)
 
-        method_body = if def_block
-          if zeronil
-            ->(*args, &block){ (res = def_block.(api, *args, &block)) != 0 ? res : nil }
-          elsif boolean
-            ->(*args, &block){ def_block.(api, *args, &block) != 0 }
+        # Only define enhanced API if snake_name is different from original name (e.g. keybd_event)
+        unless snake_name.to_s == name.to_s
+          method_body = if def_block
+            if zeronil
+              ->(*args, &block){ (res = def_block.(api, *args, &block)) != 0 ? res : nil }
+            elsif boolean
+              ->(*args, &block){ def_block.(api, *args, &block) != 0 }
+            else
+              ->(*args, &block){ def_block.(api, *args, &block) }
+            end
           else
-            ->(*args, &block){ def_block.(api, *args, &block) }
+            if zeronil
+              ->(*args, &block){ (res = block ? block[api[*args]] : api[*args]) != 0 ? res : nil }
+            elsif boolean
+              ->(*args, &block){ block ? block[api[*args]] : api[*args] != 0 }
+            else
+              ->(*args, &block){ block ? block[api[*args]] : api[*args] }
+            end
           end
-        else
-          if zeronil
-            ->(*args, &block){ (res = block ? block[api[*args]] : api[*args]) != 0 ? res : nil }
-          elsif boolean
-            ->(*args, &block){ block ? block[api[*args]] : api[*args] != 0 }
-          else
-            ->(*args, &block){ block ? block[api[*args]] : api[*args] }
+
+          define_method snake_name, &method_body       # define snake_case instance method
+
+          eigenklass = class << self; self; end        # Extracting eigenclass
+          eigenklass.class_eval do
+            define_method snake_name, &method_body       # define snake_case class method
           end
         end
 
-        define_method method_name, &method_body       # define snake_case method
-
-#        eigenklass = class << self; self; end      # Extracting host class's eigenclass
-#        eigenklass.class_eval do
-#          define_method method_name, &method_body       # define snake_case method
-#        end
-
-        aliases.each {|ali| alias_method ali, method_name }  # define aliases
+        aliases.each {|ali| alias_method ali, snake_name }  # define aliases
         api   #return api object from function declaration
       end
 
@@ -380,16 +383,16 @@ module Win
         effective_names = [name]
         effective_names += ["#{name}A", "#{name}W"] unless name =~ /[WA]$/
         aliases = ([options[:alias]] + [options[:aliases]]).flatten.compact
-        method_name = options[:rename] || name.snake_case
-        case method_name
+        snake_name = options[:rename] || name.snake_case
+        case snake_name
           when /^is_/
-            aliases << method_name.sub(/^is_/, '') + '?'
+            aliases << snake_name.sub(/^is_/, '') + '?'
           when /^set_/
-            aliases << method_name.sub(/^set_/, '')+ '='
+            aliases << snake_name.sub(/^set_/, '')+ '='
           when /^get_/
-            aliases << method_name.sub(/^get_/, '')
+            aliases << snake_name.sub(/^get_/, '')
         end
-        [method_name, effective_names, aliases]
+        [snake_name, effective_names, aliases]
       end
 
       ##

@@ -369,9 +369,7 @@ module WinWindowTest
                                       :minimized? => false, :maximized? => false, :visible? => true, :foreground? => true
         end
 
-        it 'SW_SHOWNA displays the window in its current size and position (similar to SW_SHOW, but window is not activated)'
-        it 'SW_SHOWDEFAULT sets the show state based on the SW_ value specified in the STARTUPINFO structure passed to the CreateProcess function by the program that started the application'
-        it 'SW_FORCEMINIMIZE minimizes a window, even if the thread that owns the window is not responding - only Win2000/XP'
+        # what about SW_SHOWNA, SW_SHOWDEFAULT, SW_FORCEMINIMIZE ?
       end
 
       describe '#close_window' do
@@ -522,13 +520,13 @@ module WinWindowTest
       end
     end
 
-    describe '#destroy_unowned_window' do
-      spec{ use{ was_visible = destroy_unowned_window(handle=0) }}
+    describe '#shut_window' do
+      spec{ use{ success = shut_window(handle=0) }}
 
       it 'destroys window in another thread by sending WM_SYSCOMMAND, SC_CLOSE message to it' do
         app = launch_test_app
 
-        destroy_unowned_window(app.handle).should == true
+        shut_window(app.handle).should == true
         sleep TEST_SLEEP_DELAY
 
         window?(app.handle).should == false

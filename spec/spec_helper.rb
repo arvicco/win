@@ -104,7 +104,7 @@ module WinTestApp
 
   def close_test_app(app = @launched_test_app)
     while app && app.respond_to?( :handle) && find_window(nil, TEST_WIN_TITLE)
-      destroy_unowned_window app.handle
+      shut_window app.handle
       sleep TEST_SLEEP_DELAY
     end
     @launched_test_app = nil

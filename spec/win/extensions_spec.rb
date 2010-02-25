@@ -14,16 +14,26 @@ module WinTest
       end
     end
 
+    context '#camel_case' do
+      it 'transforms snake_case strings' do
+        'get_char_width_32'.camel_case.should == 'GetCharWidth32'
+      end
+
+      it 'leaves CamelCase strings intact' do
+        'GetCharWidth32'.camel_case.should == 'GetCharWidth32'
+      end
+    end
+
     context '#to_w' do
       it 'transcodes string to utf-16LE' do
         'GetCharWidth32'.to_w.encoding.name.should == 'UTF-16LE'
       end
-      
+
       it 'ensures that encoded string is null-terminated' do
         'GetCharWidth32'.to_w.bytes.to_a[-2..-1].should == [0, 0]
       end
     end
-    
+
     context '#to_vkeys' do
       it 'transforms number char into [equivalent key code]' do
        ('0'..'9').each {|char| char.to_vkeys.should == char.unpack('C')}

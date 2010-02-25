@@ -654,12 +654,12 @@ module Win
       end
 
       ##
-      # Destroys the window created by different thread by posting WM_SYSCOMMAND, SC_CLOSE message to it.
-      # This closely emulates user clicking on X button of the target window. As it would be expected, it
+      # Shuts down the window <b>created by different thread</b> by posting WM_SYSCOMMAND, SC_CLOSE message to it.
+      # This closely emulates user clicking on X button of the target window. As it would be expected, this
       # actually gives the target window chance to close gracefully (it may ask user to save data and stuff).
       # I have not find so far how to REALLY destroy window in different thread without it asking user anything.
       #
-      def destroy_unowned_window( win_handle)
+      def shut_window( win_handle)
         post_message(win_handle, Win::GUI::Message::WM_SYSCOMMAND, Win::GUI::Message::SC_CLOSE, 0)
       end
 

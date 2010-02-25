@@ -288,6 +288,38 @@ module Win
       #
       function :SetCursorPos, [:int, :int], :int, boolean: true
 
+      ##
+      # GetCursorPos Function retrieves the cursor's position, in screen coordinates.
+      #
+      # [*Syntax*]  BOOL GetCursorPos( LPPOINT lpPoint );
+      #
+      # lpPoint:: [out] Pointer to a POINT structure that receives the screen coordinates of the cursor.
+      #
+      # *Returns*:: Returns nonzero if successful or zero otherwise. To get extended error information, call
+      #             GetLastError.
+      # ---
+      # *Remarks*:
+      # The cursor position is always specified in screen coordinates and is not affected by the mapping mode
+      # of the window that contains the cursor.
+      # The calling process must have WINSTA_READATTRIBUTES access to the window station.
+      # The input desktop must be the current desktop when you call GetCursorPos. Call OpenInputDesktop to
+      # determine whether the current desktop is the input desktop. If it is not, call SetThreadDesktop with
+      # the HDESK returned by OpenInputDesktop to switch to that desktop.
+      # ---
+      # <b>Enhanced (snake_case) API: accepts no args, returns a pair (x, y) of cursor coordinates</b>
+      #
+      # :call-seq:
+      #  x, y = get_cursor_pos()
+      #
+      function :GetCursorPos, [:pointer], :int8, 
+               &->(api) {
+               point = FFI::MemoryPointer.new(:long, 2)
+               res = api.call point
+               res == 0 ? [nil, nil] : point.read_array_of_long(2) }
+      # weird lambda literal instead of normal block is needed because current version of RDoc
+      # goes crazy if block is attached to meta-definition
+
+
       # Convenience methods
 
       ##

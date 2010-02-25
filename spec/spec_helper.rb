@@ -9,6 +9,18 @@ $debug = true
 # Customize RSpec with my own extensions
 module ClassMacros
 
+  def os
+    `ver`
+  end
+
+  def vista?
+    os =~ /Version 6/
+  end
+
+  def xp?
+    os =~ /XP/
+  end
+
   # wrapper for it method that extracts description from example source code, such as:
   # spec { use{    function(arg1 = 4, arg2 = 'string')  }}
   def spec &block

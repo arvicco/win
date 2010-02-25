@@ -851,6 +851,13 @@ module Win
     FORMAT_MESSAGE_ARGUMENT_ARRAY    = 0x00002000
     FORMAT_MESSAGE_MAX_WIDTH_MASK    = 0x000000FF
 
+    # Set/GetErrorMode values:
+
+    SEM_FAILCRITICALERRORS     = 0x0001
+    SEM_NOALIGNMENTFAULTEXCEPT = 0x0004
+    SEM_NOGPFAULTERRORBOX      = 0x0002
+    SEM_NOOPENFILEERRORBOX     = 0x8000
+
     ##
     # FormatMessage Function
     # Formats a message string. The function requires a message definition as input. The message definition
@@ -1011,11 +1018,10 @@ module Win
     function :FormatMessage, [:DWORD, :LPCVOID, :DWORD, :DWORD, :LPTSTR, :DWORD, :varargs], :DWORD,
              &->(api, flags=FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ARGUMENT_ARRAY,
                      source=nil, message_id=0, language_id=0, *args){
-             buffer   = FFI::MemoryPointer.new :char, 260
+             buffer = FFI::MemoryPointer.new :char, 260
              args = [:int, 0] if args.empty?
              num_chars = api.call(flags, source, message_id, language_id, buffer, buffer.size, *args)
              num_chars == 0 ? nil : buffer.get_bytes(0, num_chars).strip }
-
 
     ##
     # GetLastError Function
@@ -1062,5 +1068,157 @@ module Win
              &->(api) { error_code = api.call
              flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ARGUMENT_ARRAY
              format_message(flags, nil, error_code)}
+
+    ##
+    # SetLastError Function
+    # Sets the last-error code for the calling thread.
+    #
+    # [*Syntax*] void WINAPI SetLastError( DWORD dwErrCode );
+    #
+    # dwErrCode:: [in] The last-error code for the thread.
+    #
+    # *Returns*:: This function does not return a value.
+    # ---
+    # *Remarks*:
+    # - The last-error code is kept in thread local storage so that multiple threads do not overwrite each
+    #   other's values.
+    # - This function is intended primarily for use by dynamic-link libraries (DLL). A DLL can provide the
+    #   applications that are using it with additional diagnostic information by calling this function after
+    #   an error occurs. Most functions call SetLastError or SetLastErrorEx only when they fail. However, some
+    #   system functions call SetLastError or SetLastErrorEx under conditions of success; those cases are
+    #   noted in each function's documentation.
+    # - Applications can optionally retrieve the value set by this function by using the GetLastError function
+    #   immediately after a function fails.
+    # - Error codes are 32-bit values (bit 31 is the most significant bit). Bit 29 is reserved for
+    #   application-defined error codes; no system error code has this bit set. If you are defining an error
+    #   code for your application, set this bit to indicate that the error code has been defined by your
+    #   application and to ensure that your error code does not conflict with any system-defined error codes.
+    # ---
+    # <b>Enhanced (snake_case) API: </b>
+    #
+    # :call-seq:
+    #  set_last_error(err_code)
+    #
+    function :SetLastError, [:DWORD], :void
+
+    ##
+    # SetLastErrorEx Function sets the last-error code.
+    # Currently, this function is identical to the SetLastError function. The second parameter is ignored.
+    #
+    # [*Syntax*] void WINAPI SetLastErrorEx( DWORD dwErrCode, DWORD dwType );
+    #
+    # dwErrCode:: The last-error code for the thread.
+    # dwType:: This parameter is ignored.
+    #
+    # *Returns*:: This function does not return a value.
+    # ---
+    # *Remarks*:
+    # The last-error code is kept in thread local storage so that multiple threads do not overwrite each
+    # other's values.
+    # This function is intended primarily for use by dynamic-link libraries (DLL). A DLL can provide the
+    # applications that are using it with additional diagnostic information by calling this function after
+    # an error occurs. Most functions call SetLastError or SetLastErrorEx only when they fail. However, some
+    # system functions call SetLastError or SetLastErrorEx under conditions of success; those cases are
+    # noted in each function's documentation.
+    # Applications can optionally retrieve the value set by this function by using the GetLastError function
+    # immediately after a function fails.
+    # Error codes are 32-bit values (bit 31 is the most significant bit). Bit 29 is reserved for
+    # application-defined error codes; no system error code has this bit set. If you are defining an error
+    # code for your application, set this bit to indicate that the error code has been defined by the
+    # application and to ensure that your error code does not conflict with any system-defined error codes.
+    #
+    # :call-seq:
+    #  set_last_error_ex(err_code, dw_type)
+    #
+    try_function :SetLastErrorEx, [:DWORD, :DWORD], :void
+    # fails silently unless platform is XP++
+
+    ##
+    # GetErrorMode Function
+    # Retrieves the error mode for the current process.
+    #
+    # [*Syntax*] UINT WINAPI GetErrorMode( void );
+    #
+    # This function has no parameters.
+    #
+    # *Returns*:: The process error mode. This function returns one of the following values.
+    #         SEM_FAILCRITICALERRORS:: The system does not display the critical-error-handler message box. Instead,
+    #                                  the system sends the error to the calling process.
+    #         SEM_NOALIGNMENTFAULTEXCEPT:: The system automatically fixes memory alignment faults and makes them
+    #                                      invisible to the application. It does this for the calling process and any
+    #                                      descendant processes. This feature is only supported by certain processor
+    #                                      architectures. For more information, see the Remarks section.
+    #                                      After this value is set for a process, subsequent attempts to clear the
+    #                                      value are ignored.
+    #         SEM_NOGPFAULTERRORBOX:: The system does not display the general-protection-fault message box. This flag
+    #                                 should only be set by debugging applications that handle general protection (GP)
+    #                                 faults themselves with an exception handler.
+    #         SEM_NOOPENFILEERRORBOX:: The system does not display a message box when it fails to find a file. Instead,
+    #                                  the error is returned to the calling process.
+    # ---
+    # *Remarks*:
+    # Each process has an associated error mode that indicates to the system how the application is going to
+    # respond to serious errors. A child process inherits the error mode of its parent process.
+    # To change the error mode for the process, use the SetErrorMode function.
+    # ------
+    # <b> Only works in Vista++! </b>
+    # ------
+    # :call-seq:
+    #  mode = get_error_mode()
+    #
+    try_function :GetErrorMode, [], :UINT
+    # fails silently unless platform is Vista++
+
+    ##
+    # SetErrorMode Function controls whether the system will handle the specified types of serious errors or whether
+    # the process will handle them.
+    #
+    # [*Syntax*] UINT WINAPI SetErrorMode( UINT uMode );
+    #
+    # uMode:: The process error mode. This parameter can be one or more of the following values.
+    #         0:: Use the system default, which is to display all error dialog boxes.
+    #         SEM_FAILCRITICALERRORS:: The system does not display the critical-error-handler message box. Instead,
+    #                                  the system sends the error to the calling process.
+    #         SEM_NOALIGNMENTFAULTEXCEPT:: The system automatically fixes memory alignment faults and makes them
+    #                                      invisible to the application. It does this for the calling process and any
+    #                                      descendant processes. This feature is only supported by certain processor
+    #                                      architectures. For more information, see the Remarks section.
+    #                                      After this value is set for a process, subsequent attempts to clear the
+    #                                      value are ignored.
+    #         SEM_NOGPFAULTERRORBOX:: The system does not display the general-protection-fault message box. This flag
+    #                                 should only be set by debugging applications that handle general protection (GP)
+    #                                 faults themselves with an exception handler.
+    #         SEM_NOOPENFILEERRORBOX:: The system does not display a message box when it fails to find a file. Instead,
+    #                                  the error is returned to the calling process.
+    #
+    # *Returns*:: The return value is the previous state of the error-mode bit flags.
+    # ---
+    # *Remarks*:
+    # Each process has an associated error mode that indicates to the system how the application is going to
+    # respond to serious errors. A child process inherits the error mode of its parent process. To retrieve
+    # the process error mode, use the GetErrorMode function.
+    # Because the error mode is set for the entire process, you must ensure that multi-threaded applications
+    # do not set different error-mode flags. Doing so can lead to inconsistent error handling.
+    # The system does not make alignment faults visible to an application on all processor architectures.
+    # Therefore, specifying SEM_NOALIGNMENTFAULTEXCEPT is not an error on such architectures, but the system
+    # is free to silently ignore the request. This means that code sequences such as the following are not
+    # always valid on x86 computers:
+    #
+    #   SetErrorMode(SEM_NOALIGNMENTFAULTEXCEPT);
+    #   fuOldErrorMode = SetErrorMode(0);
+    #   ASSERT(fuOldErrorMode == SEM_NOALIGNMENTFAULTEXCEPT);
+    #
+    # Itanium::  An application must explicitly call SetErrorMode with SEM_NOALIGNMENTFAULTEXCEPT to have the
+    #            system automatically fix alignment faults. The default setting is for the system to make alignment
+    #            faults visible to an application.
+    # Visual Studio 2005::  When declaring a pointer to a structure that may not have aligned data, you can use
+    #                       __unaligned keyword to indicate that the type must be read one byte at a time. For more
+    #                       information, see Windows Data Alignment.
+    #
+    # :call-seq:
+    #  success = set_error_mode(mode)
+    #
+    function :SetErrorMode, [:UINT], :UINT
+
   end
 end

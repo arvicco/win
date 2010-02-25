@@ -416,7 +416,7 @@ module Win
       #:call-seq:
       # success = post_message(handle, msg, w_param, l_param)
       #
-      function :PostMessage, [:ulong, :uint, :long, :uint], :int, boolean: true
+      function :PostMessage, [:ulong, :uint, :long, :pointer], :int, boolean: true
 
       ##
       # The SendMessage function sends the specified message to a window or windows. It calls the window procedure for

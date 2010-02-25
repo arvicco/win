@@ -374,7 +374,16 @@ module Win
         api   #return api object from function declaration
       end
 
-      ##
+      # Try to define platform-specific function, rescue error, return message
+      #
+      def try_function(name, params, returns, options={}, &def_block)
+        begin
+          function name, params, returns, options={}, &def_block
+        rescue Win::Errors::NotFoundError
+          "This platform does not support function #{name}"
+        end
+      end
+
       # Generates possible effective names for function in Win32 dll (name+A/W),
       # Rubyesque name and aliases for method(s) defined based on function name,
       #

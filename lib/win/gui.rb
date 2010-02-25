@@ -2,7 +2,6 @@ require 'win/gui/window'
 require 'win/gui/input'
 require 'win/gui/message'
 require 'win/gui/dialog'
-require 'win/gui/window/window'
 
 module Win
   

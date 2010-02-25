@@ -31,7 +31,7 @@ module WinWindowTest
     end
   end
 
-  describe Win::GUI::Window, ' defines a set user32 API functions related to Window manipulation' do
+  describe Win::GUI::Window, ' defines a set of API functions related to Window manipulation' do
     context 'ensuring test app closes' do
       after(:each){close_test_app if @launched_test_app}
 

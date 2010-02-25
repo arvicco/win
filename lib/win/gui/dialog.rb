@@ -33,15 +33,15 @@ module Win
       # Convenience methods:
 
       # finds top-level dialog window by title and yields found dialog window to block if given
-      def dialog(title, seconds=3)
-        d = begin
-          win = Window::Window.top_level(title, seconds)
-          yield(win) ? win : nil
-        rescue TimeoutError
-        end
-        d.wait_for_close if d
-        return d
-      end
+#      def dialog(title, seconds=3)
+#        d = begin
+#          win = Window::Window.top_level(title, seconds)
+#          yield(win) ? win : nil
+#        rescue TimeoutError
+#        end
+#        d.wait_for_close if d
+#        return d
+#      end
     end
   end
 end

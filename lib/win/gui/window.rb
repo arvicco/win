@@ -530,7 +530,7 @@ module Win
       # :call-seq:
       #   handles = enum_windows( [value=0] ) {|handle, value| your callback procedure }
       #
-      function :EnumWindows, [:EnumWindowsProc, :long], :bool, &return_enum
+      function :EnumWindows, [:EnumWindowsProc, :long], :int8, &return_enum
 
       ##
       # EnumDesktopWindows Function enumerates all top-level windows associated with the specified desktop.
@@ -568,7 +568,7 @@ module Win
       # :call-seq:
       #   handles = enum_desktop_windows( desktop_handle, [value=0] ) {|handle, value| your callback procedure }
       #
-      function :EnumDesktopWindows, [:ulong, :EnumWindowsProc, :long], :bool, &return_enum
+      function :EnumDesktopWindows, [:ulong, :EnumWindowsProc, :long], :int8, &return_enum
 
       ##
       # The EnumChildWindows function enumerates the child windows that belong to the specified parent window by
@@ -602,7 +602,7 @@ module Win
       #:call-seq:
       #   handles = enum_child_windows( parent_handle, [value=0] ) {|handle, value| your callback procedure }
       #
-      function :EnumChildWindows, [:HWND, :EnumWindowsProc, :long], :bool, &return_enum
+      function :EnumChildWindows, [:HWND, :EnumWindowsProc, :long], :int8, &return_enum
 
       ##
       # GetForegroundWindow function returns a handle to the foreground window (the window with which the user
@@ -660,7 +660,7 @@ module Win
       # I have not find so far how to REALLY destroy window in different thread without it asking user anything.
       #
       def shut_window( win_handle)
-        post_message(win_handle, Win::GUI::Message::WM_SYSCOMMAND, Win::GUI::Message::SC_CLOSE, 0)
+        post_message(win_handle, Win::GUI::Message::WM_SYSCOMMAND, Win::GUI::Message::SC_CLOSE, nil)
       end
 
       ##

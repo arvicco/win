@@ -14,7 +14,7 @@ module WinWindowTest
 
       it 'synthesizes a numeric keystrokes, emulating keyboard driver' do
         test_app do |app|
-          text = '123 456'
+          text = '12 34'
           text.upcase.each_byte do |b| # upcase needed since user32 keybd_event expects upper case chars
             keybd_event(b.ord, 0, KEYEVENTF_KEYDOWN, 0)
             sleep TEST_KEY_DELAY
@@ -22,7 +22,7 @@ module WinWindowTest
             sleep TEST_KEY_DELAY
           end
           text(app.textarea).should =~ Regexp.new(text)
-          7.times {keystroke(VK_CONTROL, 'Z'.ord)} # dirty hack!
+          5.times {keystroke(VK_CONTROL, 'Z'.ord)} # rolling back changes to allow window closing without dialog!
         end
       end
     end
@@ -47,7 +47,7 @@ module WinWindowTest
           keystroke(VK_CONTROL, 'A'.ord)
           keystroke(VK_SPACE)
           text(app.textarea).should.should == ' '
-          2.times {keystroke(VK_CONTROL, 'Z'.ord)} # dirty hack!
+          2.times {keystroke(VK_CONTROL, 'Z'.ord)} # rolling back changes to allow window closing without dialog!
         end
       end
     end
@@ -60,7 +60,7 @@ module WinWindowTest
           text = '12 34'
           type_in(text)
           text(app.textarea).should =~ Regexp.new(text)
-          5.times {keystroke(VK_CONTROL, 'Z'.ord)} # dirty hack!
+          5.times {keystroke(VK_CONTROL, 'Z'.ord)} # rolling back changes to allow window closing without dialog!
         end
       end
     end

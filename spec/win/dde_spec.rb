@@ -233,7 +233,8 @@ module WinDDETest
       describe '#dde_connect' do
         spec{ use{ conversation_handle = DdeConnect( instance_id=0, service=0, topic=0, context=nil) }}
         spec{ use{ conversation_handle = dde_connect( instance_id=0, service=0, topic=0, context=nil) }}
-          it 'connects to existing DDE server'
+
+        it 'connects to existing DDE server'
       end
 
       describe '#dde_disconnect' do

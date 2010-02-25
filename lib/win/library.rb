@@ -104,6 +104,8 @@ module Win
               # :buffer_out   – Similar to :pointer, but optimized for Buffers that the function can only write (not read).
               # :buffer_inout – Similar to :pointer, but may be optimized for Buffers.
               # :varargs      – Variable arguments
+              # :enum         - Enumerable type (should be defined)
+              # :char_array   - ??
 
               # Windows-specific type defs (ms-help://MS.MSDNQTR.v90.en/winprog/winprog/windows_data_types.htm):
               ATOM:      :ushort, # Atom ~= Symbol: Atom table stores strings and corresponding identifiers. Application
@@ -360,6 +362,11 @@ module Win
 
         define_method method_name, &method_body       # define snake_case method
 
+#        eigenklass = class << self; self; end      # Extracting host class's eigenclass
+#        eigenklass.class_eval do
+#          define_method method_name, &method_body       # define snake_case method
+#        end
+
         aliases.each {|ali| alias_method ali, method_name }  # define aliases
         api   #return api object from function declaration
       end
@@ -433,9 +440,10 @@ module Win
       eigenklass.class_eval do
         define_method(:namespace) {klass}         # Defining new class method for host pointing to itself
         alias_method :attach_callback, :callback
+
+        include ClassMethods
       end
-      
-      klass.extend ClassMethods
+
       klass.ffi_lib 'user32', 'kernel32'  # Default libraries
       klass.ffi_convention :stdcall
     end

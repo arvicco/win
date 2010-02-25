@@ -562,7 +562,7 @@ module Win
     #
     # idInst:: [in] Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
     # hsz:: [in] Handle to the string to copy. This handle must have been created by a previous call to the
-    #            DdeCreateStringHandle function.
+    #       DdeCreateStringHandle function.
     # psz:: [in, out] Pointer to a buffer that receives the string. To obtain the length of the string, this parameter
     #       should be set to NULL.
     # cchMax::  [in] Specifies the length, in TCHARs, of the buffer pointed to by the psz parameter. For the ANSI
@@ -700,15 +700,12 @@ module Win
     #            parameter is NULL, the server receives the default CONVCONTEXT structure during the XTYP_CONNECT
     #            or XTYP_WILDCONNECT transaction.
     # *Returns*:: If the function succeeds, the return value is the handle to the established conversation.
-    #              If the function fails, the return value is 0L. The DdeGetLastError function can be used to get
-    #              the error code, which can be one of the following values:
-    #              - DMLERR_DLL_NOT_INITIALIZED
-    #              - DMLERR_INVALIDPARAMETER
-    #              - DMLERR_NO_CONV_ESTABLISHED
-    #              - DMLERR_NO_ERROR
-    # ---
-    # <b>Enhanced (snake_case) API makes all args optional except for first (dde instance id), and returns nil if
-    # the function was unsuccessful.</b>
+    #             If the function fails, the return value is 0L. The DdeGetLastError function can be used to get
+    #             the error code, which can be one of the following values:
+    #             - DMLERR_DLL_NOT_INITIALIZED
+    #             - DMLERR_INVALIDPARAMETER
+    #             - DMLERR_NO_CONV_ESTABLISHED
+    #             - DMLERR_NO_ERROR
     # ---
     # *Remarks*
     # - The client application cannot make assumptions regarding the server selected. If an instance-specific name
@@ -718,6 +715,9 @@ module Win
     # - All members of the default CONVCONTEXT structure are set to zero except cb, which specifies the size of the
     #   structure, and iCodePage, which specifies CP_WINANSI (the default code page) or CP_WINUNICODE, depending on
     #   whether the ANSI or Unicode version of the DdeInitialize function was called by the client application.
+    # ---
+    # <b>Enhanced (snake_case) API makes all args optional except for first (dde instance id), and returns nil if
+    # the function was unsuccessful.</b>
     #
     # :call-seq:
     #  conversation_handle = dde_connect( instance_id, [service = 0, topic = 0, context = nil] )
@@ -740,12 +740,12 @@ module Win
     #             - DMLERR_NO_CONV_ESTABLISHED
     #             - DMLERR_NO_ERROR
     # ---
-    # <b>Enhanced (snake_case) API returns *true/false* instead of nonzero/zero.</b>
-    # ---
     # *Remarks*:
     # Any incomplete transactions started before calling DdeDisconnect are immediately abandoned. The XTYP_DISCONNECT
     # transaction is sent to the Dynamic Data Exchange (DDE) callback function of the partner in the conversation.
     # Generally, only client applications must terminate conversations.
+    # ---
+    # <b>Enhanced (snake_case) API returns *true/false* instead of nonzero/zero.</b>
     #
     # :call-seq:
     #  success = dde_disconnect(conversation_handle)
@@ -759,7 +759,7 @@ module Win
     #
     # [*Syntax*] UINT DdeGetLastError( DWORD idInst );
     #
-    # idInst::  [in] Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
+    # idInst:: [in] Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
     #
     # *Returns*:: If the function succeeds, the return value is the last error code, which can be one of the following:
     # DMLERR_ADVACKTIMEOUT, DMLERR_EXECACKTIMEOUT, DMLERR_INVALIDPARAMETER, DMLERR_LOW_MEMORY, DMLERR_MEMORY_ERROR,

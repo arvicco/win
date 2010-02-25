@@ -241,6 +241,30 @@ module Win
       function :mouse_event, [:ulong, :ulong, :ulong, :ulong, :ulong, ], :void
 
       ##
+      # GetCursorPos Function retrieves the cursor's position, in screen coordinates.
+      #
+      # [*Syntax*]: BOOL GetCursorPos( LPPOINT lpPoint );
+      #  Parameters
+      #
+      #  lpPoint
+      #  [out] Pointer to a POINT structure that receives the screen coordinates of the cursor.
+      #  Return Value
+      #
+      #  Returns nonzero if successful or zero otherwise. To get extended error information, call GetLastError.
+      #
+      #
+      #
+      #
+      #  Remarks
+      #
+      #  The cursor position is always specified in screen coordinates and is not affected by the mapping mode of the window that contains the cursor.
+      #
+      #  The calling process must have WINSTA_READATTRIBUTES access to the window station.
+      #
+      #  The input desktop must be the current desktop when you call GetCursorPos. Call OpenInputDesktop to determine whether the current desktop is the input desktop. If it is not, call SetThreadDesktop with the HDESK returned by OpenInputDesktop to switch to that desktop.
+
+
+      ##
       # SetCursorPos Function moves the cursor to the specified screen coordinates. If the new coordinates are not
       # within the screen rectangle set by the most recent ClipCursor function call, the system automatically adjusts
       # the coordinates so that the cursor stays within the rectangle.

@@ -399,8 +399,9 @@ module WinWindowTest
             window?(app.handle).should == true
           end
         end
-      end
-    end
+      end # describe 'destroy_window'
+
+    end # context 'ensuring test app closes'
 
     context 'with single test app' do
       before(:all){@app = launch_test_app}
@@ -491,57 +492,59 @@ module WinWindowTest
           end
         end
       end
+
+    end # context 'with single test app'
+  end # Win::GUI::Window, ' defines a set user32 API functions related to Window manipulation'
+
+  describe Win::GUI::Window, ' defines convenience/service methods on top of Windows API' do
+    after(:each){close_test_app if @launched_test_app}
+
+    describe '#foreground?' do
+      spec{ use{ foreground?( any_handle) }}
+
+      it 'tests if the given window is foreground' do
+        foreground?(foreground_window).should == true
+        foreground?(any_handle).should == false
+      end
     end
-    describe Win::GUI::Window, ' defines convenience/service methods on top of Windows API' do
-      after(:each){close_test_app if @launched_test_app}
 
-      describe '#foreground?' do
-        spec{ use{ foreground?( any_handle) }}
+    describe '#hide_window' do
+      spec{ use{ was_visible = hide_window(any_handle) }}
 
-        it 'tests if the given window is foreground' do
-          foreground?(foreground_window).should == true
-          foreground?(any_handle).should == false
-        end
-      end
-
-      describe '#hide_window' do
-        spec{ use{ was_visible = hide_window(any_handle) }}
-
-        it 'hides window: same as show_window(handle, SW_HIDE)' do
-          test_app do |app|
-            was_visible = hide_window(app.handle)
-            was_visible.should == true      #!
-            visible?(app.handle).should == false
-            hide_window(app.handle).should == false
-            visible?(app.handle).should == false
-          end
-        end
-      end
-
-      describe '#destroy_unowned_window' do
-        spec{ use{ was_visible = destroy_unowned_window(handle=0) }}
-
-        it 'destroys window in another thread by sending WM_SYSCOMMAND, SC_CLOSE message to it' do
-          app = launch_test_app
-
-          destroy_unowned_window(app.handle).should == true
-          sleep TEST_SLEEP_DELAY
-
-          window?(app.handle).should == false
-        end
-      end
-
-      describe '#text' do
-        spec{ use{ text = text(any_handle) }}
-
-        it 'returns text associated with window by sending WM_GETTEXT message to it' do
-          test_app do |app|
-
-            text(app.handle).should == TEST_WIN_TITLE
-            text(app.textarea).should =~ /Welcome to Steganos LockNote/
-          end
+      it 'hides window: same as show_window(handle, SW_HIDE)' do
+        test_app do |app|
+          was_visible = hide_window(app.handle)
+          was_visible.should == true      #!
+          visible?(app.handle).should == false
+          hide_window(app.handle).should == false
+          visible?(app.handle).should == false
         end
       end
     end
-  end
+
+    describe '#destroy_unowned_window' do
+      spec{ use{ was_visible = destroy_unowned_window(handle=0) }}
+
+      it 'destroys window in another thread by sending WM_SYSCOMMAND, SC_CLOSE message to it' do
+        app = launch_test_app
+
+        destroy_unowned_window(app.handle).should == true
+        sleep TEST_SLEEP_DELAY
+
+        window?(app.handle).should == false
+      end
+    end
+
+    describe '#text' do
+      spec{ use{ text = text(any_handle) }}
+
+      it 'returns text associated with window by sending WM_GETTEXT message to it' do
+        test_app do |app|
+
+          text(app.handle).should == TEST_WIN_TITLE
+          text(app.textarea).should =~ /Welcome to Steganos LockNote/
+        end
+      end
+    end # describe '#text'
+  end # Win::GUI::Window, ' defines convenience/service methods on top of Windows API'
 end

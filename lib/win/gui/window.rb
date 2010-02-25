@@ -636,6 +636,7 @@ module Win
       #
       function :GetActiveWindow, [], :HWND, zeronil: true
 
+
       # Convenience wrapper methods:
 
       ##
@@ -672,7 +673,6 @@ module Win
         num_chars = send_message win_handle, Win::GUI::Message::WM_GETTEXT, buffer.size, buffer
         num_chars == 0 ?  nil : buffer.get_bytes(0, num_chars)
       end
-
     end
   end
 end

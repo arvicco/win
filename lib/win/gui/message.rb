@@ -2,13 +2,49 @@ require 'win/library'
 
 module Win
   module GUI
-    # Contains constants and Win32API functions related to inter-Window messaging
+    #  Contains constants and Win32API functions related to Windows messaging
     #
+    #  Below is a table of system-defined message prefixes:
+    #
+    #  *Prefix*:: *Message* *category* 
+    #  ABM::    Application desktop toolbar
+    #  BM::     Button control
+    #  CB::     Combo box control
+    #  CBEM::   Extended combo box control
+    #  CDM::    Common dialog box
+    #  DBT::    Device
+    #  DL::     Drag list box
+    #  DM::     Default push button control
+    #  DTM::    Date and time picker control
+    #  EM::     Edit control
+    #  HDM::    Header control
+    #  HKM::    Hot key control
+    #  IPM::    IP address control
+    #  LB::     List box control
+    #  LVM::    List view control
+    #  MCM::    Month calendar control
+    #  PBM::    Progress bar
+    #  PGM::    Pager control
+    #  PSM::    Property sheet
+    #  RB::     Rebar control
+    #  SB::     Status bar window
+    #  SBM::    Scroll bar control
+    #  STM::    Static control
+    #  TB::     Toolbar
+    #  TBM::    Trackbar
+    #  TCM::    Tab control
+    #  TTM::    Tooltip control
+    #  TVM::    Tree-view control
+    #  UDM::    Up-down control
+    #  WM::     General window
     module Message
       include Win::Library
 
-      # Window messages:
+      # General window messages cover a wide range of information and requests, including messages for mouse and
+      # keyboard input, menu and dialog box input, window creation and management, and Dynamic Data Exchange (DDE).
+      # General window messages WM/WA:
 
+      #
       WM_NULL           = 0x0000
       WA_INACTIVE       = 0x0000
       WM_CREATE         = 0x0001
@@ -259,68 +295,36 @@ module Win
       SC_MONITORPOWER = 0xF170
       SC_CONTEXTHELP  = 0xF180
 
-      ##
-      function :BroadcastSystemMessage, 'LPIIL', 'L'
+      # Queue status flags:
 
-      ##
-      function :DefWindowProc, 'LLLL', 'L'
+      #
+      QS_KEY           = 0x0001
+      QS_MOUSEMOVE     = 0x0002
+      QS_MOUSEBUTTON   = 0x0004
+      QS_MOUSE         = (QS_MOUSEMOVE | QS_MOUSEBUTTON)
+      QS_POSTMESSAGE   = 0x0008
+      QS_TIMER         = 0x0010
+      QS_PAINT         = 0x0020
+      QS_SENDMESSAGE   = 0x0040
+      QS_HOTKEY        = 0x0080
+      QS_ALLPOSTMESSAGE= 0x0100
+      QS_RAWINPUT      = 0x0400
+      QS_INPUT         = (QS_MOUSE | QS_KEY | QS_RAWINPUT)
+      QS_ALLEVENTS     = (QS_INPUT | QS_POSTMESSAGE | QS_TIMER | QS_PAINT | QS_HOTKEY)
+      QS_ALLINPUT      = (QS_ALLEVENTS | QS_SENDMESSAGE)
+      QS_SMRESULT      = 0x8000
 
-      ##
-      function :DispatchMessage, 'P', 'L'
+      # PeekMessage flags:
 
-      ##
-      function :GetInputState, 'V', 'B'
+      #
+      PM_NOREMOVE      = 0x0000
+      PM_REMOVE        = 0x0001
+      PM_NOYIELD       = 0x0002
+      PM_QS_INPUT      = (QS_INPUT << 16)
+      PM_QS_POSTMESSAGE= ((QS_POSTMESSAGE | QS_HOTKEY | QS_TIMER) << 16)
+      PM_QS_PAINT      = (QS_PAINT << 16)
+      PM_QS_SENDMESSAGE= (QS_SENDMESSAGE << 16)
 
-      ##
-      function :GetMessage, 'PLII', 'B'
-
-      ##
-      function :GetMessageExtraInfo, 'V', 'L'
-
-      ##
-      function :GetMessagePos, 'V', 'L'
-
-      ##
-      function :GetMessageTime, 'V', 'L'
-
-      ##
-      function :GetQueueStatus, 'I', 'L'
-
-      ##
-      function :InSendMessage, 'V', 'B'
-
-      ##
-      function :InSendMessageEx, 'L', 'L'
-
-      ##
-      function :PeekMessage, 'PLIII', 'B'
-
-      ##
-      function :PostQuitMessage, 'I', 'V'
-
-      ##
-      function :PostThreadMessage, 'LILL', 'B'
-
-      ##
-      function :RegisterWindowMessage, 'P', 'I'
-
-      ##
-      function :ReplyMessage, 'L', 'B'
-
-      ##
-      function :SendMessageTimeout, 'LILLIIP', 'L'
-
-      ##
-      function :SendNotifyMessage, 'LILLIIP', 'L'
-
-      ##
-      function :SetMessageExtraInfo, 'L', 'L'
-
-      ##
-      function :TranslateMessage, 'P', 'B'
-
-      ##
-      function :WaitMessage, 'V', 'B'
 
       ##
       # The SendAsyncProc function is an application-defined callback function used with the SendMessageCallback
@@ -337,9 +341,9 @@ module Win
       # lResult:: [in] Specifies the result of the message processing. This value depends on the message.
       #
       # :call-seq:
-      #  SendAsyncProc callback block: {|handle, msg, data, l_result| your callbackcode }
+      #  SendAsyncProc callback block: {|handle, msg, data, l_result| your callback code }
       #
-      callback :SendAsyncProc, [:long, :uint, :ulong, :ulong, :long], :void
+      callback :SendAsyncProc, [:HWND, :uint, :ulong, :long], :void
 
       ##
       #  The SendMessageCallback function sends the specified message to a window or windows. It calls the window
@@ -461,6 +465,327 @@ module Win
       #
       function :SendMessage, [:ulong, :uint, :long, :pointer], :int   # LPARAM different from PostMessage!
 
+      # The MSG structure contains message information from a thread's message queue.
+      #
+      #  typedef struct {
+      #     HWND hwnd;
+      #     UINT message;
+      #     WPARAM wParam;
+      #     LPARAM lParam;
+      #     DWORD time;
+      #     POINT pt;
+      #  } MSG, *PMSG;
+      #
+      #  hwnd:: Handle to the window whose window procedure receives the message. NULL when the message is a thread message.
+      #  message:: Message identifier. Applications can only use the low word; the high word is reserved by the system.
+      #  wParam:: Additional info about the message. Exact meaning depends on the value of the message member.
+      #  lParam:: Additional info about the message. Exact meaning depends on the value of the message member.
+      #  time:: Specifies the time at which the message was posted.
+      #  pt:: POINT structure - the cursor position, in screen coordinates, when the message was posted.
+      #       (in my definition, it is changed to two longs: x, y - has the same effect, just avoid nested structs) 
+      class Msg < FFI::Struct
+        layout :hwnd, :ulong,
+               :message, :uint,
+               :w_param, :long,
+               :l_param, :pointer,
+               :time, :uint32,
+               :x, :long,
+               :y, :long
+      end
+
+      ##
+      # The GetMessage function retrieves a message from the calling thread's message queue. The function
+      # dispatches incoming sent messages until a posted message is available for retrieval.
+      # Unlike GetMessage, the PeekMessage function does not wait for a message to be posted before returning.
+      #
+      # [*Syntax*]  BOOL GetMessage( LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax );
+      #
+      # lpMsg:: [out] Pointer to an MSG structure that receives message information from the thread's message
+      #         queue.
+      # hWnd:: [in] Handle to the window whose messages are to be retrieved. The window must belong to the current
+      #        thread. If hWnd is NULL, GetMessage retrieves messages for any window that belongs to the current
+      #        thread, and any messages on the current thread's message queue whose hwnd value is NULL (see the MSG
+      #        structure). Therefore if hWnd is NULL, both window messages and thread messages are processed.
+      #        If hWnd is -1, GetMessage retrieves only messages on the current thread's message queue whose hwnd
+      #        value is NULL, that is, thread messages as posted by PostMessage (when the hWnd parameter is NULL) or
+      #        PostThreadMessage.
+      # wMsgFilterMin:: [in] Specifies the integer value of the lowest message value to be retrieved. Use WM_KEYFIRST
+      #                 to specify the first keyboard message or WM_MOUSEFIRST to specify the first mouse message.
+      #                 Windows XP: Use WM_INPUT here and in wMsgFilterMax to specify only the WM_INPUT messages.
+      #                 If wMsgFilterMin and wMsgFilterMax are both zero, GetMessage returns all available messages
+      #                 (that is, no range filtering is performed).
+      # wMsgFilterMax:: [in] Specifies the integer value of the highest message value to be retrieved. Use
+      #                 WM_KEYLAST to specify the last keyboard message or WM_MOUSELAST to specify the last
+      #                 mouse message.
+      #
+      # *Returns*:: If the function retrieves a message other than WM_QUIT, the return value is nonzero.
+      #             If the function retrieves the WM_QUIT message, the return value is zero.
+      #             If there is an error, the return value is -1. For example, the function fails if hWnd is an invalid
+      #             window handle or lpMsg is an invalid pointer. To get extended error information, call GetLastError.
+      # *Warning*
+      # Because the return value can be nonzero, zero, or -1, avoid code like this:
+      #   while (GetMessage( lpMsg, hWnd, 0, 0)) ...
+      # The possibility of a -1 return value means that such code can lead to fatal application errors.
+      # Instead, use code like this:
+      #   while( (bRet = GetMessage( msg, hWnd, 0, 0 )) != 0)
+      #     if (bRet == -1)
+      #       // handle the error and possibly exit
+      #     else
+      #       TranslateMessage(msg);
+      #       DispatchMessage(msg);
+      #     end
+      #   end
+      # ---
+      # *Remarks*:
+      # An application typically uses the return value to determine whether to end the main message loop and
+      # exit the program.
+      #
+      # The GetMessage function retrieves messages associated with the window identified by the hWnd parameter
+      # or any of its children, as specified by the IsChild function, and within the range of message values
+      # given by the wMsgFilterMin and wMsgFilterMax parameters. Note that an application can only use the low
+      # word in the wMsgFilterMin and wMsgFilterMax parameters; the high word is reserved for the system.
+      # Note that GetMessage always retrieves WM_QUIT messages, no matter which values you specify for
+      # wMsgFilterMin and wMsgFilterMax.
+      #
+      # During this call, the system delivers pending, nonqueued messages, that is, messages sent to windows
+      # owned by the calling thread using the SendMessage, SendMessageCallback, SendMessageTimeout, or
+      # SendNotifyMessage function. Then the first queued message that matches the specified filter is
+      # retrieved. The system may also process internal events. If no filter is specified, messages are
+      # processed in the following order:
+      # 1. Sent messages
+      # 2. Posted messages
+      # 3. Input (hardware) messages and system internal events
+      # 4. Sent messages (again)
+      # 5. WM_PAINT messages
+      # 6. WM_TIMER messages
+      #
+      # To retrieve input messages before posted messages, use the wMsgFilterMin and wMsgFilterMax parameters.
+      # GetMessage does not remove WM_PAINT messages from the queue. The messages remain in the queue until
+      # processed.
+      #
+      # Windows XP: If a top-level window stops responding to messages for more than several seconds, the 
+      # system considers the window to be not responding and replaces it with a ghost window that has the same
+      # z-order, location, size, and visual attributes. This allows the user to move it, resize it, or even
+      # close the application. However, these are the only actions available because the application is
+      # actually not responding. When in the debugger mode, the system does not generate a ghost window.
+      # ---
+      # <b>Enhanced (snake_case) API: makes all args optional, returns: *false* if WM_QUIT was posted,
+      # *nil* if error was encountered, and retrieved Msg (FFI structure) in all other cases </b>
+      #
+      # :call-seq:
+      #  msg = get_message([msg], [handle=0], [msg_filter_min=0], [msg_filter_max=0])
+      #
+      function :GetMessage, [:pointer, :HWND, :uint, :uint], :int8,
+               &->(api, msg=Msg.new, handle=0, msg_filter_min=0, msg_filter_max=0){
+               case api.call(msg, handle, msg_filter_min, msg_filter_max)
+                 when 0
+                   false
+                 when -1
+                   nil
+                 else
+                   msg
+               end }
+      # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
+
+      ##
+      # The PeekMessage function dispatches incoming sent messages, checks the thread message queue for a
+      # posted message, and retrieves the message (if any exist).
+      #
+      # [*Syntax*]  BOOL PeekMessage( LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax,
+      #                               UINT wRemoveMsg );
+      #
+      # lpMsg:: [out] Pointer to an MSG structure that receives message information.
+      # hWnd:: [in] Handle to the window whose messages are to be retrieved. The window must belong to the current
+      #        thread. If hWnd is NULL, PeekMessage retrieves messages for any window that belongs to the current
+      #        thread, and any messages on the current thread's message queue whose hwnd value is NULL (see MSG).
+      #        Therefore if hWnd is NULL, both window messages and thread messages are processed.
+      #        If hWnd is -1, PeekMessage retrieves only messages on the current thread's message queue whose hwnd
+      #        value is NULL, that is, thread messages as posted by PostMessage (when the hWnd parameter is NULL) or
+      #        PostThreadMessage.
+      # wMsgFilterMin:: [in] Specifies the value of the first message in the range of messages to be examined.
+      #                 Use WM_KEYFIRST to specify the first keyboard message or WM_MOUSEFIRST to specify the
+      #                 first mouse message. If wMsgFilterMin and wMsgFilterMax are both zero, PeekMessage returns all
+      #                 available messages (that is, no range filtering is performed).
+      # wMsgFilterMax:: [in] Specifies the value of the last message in the range of messages to be examined.
+      #                 Use WM_KEYLAST to specify the last keyboard message or WM_MOUSELAST to specify the
+      #                 last mouse message.
+      # wRemoveMsg:: [in] Specifies how messages are handled. This parameter can be one of the following values.
+      #              - PM_NOREMOVE - Messages are not removed from the queue after processing by PeekMessage.
+      #              - PM_REMOVE - Messages are removed from the queue after processing by PeekMessage.
+      #              You can optionally combine the value PM_NOYIELD with either PM_NOREMOVE or PM_REMOVE. This flag
+      #              prevents the system from releasing any thread that is waiting for the caller to go idle (see
+      #              WaitForInputIdle). By default, all message types are processed. To specify that only certain
+      #              message should be processed, specify one or more of the following values.
+      #              - PM_QS_INPUT - Windows 98/Me, Windows 2000/XP: Process mouse and keyboard messages.
+      #              - PM_QS_PAINT - Windows 98/Me, Windows 2000/XP: Process paint messages.
+      #              - PM_QS_POSTMESSAGE - Win 98/Me/2000/XP: Process all posted messages, including timers and hotkeys.
+      #              - PM_QS_SENDMESSAGE - Windows 98/Me, Windows 2000/XP: Process all sent messages.
+      #
+      # *Returns*:: If a message is available, returns nonzero. If no messages are available, the return value is zero.
+      # ---
+      # *Remarks*:
+      # PeekMessage retrieves messages associated with the window identified by the hWnd parameter or any of
+      # its children as specified by the IsChild function, and within the range of message values given by the
+      # wMsgFilterMin and wMsgFilterMax parameters. Note that an application can only use the low word in the
+      # wMsgFilterMin and wMsgFilterMax parameters; the high word is reserved for the system.
+      #
+      # Note that PeekMessage always retrieves WM_QUIT messages, no matter which values you specify for
+      # wMsgFilterMin and wMsgFilterMax.
+      #
+      # During this call, the system delivers pending, nonqueued messages, that is, messages sent to windows
+      # owned by the calling thread using the SendMessage, SendMessageCallback, SendMessageTimeout, or
+      # SendNotifyMessage function. Then the first queued message that matches the specified filter is
+      # retrieved. The system may also process internal events. If no filter is specified, messages are
+      # processed in the following order:
+      # 1. Sent messages
+      # 2. Posted messages
+      # 3. Input (hardware) messages and system internal events
+      # 4. Sent messages (again)
+      # 5. WM_PAINT messages
+      # 6. WM_TIMER messages
+      #
+      # To retrieve input messages before posted messages, use the wMsgFilterMin and wMsgFilterMax parameters.
+      #
+      # The PeekMessage function normally does not remove WM_PAINT messages from the queue. WM_PAINT messages
+      # remain in the queue until they are processed. However, if a WM_PAINT message has a NULL update region,
+      # PeekMessage does remove it from the queue.
+      #
+      # Windows XP: If a top-level window stops responding to messages for more than several seconds, the
+      # system considers the window to be not responding and replaces it with a ghost window that has the same
+      # z-order, location, size, and visual attributes. This allows the user to move it, resize it, or even
+      # close the application. However, these are the only actions available because the application is
+      # actually not responding. When an application is being debugged, the system does not generate a ghost
+      # window.
+      # ---
+      # <b>Enhanced (snake_case) API: makes all args optional, returns *nil* if no message in queue,
+      # returns retrieved Msg (FFI structure) if there is message in queue</b>
+      #
+      # :call-seq:
+      #  msg = peek_message([msg], [handle], [msg_filter_min], [msg_filter_max], [remove_msg])
+      #
+      function :PeekMessage, [:pointer, :HWND, :uint, :uint, :uint], :int8,
+               &->(api, msg=Msg.new, handle=0, msg_filter_min=0, msg_filter_max=0, remove_msg=PM_NOREMOVE){
+               res = api.call(msg, handle, msg_filter_min, msg_filter_max, remove_msg)
+               res == 0 ? nil : msg }
+
+      ##
+      # The TranslateMessage function translates virtual-key messages into character messages. The character
+      # messages are posted to the calling thread's message queue, to be read the next time the thread calls
+      # the GetMessage or PeekMessage function.
+      #
+      # [*Syntax*]  BOOL TranslateMessage( const MSG *lpMsg );
+      #
+      # lpMsg:: [in] Pointer to an MSG structure that contains message information retrieved from the calling
+      #         thread's message queue by using the GetMessage or PeekMessage function.
+      #
+      # *Returns*:: If the message is translated (that is, a character message is posted to the thread's
+      #             message queue), the return value is nonzero.
+      #             If the message is WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, or WM_SYSKEYUP, the return value is
+      #             nonzero, regardless of the translation.
+      #             If the message is not translated (that is, a character message is not posted to the thread's
+      #             message queue), the return value is zero.
+      # ---
+      # *Remarks*:
+      # The TranslateMessage function does not modify the message pointed to by the lpMsg parameter.
+      #
+      # WM_KEYDOWN and WM_KEYUP combinations produce a WM_CHAR or WM_DEADCHAR message. WM_SYSKEYDOWN and
+      # WM_SYSKEYUP combinations produce a WM_SYSCHAR or WM_SYSDEADCHAR message.
+      #
+      # TranslateMessage produces WM_CHAR messages only for keys that are mapped to ASCII characters by the
+      # keyboard driver.
+      #
+      # If applications process virtual-key messages for some other purpose, they should not call
+      # TranslateMessage. For instance, an application should not call TranslateMessage if the
+      # TranslateAccelerator function returns a nonzero value. Note that the application is responsible for
+      # retrieving and dispatching input messages to the dialog box. Most applications use the main message
+      # loop for this. However, to permit the user to move to and to select controls by using the keyboard,
+      # the application must call IsDialogMessage. For more information, see Dialog Box Keyboard Interface.
+      # ---
+      # <b>Enhanced (snake_case) API: returns true/false instead of nonzero/zero</b>
+      #
+      # :call-seq:
+      #  success = translate_message(msg)
+      #
+      function :TranslateMessage, [:pointer], :int8, boolean: true
+
+      ##
+      # The DispatchMessage function dispatches a message to a window procedure. It is typically used to
+      # dispatch a message retrieved by the GetMessage function.
+      #
+      # [*Syntax*] LRESULT DispatchMessage( const MSG *lpmsg );
+      #
+      # lpmsg:: [in] Pointer to an MSG structure that contains the message.
+      #
+      # *Returns*:: The return value specifies the value returned by the window procedure. Although its
+      #             meaning depends on the message being dispatched, the return value generally is ignored.
+      # ---
+      # *Remarks*:
+      # The MSG structure must contain valid message values. If the lpmsg parameter points to a WM_TIMER
+      # message and the lParam parameter of the WM_TIMER message is not NULL, lParam points to a function that
+      # is called instead of the window procedure.
+      #
+      # Note that the application is responsible for retrieving and dispatching input messages to the dialog
+      # box. Most applications use the main message loop for this. However, to permit the user to move to and
+      # to select controls by using the keyboard, the application must call IsDialogMessage. For more
+      # information, see Dialog Box Keyboard Interface.
+      # ---
+      # <b>Enhanced (snake_case) API: </b>
+      #
+      # :call-seq:
+      #  dispatch_message(msg)
+      #
+      function :DispatchMessage, [:pointer], :long
+
+      ##
+      function :BroadcastSystemMessage, 'LPIIL', 'L'
+
+      ##
+      function :DefWindowProc, 'LLLL', 'L'
+
+      ##
+      function :GetInputState, 'V', 'B'
+
+      ##
+      function :GetMessageExtraInfo, 'V', 'L'
+
+      ##
+      function :GetMessagePos, 'V', 'L'
+
+      ##
+      function :GetMessageTime, 'V', 'L'
+
+      ##
+      function :GetQueueStatus, 'I', 'L'
+
+      ##
+      function :InSendMessage, 'V', 'B'
+
+      ##
+      function :InSendMessageEx, 'L', 'L'
+
+      ##
+      function :PostQuitMessage, 'I', 'V'
+
+      ##
+      function :PostThreadMessage, 'LILL', 'B'
+
+      ##
+      function :RegisterWindowMessage, 'P', 'I'
+
+      ##
+      function :ReplyMessage, 'L', 'B'
+
+      ##
+      function :SendMessageTimeout, 'LILLIIP', 'L'
+
+      ##
+      function :SendNotifyMessage, 'LILLIIP', 'L'
+
+      ##
+      function :SetMessageExtraInfo, 'L', 'L'
+
+      ##
+      function :WaitMessage, 'V', 'B'
     end
   end
 end

@@ -1142,19 +1142,19 @@ module Win
     # This function has no parameters.
     #
     # *Returns*:: The process error mode. This function returns one of the following values.
-    #         SEM_FAILCRITICALERRORS:: The system does not display the critical-error-handler message box. Instead,
-    #                                  the system sends the error to the calling process.
-    #         SEM_NOALIGNMENTFAULTEXCEPT:: The system automatically fixes memory alignment faults and makes them
-    #                                      invisible to the application. It does this for the calling process and any
-    #                                      descendant processes. This feature is only supported by certain processor
-    #                                      architectures. For more information, see the Remarks section.
-    #                                      After this value is set for a process, subsequent attempts to clear the
-    #                                      value are ignored.
-    #         SEM_NOGPFAULTERRORBOX:: The system does not display the general-protection-fault message box. This flag
-    #                                 should only be set by debugging applications that handle general protection (GP)
-    #                                 faults themselves with an exception handler.
-    #         SEM_NOOPENFILEERRORBOX:: The system does not display a message box when it fails to find a file. Instead,
-    #                                  the error is returned to the calling process.
+    #             SEM_FAILCRITICALERRORS:: The system does not display the critical-error-handler message box. Instead,
+    #                                      the system sends the error to the calling process.
+    #             SEM_NOALIGNMENTFAULTEXCEPT:: The system automatically fixes memory alignment faults and makes them
+    #                                          invisible to the application. It does this for the calling process and
+    #                                          any descendant processes. This feature is only supported by certain
+    #                                          processor architectures. For more information, see the Remarks section.
+    #                                          After this value is set for a process, subsequent attempts to clear the
+    #                                          value are ignored.
+    #             SEM_NOGPFAULTERRORBOX:: The system does not display the general-protection-fault message box. This
+    #                                     flag should only be set by debugging applications that handle general
+    #                                     protection (GP) faults themselves with an exception handler.
+    #             SEM_NOOPENFILEERRORBOX:: The system does not display a message box when it fails to find a file.
+    #                                      Instead, the error is returned to the calling process.
     # ---
     # *Remarks*:
     # Each process has an associated error mode that indicates to the system how the application is going to
@@ -1166,7 +1166,7 @@ module Win
     # :call-seq:
     #  mode = get_error_mode()
     #
-    try_function :GetErrorMode, [], :UINT
+    try_function :GetErrorMode, [], :uint
     # fails silently unless platform is Vista++
 
     ##

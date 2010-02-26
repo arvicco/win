@@ -642,14 +642,14 @@ module Win
       ##
       # Hides the window and activates another window
       #
-      def hide_window(win_handle)
+      def hide_window( win_handle )
         show_window(win_handle, SW_HIDE)
       end
 
       ##
       # Tests if given window handle points to foreground (topmost) window
       #
-      def foreground?(win_handle)
+      def foreground?( win_handle )
         win_handle == foreground_window
       end
 
@@ -657,9 +657,9 @@ module Win
       # Shuts down the window <b>created by different thread</b> by posting WM_SYSCOMMAND, SC_CLOSE message to it.
       # This closely emulates user clicking on X button of the target window. As it would be expected, this
       # actually gives the target window chance to close gracefully (it may ask user to save data and stuff).
-      # I have not find so far how to REALLY destroy window in different thread without it asking user anything.
+      # I have not found so far how to REALLY destroy window in different thread without it asking user anything.
       #
-      def shut_window( win_handle)
+      def shut_window( win_handle )
         post_message(win_handle, Win::GUI::Message::WM_SYSCOMMAND, Win::GUI::Message::SC_CLOSE, nil)
       end
 
@@ -668,7 +668,7 @@ module Win
       # ---
       # *Remarks*: It is *different* from GetWindowText that returns only window title
       #
-      def text( win_handle)
+      def text( win_handle )
         buffer = FFI::MemoryPointer.new :char, 1024
         num_chars = send_message win_handle, Win::GUI::Message::WM_GETTEXT, buffer.size, buffer
         num_chars == 0 ?  nil : buffer.get_bytes(0, num_chars)

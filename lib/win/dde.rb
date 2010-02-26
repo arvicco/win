@@ -267,6 +267,8 @@ module Win
 
     # Errors Hash {ERROR_CODE=>'Error description')}
     ERRORS = {
+            nil => 'No DDEML error',
+            DMLERR_NO_ERROR => 'No DDEML error',
             DMLERR_ADVACKTIMEOUT => 'A request for a synchronous advise transaction has timed out.',
             DMLERR_BUSY => 'The response to the transaction caused the DDE_FBUSY flag to be set.',
             DMLERR_DATAACKTIMEOUT => 'A request for a synchronous data transaction has timed out.',

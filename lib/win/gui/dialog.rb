@@ -9,6 +9,7 @@ module Win
       include Win::Library
       include Win::GUI::Window
 
+      ##
       # The GetDlgItem function retrieves a handle to a control in the specified dialog box.
       #
       # [*Syntax*]  HWND GetDlgItem( HWND hDlg, int nIDDlgItem );

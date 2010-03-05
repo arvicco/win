@@ -4,6 +4,7 @@ require 'win/dde'
 module WinDDETest
   include WinTest
   include Win::DDE
+  include Win::GUI::Message
 
   def dde_cmd
     APPCLASS_STANDARD
@@ -332,6 +333,7 @@ module WinDDETest
           str = FFI::MemoryPointer.from_string "Poke_string\n\x00\x00"
 #          res = DdeClientTransaction(str, str.size, @conv_handle, @topic_handle, CF_TEXT, XTYP_POKE, 1000, nil)
           begin
+          get_message() if peek_message()
           res = DdeClientTransaction(str, str.size, @conv_handle, @topic_handle, 0, XTYP_EXECUTE, 1000, nil)
           p res
           rescue => e

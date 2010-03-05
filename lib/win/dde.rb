@@ -333,6 +333,9 @@ module Win
     CF_LOCALE       = 16
     CF_MAX          = 17
 
+    # DdeClientTransaction timeout value indicating async transaction
+    TIMEOUT_ASYNC = 0xFFFFFFFF
+
     ##
     # The RegisterClipboardFormat function registers a new clipboard format.
     # This format can then be used as a valid clipboard format.
@@ -505,7 +508,7 @@ module Win
              old_id = 0 unless old_id
              id = FFI::MemoryPointer.new(:long).write_long(old_id)
              status = api.call(id, block, cmd, 0)
-             id = status == 0 ? id.read_long() : nil
+             id = status == 0 ? id.get_uint32(0) : nil
              [id, status] }
     # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
 

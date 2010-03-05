@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 require 'win/gui/input'
-#require 'win/gui/window'
+require 'win/error'
 
 module WinGUIMessageTest
 
@@ -8,9 +8,18 @@ module WinGUIMessageTest
   include Win::GUI::Message
   include Win::GUI::Window
   include Win::GUI::Input
+  include Win::Error
+
+  def buffer
+    @buffer ||= FFI::MemoryPointer.new :char, 1024
+  end
 
   def msg
     @msg ||=Win::GUI::Message::Msg.new
+  end
+
+  def msg_callback
+    lambda {|handle, message, data, result|  @handle = handle; @message = message; @data = data; @result = result }
   end
 
   def should_have msg, members
@@ -26,10 +35,20 @@ module WinGUIMessageTest
     end
   end
 
+  def clear_thread_queue
+    get_message while peek_message
+  end
+
   describe Win::GUI::Message, ' defines a set of API functions related to Window messaging'  do
-    after(:each){close_test_app if @launched_test_app}
+    before(:all){clear_thread_queue}
 
     describe '#post_message' do
+      before(:each){clear_thread_queue}
+      after(:all){close_test_app if @launched_test_app}
+
+      spec{ use{ success = PostMessage(handle = 0, msg = 0, w_param = 0, l_param = nil) }}
+      spec{ use{ success = post_message(handle = 0, msg = 0, w_param = 0, l_param = nil) }}
+
       it 'places (posts) a message in the message queue associated with the thread that created the specified window' do
         app = launch_test_app
         post_message(app.handle, WM_SYSCOMMAND, SC_CLOSE, nil).should == true
@@ -45,17 +64,15 @@ module WinGUIMessageTest
 
       it 'returns without waiting for the thread to process the message'
 
-      spec{ use{ success = PostMessage(handle = 0, msg = 0, w_param = 0, l_param = nil) }}
-      spec{ use{ success = post_message(handle = 0, msg = 0, w_param = 0, l_param = nil) }}
     end # describe '#post_message'
 
     describe '#send_message' do
-      spec{ use{ success = SendMessage(handle = 0, msg = 0, w_param = 1024, l_param = "\x0"*1024) }}
-      spec{ use{ success = send_message(handle = 0, msg = 0, w_param = 1024, l_param = "\x0"*1024) }}
+      spec{ use{ success = SendMessage(handle = 0, msg = 0, w_param = 0, l_param = nil) }}
+      spec{ use{ success = send_message(handle = 0, msg = 0, w_param = 0, l_param = nil) }}
 
       it 'directly sends the specified message to a window or windows' do
         app = launch_test_app
-        buffer = FFI::MemoryPointer.new :char, 1024
+
         num_chars = send_message app.handle, WM_GETTEXT, buffer.size, buffer
         buffer.get_bytes(0, num_chars).should == "LockNote - Steganos LockNote"
 
@@ -63,13 +80,62 @@ module WinGUIMessageTest
         buffer.get_bytes(0, num_chars).should =~ /Welcome to Steganos LockNote/
 
         send_message(app.handle, WM_SYSCOMMAND, SC_CLOSE, nil)
-        sleep TEST_SLEEP_DELAY
+        sleep TEST_SLEEP_DELAY  # delay to allow window close
         window?(app.handle).should == false
       end
     end # describe '#send_message'
 
+    # :call-seq:
+    #  success = send_message_callback(handle, msg, w_param, l_param, data)
+    #            {|handle, msg, data, l_result| callback code }
+
+    describe "#send_message_callback" do
+      before(:all){@app=launch_test_app}
+      after(:all){close_test_app if @launched_test_app}
+
+      spec{ use{ success = SendMessageCallback(h_wnd=0, msg=0, w_param=0, l_param=nil, msg_callback, data=0) }}
+      spec{ use{ success = send_message_callback(h_wnd=0, msg=0, w_param=0, l_param=nil, data=0, &msg_callback) }}
+
+      it "sends message to window and returns, specifying callback to be called by system after message is processed" do
+        sent = SendMessageCallback(@app.handle, WM_USER, 0, nil, msg_callback, data=13)
+        sent.should == 1
+        @handle.should == nil
+        @message.should == nil
+        @data.should == nil
+        @result.should == nil
+
+        sleep TEST_SLEEP_DELAY # small delay to allow message delivery
+        peek_message           # dispatching sent message (even though there is nothing in queue)
+
+        @handle.should == @app.handle
+        @message.should == WM_USER
+        @data.should == 13
+        @result.should == 0
+      end
+
+      it "snake_case api defaults data to 0, converts block into callback and returns true/false" do
+        sent = send_message_callback(@app.handle, WM_USER, 0, nil){|*args|@data=args[2]}
+        sent.should == true
+        @data.should == nil
+
+        sleep TEST_SLEEP_DELAY # small delay to allow message delivery
+        peek_message           # dispatching sent message (even though there is nothing in queue)
+
+        @data.should == 0
+      end
+
+      it "fails if unable to send message" do
+        sent = SendMessageCallback(not_a_handle, WM_USER, 0, nil, msg_callback, 0)
+        sent.should == 0
+        send_message_callback(not_a_handle, WM_USER, 0, nil){|*args|@data=args[2]}
+        sent.should == 0
+        get_last_error.should == "Invalid window handle."
+       end
+    end # describe send_message_callback
+
     describe "#get_message" do
-      # Get rid of 2 dummy messages already in message queue (posted by describe '#post_message'):
+      before(:all){clear_thread_queue; 2.times {post_message 0,0,0,nil}}
+
       spec{ use{ res = GetMessage(msg, handle=0, msg_filter_min=0, msg_filter_max=0) }}
       spec{ use{ message = get_message(msg, handle=0, msg_filter_min=0, msg_filter_max=0) }}
 

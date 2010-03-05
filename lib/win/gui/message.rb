@@ -271,7 +271,7 @@ module Win
       # App-specific (non-reserved) messages above this one (WM_App+1, etc...)
       WM_APP                        = 0x8000
 
-      # Sys Commands:
+      # Sys Commands (wParam to use with WM_SYSCOMMAND message):
 
       #
       SC_SIZE         = 0xF000
@@ -316,13 +316,22 @@ module Win
 
       # PeekMessage flags:
 
-      #
+      # Messages are not removed from the queue after processing by PeekMessage (default)
       PM_NOREMOVE      = 0x0000
+      # Messages are removed from the queue after processing by PeekMessage.
       PM_REMOVE        = 0x0001
+      # You can optionally combine the value PM_NOYIELD with either PM_NOREMOVE or PM_REMOVE. This flag
+      # prevents the system from releasing any thread that is waiting for the caller to go idle (see WaitForInputIdle).
       PM_NOYIELD       = 0x0002
+      # By default, all message types are processed. To specify that only certain
+      # message should be processed, specify one or more of the following values.
+      # PM_QS_INPUT - Windows 98/Me, Windows 2000/XP: Process mouse and keyboard messages.
       PM_QS_INPUT      = (QS_INPUT << 16)
+      # PM_QS_POSTMESSAGE - Win 98/Me/2000/XP: Process all posted messages, including timers and hotkeys.
       PM_QS_POSTMESSAGE= ((QS_POSTMESSAGE | QS_HOTKEY | QS_TIMER) << 16)
+      # PM_QS_PAINT - Windows 98/Me, Windows 2000/XP: Process paint messages.
       PM_QS_PAINT      = (QS_PAINT << 16)
+      # PM_QS_SENDMESSAGE - Windows 98/Me, Windows 2000/XP: Process all sent messages.
       PM_QS_SENDMESSAGE= (QS_SENDMESSAGE << 16)
 
 
@@ -355,13 +364,13 @@ module Win
       #             SENDASYNCPROC lpCallBack, ULONG_PTR dwData);
       #
       #  hWnd:: [in] Handle to the window whose window procedure will receive the message. If this parameter is
-      #         HWND_BROADCAST, the message is sent to all top-level windows in the system, including disabled or invisible
-      #         unowned windows, overlapped windows, and pop-up windows; but the message is not sent to child windows.
+      #         HWND_BROADCAST, the message is sent to all top-level windows in the system, including disabled or
+      #         invisible, unowned, overlapped and pop-up windows; but the message is not sent to child windows.
       #  Msg:: [in] Specifies the message to be sent.
       #  wParam:: [in] Specifies additional message-specific information.
       #  lParam:: [in] Specifies additional message-specific information.
       #  lpCallBack:: [in] Pointer to a callback function that the system calls after the window procedure processes
-      #               the message. For more information, see SendAsyncProc. If hWnd is HWND_BROADCAST, the system calls the
+      #               the message. For more information, see SendAsyncProc. If hWnd is HWND_BROADCAST, the system calls
       #               SendAsyncProc callback function once for each top-level window.
       #  dwData:: [in] Specifies an application-defined value to be sent to the callback function pointed to by
       #           the lpCallBack parameter.
@@ -380,10 +389,13 @@ module Win
       #    PeekMessage, or WaitMessage.
       #
       # :call-seq:
-      #  success = send_message_callback(handle, msg, w_param, l_param, data)
+      #  success = send_message_callback(handle, msg, w_param, l_param, [data=0])
       #            {|handle, msg, data, l_result| callback code }
       #
-      function :SendMessageCallback, [:long, :uint, :uint, :long, :SendAsyncProc, :ulong], :int, boolean: true
+      function :SendMessageCallback, [:HWND, :uint, :uint, :pointer, :SendAsyncProc, :ulong], :int8, boolean: true,
+               &->(api, handle, msg, w_param, l_param, data=0, &block){
+               api.call(handle, msg, w_param, l_param, block, data)}
+
 
       ##
       # The PostMessage function places (posts) a message in the message queue associated with the thread that
@@ -420,7 +432,7 @@ module Win
       #:call-seq:
       # success = post_message(handle, msg, w_param, l_param)
       #
-      function :PostMessage, [:ulong, :uint, :long, :pointer], :int, boolean: true
+      function :PostMessage, [:ulong, :uint, :uint, :pointer], :int, boolean: true
 
       ##
       # The SendMessage function sends the specified message to a window or windows. It calls the window procedure for
@@ -463,7 +475,7 @@ module Win
       #:call-seq:
       # send_message(handle, msg, w_param, l_param)
       #
-      function :SendMessage, [:ulong, :uint, :long, :pointer], :int   # LPARAM different from PostMessage!
+      function :SendMessage, [:ulong, :uint, :uint, :pointer], :int   # LPARAM different from PostMessage!
 
       # The MSG structure contains message information from a thread's message queue.
       #
@@ -738,6 +750,9 @@ module Win
 
       ##
       function :BroadcastSystemMessage, 'LPIIL', 'L'
+
+      ##
+      try_function :BroadcastSystemMessageEx, 'LPILLP', 'L'   # Windows XP or later
 
       ##
       function :DefWindowProc, 'LLLL', 'L'

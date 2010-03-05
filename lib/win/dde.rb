@@ -305,6 +305,34 @@ module Win
                     'that callback function is no longer valid.'
     }
 
+    # Predefined Clipboard Formats:
+
+    # The simplest form of Clipboard data. It is a null-terminated string containing a carriage return
+    # and linefeed at the end of each line.
+    CF_TEXT         = 1
+    # A Windows version 2.x-compatible bitmap
+    CF_BITMAP       = 2
+    # A metafile picture structure. See docs for Microsoft Windows Software Development Kit.
+    CF_METAFILEPICT = 3
+    # Microsoft symbolic link (SYLK) format. Microsoft Excel for the Apple Macintosh was originally designed to use
+    # SYLK format, and this format is now supported by Microsoft Excel on both the Windows and Macintosh platforms
+    CF_SYLK         = 4
+    # An ASCII format used by the VisiCalc spreadsheet program
+    CF_DIF          = 5
+    CF_TIFF         = 6
+    CF_OEMTEXT      = 7
+    CF_DIB          = 8
+    CF_PALETTE      = 9
+    CF_PENDATA      = 10
+    CF_RIFF         = 11
+    CF_WAVE         = 12
+    CF_UNICODETEXT  = 13
+    CF_ENHMETAFILE  = 14
+    # Filename copied to clipboard
+    CF_HDROP        = 15
+    CF_LOCALE       = 16
+    CF_MAX          = 17
+
     ##
     # The RegisterClipboardFormat function registers a new clipboard format.
     # This format can then be used as a valid clipboard format.
@@ -533,7 +561,8 @@ module Win
     #  string_handle = dde_create_string_handle( instance_id, string, code_page_id )
     #
     function :DdeCreateStringHandle, [:uint32, :pointer, :int], :ulong, zeronil: true,
-             &->(api, instance_id, string, code_page=CP_WINANSI){ api.call(instance_id, string, code_page) }
+             &->(api, instance_id, string, code_page=CP_WINANSI){
+             api.call(instance_id, FFI::MemoryPointer.from_string(string), code_page) }
 
     ##
     # The DdeFreeStringHandle function frees a string handle in the calling application.
@@ -775,6 +804,108 @@ module Win
     #  string = dde_get_last_error( instance_id )
     #
     function :DdeGetLastError, [:uint32], :int, zeronil: true
+
+    ##
+    # The DdeClientTransaction function begins a data transaction between a client and a server. Only a
+    # Dynamic Data Exchange (DDE) client application can call this function, and the application can use it
+    # only after establishing a conversation with the server.
+    #
+    # [*Syntax*]  HDDEDATA DdeClientTransaction( LPBYTE pData, DWORD cbData, HCONV hConv, HSZ hszItem, UINT
+    #            wFmt, UINT wType, DWORD dwTimeout, LPDWORD pdwResult );
+    #
+    # pData:: [in] Pointer to the beginning of the data the client must pass to the server.
+    #         Optionally, an application can specify the data handle (HDDEDATA) to pass to the server and in that
+    #         case the cbData parameter should be set to -1. This parameter is required only if the wType parameter
+    #         is XTYP_EXECUTE or XTYP_POKE. Otherwise, this parameter should be NULL.
+    #         For the optional usage of this parameter, XTYP_POKE transactions where pData is a data handle, the
+    #         handle must have been created by a previous call to the DdeCreateDataHandle function, employing the
+    #         same data format specified in the wFmt parameter.
+    # cbData:: [in] Specifies the length, in bytes, of the data pointed to by the pData parameter, including
+    #          the terminating NULL, if the data is a string. A value of -1 indicates that pData is a data
+    #          handle that identifies the data being sent.
+    # hConv:: [in] Handle to the conversation in which the transaction is to take place.
+    # hszItem:: [in] Handle to the data item for which data is being exchanged during the transaction. This
+    #           handle must have been created by a previous call to the DdeCreateStringHandle function. This
+    #           parameter is ignored (and should be set to 0L) if the wType parameter is XTYP_EXECUTE.
+    # wFmt:: [in] Specifies the standard clipboard format in which the data item is being submitted or
+    #        requested. If the transaction specified by the wType parameter does not pass data or is XTYP_EXECUTE,
+    #        this parameter should be zero.
+    #        If the transaction specified by the wType parameter references non-execute DDE data ( XTYP_POKE,
+    #        XTYP_ADVSTART, XTYP_ADVSTOP, XTYP_REQUEST), the wFmt value must be either a valid predefined (CF_) DDE
+    #        format or a valid registered clipboard format.
+    # wType:: [in] Specifies the transaction type. This parameter can be one of the following values.
+    #         - XTYP_ADVSTART: Begins an advise loop. Any number of distinct advise loops can exist within a
+    #           conversation. An application can alter the advise loop type by combining the XTYP_ADVSTART
+    #           transaction type with one or more of the following flags: Flag Meaning
+    #           - XTYPF_NODATA Instructs the server to notify the client of any data changes without actually sending
+    #             the data. This flag gives the client the option of ignoring the notification or requesting the changed
+    #             data from the server.
+    #           - XTYPF_ACKREQ Instructs the server to wait until the client acknowledges that it received the previous
+    #             data item before sending the next data item. This flag prevents a fast server from sending data faster
+    #             than the client can process it.
+    #         - XTYP_ADVSTOP: Ends an advise loop.
+    #         - XTYP_EXECUTE: Begins an execute transaction.
+    #         - XTYP_POKE: Begins a poke transaction.
+    #         - XTYP_REQUEST: Begins a request transaction.
+    # dwTimeout:: [in] Specifies the maximum amount of time, in milliseconds, that the client will wait for
+    #             a response from the server application in a synchronous transaction. This parameter should
+    #             be TIMEOUT_ASYNC for asynchronous transactions.
+    # pdwResult:: [out] Pointer to a variable that receives the result of the transaction. An application
+    #             that does not check the result can use NULL for this value. For synchronous transactions,
+    #             the low-order word of this variable contains any applicable DDE_ flags resulting from the
+    #             transaction. This provides support for applications dependent on DDE_APPSTATUS bits. It
+    #             is, however, recommended that applications no longer use these bits because they may not
+    #             be supported in future versions of the Dynamic Data Exchange Management Library (DDEML).
+    #             For asynchronous transactions, this variable is filled with a unique transaction
+    #             identifier for use with the DdeAbandonTransaction function and the XTYP_XACT_COMPLETE
+    #             transaction.
+    #
+    # *Returns*:: If the function succeeds, the return value is a data handle that identifies the data for
+    #             successful synchronous transactions in which the client expects data from the server. The
+    #             return value is nonzero for successful asynchronous transactions and for synchronous
+    #             transactions in which the client does not expect data. The return value is zero for all
+    #             unsuccessful transactions.
+    # The DdeGetLastError function can be used to get the error code, which can be one of the following values:
+    # - DMLERR_ADVACKTIMEOUT
+    # - DMLERR_BUSY
+    # - DMLERR_DATAACKTIMEOUT
+    # - DMLERR_DLL_NOT_INITIALIZED
+    # - DMLERR_EXECACKTIMEOUT
+    # - DMLERR_INVALIDPARAMETER
+    # - DMLERR_MEMORY_ERROR
+    # - DMLERR_NO_CONV_ESTABLISHED
+    # - DMLERR_NO_ERROR
+    # - DMLERR_NOTPROCESSED
+    # - DMLERR_POKEACKTIMEOUT
+    # - DMLERR_POSTMSG_FAILED
+    # - DMLERR_REENTRANCY
+    # - DMLERR_SERVER_DIED
+    # - DMLERR_UNADVACKTIMEOUT
+    # ---
+    # *Remarks*:
+    # When an application has finished using the data handle returned by DdeClientTransaction, the application should
+    # free the handle by calling the DdeFreeDataHandle function.
+    #
+    #Transactions can be synchronous or asynchronous. During a synchronous transaction, DdeClientTransaction does not
+    # return until the transaction either completes successfully or fails. Synchronous transactions cause a client to
+    # enter a modal loop while waiting for various asynchronous events. Because of this, a client application can still
+    # respond to user input while waiting on a synchronous transaction, but the application cannot begin a second
+    # synchronous transaction because of the activity associated with the first. DdeClientTransaction fails if any
+    # instance of the same task has a synchronous transaction already in progress.
+    #
+    # During an asynchronous transaction, DdeClientTransaction returns after the transaction has begun,
+    # passing a transaction identifier for reference. When the server's DDE callback function finishes
+    # processing an asynchronous transaction, the system sends an XTYP_XACT_COMPLETE transaction to the
+    # client. This transaction provides the client with the results of the asynchronous transaction that it
+    # initiated by calling DdeClientTransaction. A client application can choose to abandon an asynchronous
+    # transaction by calling the DdeAbandonTransaction function.
+    # ---
+    # <b>Enhanced (snake_case) API: </b>
+    #
+    # :call-seq:
+    #  data_handle = dde_client_transaction(data_pointer, size, conv, item, format, type, timeout, result)
+    #
+    function :DdeClientTransaction, [:pointer, :uint32, :ulong, :ulong, :uint, :uint, :uint32, :pointer], :HDDEDATA
 
   end
 end

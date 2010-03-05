@@ -335,7 +335,6 @@ module WinDDETest
           res = DdeClientTransaction(str, str.size, @conv_handle, @topic_handle, 0, XTYP_EXECUTE, 1000, nil)
           p res
           rescue => e
-            p 'Meeeeeeeeeeeeeeeeeeeeeee', (e.methods-Object.methods).sort
             puts e.backtrace
             raise e
           end

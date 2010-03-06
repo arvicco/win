@@ -506,7 +506,7 @@ module Win
              &->(api, old_id=0, cmd, &block){
              raise ArgumentError, 'No callback block' unless block
              old_id = 0 unless old_id
-             id = FFI::MemoryPointer.new(:long).write_long(old_id)
+             id = FFI::MemoryPointer.new(:long).put_uint32(0, old_id)
              status = api.call(id, block, cmd, 0)
              id = status == 0 ? id.get_uint32(0) : nil
              [id, status] }

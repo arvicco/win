@@ -328,10 +328,11 @@ module Win
         boolean = options[:boolean]
         zeronil = options[:zeronil]
 
-        effective_name = effective_names.inject(nil) do |func, ename|
+        effective_name = effective_names.inject(nil) do |func, effective_name|
           func || begin
-            attach_function(name, ename, params.dup, returns) # creates basic CamelCase method via FFI
-            ename
+            # tries to attach basic CamelCase method via FFI
+            attach_function(name, effective_name, params.dup, returns)
+            effective_name
           rescue FFI::NotFoundError
             nil
           end

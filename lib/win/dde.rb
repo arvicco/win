@@ -26,6 +26,20 @@ module Win
     # DdeConnect function, regardless of the service name.
     DNS_FILTEROFF  = 8
 
+    # Transaction confirmations:
+
+    # Transaction confirmation
+    DDE_FACK        = 0x8000
+    # Server is too busy to process transaction
+    DDE_FBUSY       = 0x4000
+    DDE_FDEFERUPD   = 0x4000
+    DDE_FACKREQ     = 0x8000
+    DDE_FRELEASE    = 0x2000
+    DDE_FREQUESTED  = 0x1000
+    DDE_FAPPSTATUS  = 0x00ff
+    # Transaction rejected
+    DDE_FNOTPROCESSED    = 0
+
     # Transaction types:
 
     XTYPF_NOBLOCK       = 0x0002
@@ -92,19 +106,6 @@ module Win
             XTYP_SHIFT          => 'XTYP_SHIFT'
     }
 
-    # Transaction confirmations:
-
-    # Transaction confirmation
-    DDE_FACK        = 0x8000
-    # Server is too busy to process transaction
-    DDE_FBUSY       = 0x4000
-    DDE_FDEFERUPD   = 0x4000
-    DDE_FACKREQ     = 0x8000
-    DDE_FRELEASE    = 0x2000
-    DDE_FREQUESTED  = 0x1000
-    DDE_FAPPSTATUS  = 0x00ff
-    # Transaction rejected
-    DDE_FNOTPROCESSED    = 0
 
     # DdeInitialize afCmd flaggs:
 
@@ -415,7 +416,7 @@ module Win
     #
     class MonConvStruct < FFI::Struct  # :nodoc:
       layout :cb, :uint,
-             :f_connect, :bool,
+             :f_connect, :uchar,
              :dw_time, :uint32,
              :h_task, :ulong,
              :hsz_svc, :ulong,
@@ -446,6 +447,11 @@ module Win
              :h_task, :ulong
     end
 
+    MH_CREATE  = 1
+    MH_KEEP    = 2
+    MH_DELETE  = 3
+    MH_CLEANUP = 4
+
     # The MONHSZSTRUCT structure contains information about a Dynamic Data Exchange (DDE) string handle. A
     # DDE monitoring application can use this structure when monitoring the activity of the string manager
     # component of the DDE Management Library.
@@ -471,7 +477,7 @@ module Win
     #
     class MonHszStruct < FFI::Struct # :nodoc:
       layout :cb, :uint,
-             :fs_action, :bool,
+             :fs_action, :uchar,
              :dw_time, :uint32,
              :hsz, :ulong,
              :h_task, :ulong,
@@ -516,13 +522,13 @@ module Win
       layout :cb, :uint,
              :dw_time, :uint32,
              :h_task, :ulong,
-             :f_established, :bool,
-             :f_no_data, :bool,
+             :f_established, :uchar,
+             :f_no_data, :uchar,
              :hsz_svc, :ulong,
              :hsz_topic, :ulong,
              :hsz_item, :ulong,
              :w_fmt, :uint,
-             :f_server, :bool,
+             :f_server, :uchar,
              :h_conv_server, :ulong,
              :h_conv_client, :ulong
     end

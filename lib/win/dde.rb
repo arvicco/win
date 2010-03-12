@@ -336,6 +336,249 @@ module Win
     # DdeClientTransaction timeout value indicating async transaction
     TIMEOUT_ASYNC = 0xFFFFFFFF
 
+    # The MONCBSTRUCT structure contains information about the current Dynamic Data Exchange (DDE)
+    # transaction. A DDE debugging application can use this structure when monitoring transactions that the
+    # system passes to the DDE callback functions of other applications.
+    #
+    # [*Typedef*] struct { UINT cb; DWORD dwTime; HANDLE hTask; DWORD dwRet; UINT wType; UINT wFmt; HCONV
+    #             hConv; HSZ hsz1; HSZ hsz2; HDDEDATA hData; ULONG_PTR dwData1; ULONG_PTR dwData2;
+    #             CONVCONTEXT cc; DWORD cbData; DWORD Data[8] } MONCBSTRUCT;
+    #
+    # cb:: Specifies the structure's size, in bytes.
+    # dwTime:: Specifies the Windows time at which the transaction occurred. Windows time is the number of
+    #          milliseconds that have elapsed since the system was booted.
+    # hTask:: Handle to the task (app instance) containing the DDE callback function that received the transaction.
+    # dwRet:: Specifies the value returned by the DDE callback function that processed the transaction.
+    # wType:: Specifies the transaction type.
+    # wFmt:: Specifies the format of the data exchanged (if any) during the transaction.
+    # hConv:: Handle to the conversation in which the transaction took place.
+    # hsz1:: Handle to a string.
+    # hsz2:: Handle to a string.
+    # hData:: Handle to the data exchanged (if any) during the transaction.
+    # dwData1:: Specifies additional data.
+    # dwData2:: Specifies additional data.
+    # cc:: Specifies a CONVCONTEXT structure containing language information used to share data in different languages.
+    # cbData:: Specifies the amount, in bytes, of data being passed with the transaction. This value can be
+    #          more than 32 bytes.
+    # Data:: Contains the first 32 bytes of data being passed with the transaction (8 * sizeof(DWORD)).
+    # ---
+    # *Information*:
+    # Header Declared in Ddeml.h, include Windows.h
+
+    class MonCbStruct < FFI::Struct # :nodoc:
+      layout :cb, :uint,
+             :dw_time, :uint32,
+             :h_task, :ulong,
+             :dw_ret, :uint32,
+             :w_type, :uint,
+             :w_fmt, :uint,
+             :h_conv, :ulong,
+             :hsz1, :ulong,
+             :hsz2, :ulong,
+             :h_data, :pointer,
+             :dw_data1, :pointer,
+             :dw_data2, :pointer,
+             :cc, :pointer,
+             :cb_data, :uint32,
+             :data, [:uint32, 8]
+    end
+
+    # The MONCONVSTRUCT structure contains information about a Dynamic Data Exchange (DDE) conversation. A
+    # DDE monitoring application can use this structure to obtain information about a conversation that has
+    # been established or has terminated.
+    #
+    # [*Typedef*] struct { UINT cb; BOOL fConnect; DWORD dwTime; HANDLE hTask; HSZ hszSvc; HSZ hszTopic;
+    #             HCONV hConvClient; HCONV hConvServer } MONCONVSTRUCT;
+    #
+    # cb:: Specifies the structure's size, in bytes.
+    # fConnect:: Indicates whether the conversation is currently established. A value of TRUE indicates the
+    #            conversation is established; FALSE indicates it is not.
+    # dwTime:: Specifies the Windows time at which the conversation was established or terminated. Windows
+    #          time is the number of milliseconds that have elapsed since the system was booted.
+    # hTask:: Handle to a task (application instance) that is a partner in the conversation.
+    # hszSvc:: Handle to the service name on which the conversation is established.
+    # hszTopic:: Handle to the topic name on which the conversation is established.
+    # hConvClient:: Handle to the client conversation.
+    # hConvServer:: Handle to the server conversation.
+    # ---
+    # *Remarks*:
+    #
+    # Because string handles are local to the process, the hszSvc and hszTopic members are global atoms.
+    # Similarly, conversation handles are local to the instance; therefore, the hConvClient and hConvServer
+    # members are window handles.
+    # The hConvClient and hConvServer members of the MONCONVSTRUCT structure do not hold the same value as
+    # would be seen by the applications engaged in the conversation. Instead, they hold a globally unique
+    # pair of values that identify the conversation.
+    # ---
+    # Structure Information:
+    # Header Declared in Ddeml.h, include Windows.h
+    #
+    class MonConvStruct < FFI::Struct  # :nodoc:
+      layout :cb, :uint,
+             :f_connect, :bool,
+             :dw_time, :uint32,
+             :h_task, :ulong,
+             :hsz_svc, :ulong,
+             :hsz_topic, :ulong,
+             :h_conv_client, :ulong,
+             :h_conv_server, :ulong
+    end
+
+    # The MONERRSTRUCT structure contains information about the current Dynamic Data Exchange (DDE) error. A
+    # DDE monitoring application can use this structure to monitor errors returned by DDE Management Library
+    # functions.
+    #
+    # [*Typedef*] struct { UINT cb; UINT wLastError; DWORD dwTime; HANDLE hTask } MONERRSTRUCT;
+    #
+    # cb:: Specifies the structure's size, in bytes.
+    # wLastError:: Specifies the current error.
+    # dwTime:: Specifies the Windows time at which the error occurred. Windows time is the number of
+    #          milliseconds that have elapsed since the system was booted.
+    # hTask:: Handle to the task (application instance) that called the DDE function that caused the error.
+    # ---
+    # Structure Information:
+    # Header Declared in Ddeml.h, include Windows.h
+    #
+    class MonErrStruct < FFI::Struct # :nodoc:
+      layout :cb, :uint,
+             :w_last_error, :uint,
+             :dw_time, :uint32,
+             :h_task, :ulong
+    end
+
+    # The MONHSZSTRUCT structure contains information about a Dynamic Data Exchange (DDE) string handle. A
+    # DDE monitoring application can use this structure when monitoring the activity of the string manager
+    # component of the DDE Management Library.
+    #
+    # [*Typedef*] struct { UINT cb; BOOL fsAction; DWORD dwTime; HSZ hsz; HANDLE hTask; TCHAR str[1] } MONHSZSTRUCT;
+    #
+    # cb:: Specifies the structure's size, in bytes.
+    # fsAction:: Specifies the action being performed on the string identified by the hsz member.
+    #            MH_CLEANUP:: An application is freeing its DDE resources, causing the system to delete string handles
+    #                         the application had created. (The application called the DdeUninitialize function.)
+    #            MH_CREATE:: An application is creating a string handle. (The app called the DdeCreateStringHandle)
+    #            MH_DELETE:: An application is deleting a string handle. (The app called the DdeFreeStringHandle)
+    #            MH_KEEP:: An application is increasing the usage count of a string handle. (The application called the
+    #                      DdeKeepStringHandle function.)
+    # dwTime:: Specifies the Windows time at which the action specified by the fsAction member takes place.
+    #          Windows time is the number of milliseconds that have elapsed since the system was booted.
+    # hsz:: Handle to the string. Because string handles are local to the process, this member is a global atom.
+    # hTask:: Handle to the task (application instance) performing the action on the string handle.
+    # str:: Pointer to the string identified by the hsz member.
+    # ---
+    # Structure Information
+    # Header Declared in Ddeml.h, include Windows.h
+    #
+    class MonHszStruct < FFI::Struct # :nodoc:
+      layout :cb, :uint,
+             :fs_action, :bool,
+             :dw_time, :uint32,
+             :hsz, :ulong,
+             :h_task, :ulong,
+             :str, :pointer
+    end
+
+    # The MONLINKSTRUCT structure contains information about a Dynamic Data Exchange (DDE) advise loop. A
+    # DDE monitoring application can use this structure to obtain information about an advise loop that has
+    # started or ended.
+    #
+    # [*Typedef*] struct { UINT cb; DWORD dwTime; HANDLE hTask; BOOL fEstablished; BOOL fNoData; HSZ hszSvc;
+    #             HSZ hszTopic; HSZ hszItem; UINT wFmt; BOOL fServer; HCONV hConvServer; HCONV hConvClient }
+    #             MONLINKSTRUCT;
+    #
+    # cb:: Specifies the structure's size, in bytes.
+    # dwTime:: Specifies the Windows time at which the advise loop was started or ended. Windows time is the
+    #          number of milliseconds that have elapsed since the system was booted.
+    # hTask:: Handle to a task (application instance) that is a partner in the advise loop.
+    # fEstablished:: Indicates whether an advise loop was successfully established. A value of TRUE
+    #                indicates an advise loop was established; FALSE indicates it was not.
+    # fNoData:: Indicates whether the XTYPF_NODATA flag is set for the advise loop. A value of TRUE
+    #           indicates the flag is set; FALSE indicates it is not.
+    # hszSvc:: Handle to the service name of the server in the advise loop.
+    # hszTopic:: Handle to the topic name on which the advise loop is established.
+    # hszItem:: Handle to the item name that is the subject of the advise loop.
+    # wFmt:: Specifies the format of the data exchanged (if any) during the advise loop.
+    # fServer:: Indicates whether the link notification came from the server. A value of TRUE indicates the
+    #           notification came from the server; FALSE indicates otherwise.
+    # hConvServer:: Handle to the server conversation.
+    # hConvClient:: Handle to the client conversation.
+    # ---
+    # *Remarks*:
+    # Because string handles are local to the process, the hszSvc, hszTopic, and hszItem members are global atoms.
+    # The hConvClient and hConvServer members of the MONLINKSTRUCT structure do not hold the same value as
+    # would be seen by the applications engaged in the conversation. Instead, they hold a globally unique
+    # pair of values that identify the conversation.
+    # ---
+    # Structure Information
+    # Header Declared in Ddeml.h, include Windows.h
+    #
+    class MonLinkStruct < FFI::Struct # :nodoc:
+      layout :cb, :uint,
+             :dw_time, :uint32,
+             :h_task, :ulong,
+             :f_established, :bool,
+             :f_no_data, :bool,
+             :hsz_svc, :ulong,
+             :hsz_topic, :ulong,
+             :hsz_item, :ulong,
+             :w_fmt, :uint,
+             :f_server, :bool,
+             :h_conv_server, :ulong,
+             :h_conv_client, :ulong
+    end
+
+    # The MONMSGSTRUCT structure contains information about a Dynamic Data Exchange (DDE) message. A DDE
+    # monitoring application can use this structure to obtain information about a DDE message that was sent
+    # or posted.
+    #
+    # [*Typedef*] struct { UINT cb; HWND hwndTo; DWORD dwTime; HANDLE hTask; UINT wMsg; WPARAM wParam;
+    #             LPARAM lParam; DDEML_MSG_HOOK_DATA dmhd } MONMSGSTRUCT;
+    #
+    # cb:: Specifies the structure's size, in bytes.
+    # hwndTo:: Handle to the window that receives the DDE message.
+    # dwTime:: Specifies the Windows time at which the message was sent or posted. Windows time is the
+    #          number of milliseconds that have elapsed since the system was booted.
+    # hTask:: Handle to the task (application instance) containing the window that receives the DDE message.
+    # wMsg:: Specifies the identifier of the DDE message.
+    # wParam:: Specifies the wParam parameter of the DDE message.
+    # lParam:: Specifies the lParam parameter of the DDE message.
+    # dmhd:: Specifies a DDEML_MSG_HOOK_DATA structure that contains additional information about the DDE message.
+    # ---
+    # Structure Information
+    # Header Declared in Ddeml.h, include Windows.h
+    #
+    class MonMsgStruct < FFI::Struct # :nodoc:
+      layout :cb, :uint,
+             :hwnd_to, :ulong,
+             :dw_time, :uint32,
+             :h_task, :ulong,
+             :w_msg, :uint,
+             :w_param, :uint,
+             :l_param, :long,
+             :dmhd, :pointer
+    end
+
+    # The DDEML_MSG_HOOK_DATA structure contains information about a Dynamic Data Exchange (DDE) message,
+    # and provides read access to the data referenced by the message. This structure is intended to be used
+    # by a Dynamic Data Exchange Management Library (DDEML) monitoring application.
+    #
+    # [*Typedef*] struct { UINT_PTR uiLo; UINT_PTR uiHi; DWORD cbData; DWORD Data } DDEML_MSG_HOOK_DATA;
+    #
+    # uiLo:: Specifies the unpacked low-order word of the lParam parameter associated with the DDE message.
+    # uiHi:: Specifies the unpacked high-order word of the lParam parameter associated with the DDE message.
+    # cbData:: Specifies the amount, in bytes, of data being passed with the message. This value can be > 32.
+    # Data:: Contains the first 32 bytes of data being passed with the message (8 * sizeof(DWORD)).
+    # ---
+    # Structure Information
+    # Header Declared in Ddeml.h, include Windows.h
+    #
+    class DdemlMsgHookData < FFI::Struct # :nodoc:
+      layout :ui_lo, :uint,
+             :ui_hi, :uint,
+             :cb_data, :uint32,
+             :data, :uint32
+    end
+
     ##
     # The RegisterClipboardFormat function registers a new clipboard format.
     # This format can then be used as a valid clipboard format.

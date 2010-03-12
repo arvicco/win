@@ -36,7 +36,8 @@ module WinDDETest
   end
 
   describe Win::DDE, ' contains a set of pre-defined Windows API functions' do
-    describe 'register_clipboard_format' do
+
+    describe '#register_clipboard_format' do
       spec{ use{ RegisterClipboardFormat(format_name = "XlTable") }}
       spec{ use{ register_clipboard_format(format_name = "XlTable") }}
 
@@ -57,13 +58,11 @@ module WinDDETest
       end
     end
 
-    describe 'dde_initialize' do
+    describe '#dde_initialize' do
       after(:each) {dde_uninitialize(@id) if @id}
 
-      spec{ use{ status = DdeInitialize( @id = zero_id, dde_callback, dde_cmd, unused=0);
-      @id = @id.read_long}}
-      spec{ use{ @id, status = dde_initialize(@id=0, dde_cmd) do|*args|
-      end }}
+      spec{ use{ status = DdeInitialize( id = zero_id, dde_callback, dde_cmd, unused=0); @id = id.read_long}}
+      spec{ use{ @id, status = dde_initialize(@id=0, dde_cmd, &dde_callback) }}
 
       it 'with zero instance_id, returns integer id and DMLERR_NO_ERROR if initialization successful' do
         @id, status = dde_initialize(0, APPCLASS_STANDARD) {|*args| }
@@ -98,7 +97,7 @@ module WinDDETest
         status.should == DMLERR_NO_ERROR
         new_id.should == @id
       end
-    end
+    end # describe 'dde_initialize'
 
     context 'after initialization:' do
       before(:each) {@id, status = dde_initialize(APPCLASS_STANDARD) {|*args| }}
@@ -123,8 +122,8 @@ module WinDDETest
       describe '#dde_create_string_handle' do
         after(:each) {dde_free_string_handle(@id, @string_handle) if @string_handle}
 
-        spec{ use{ @string_handle = DdeCreateStringHandle(instance_id=0, string_pointer, code_page_id=CP_WINANSI) }}
-        spec{ use{ @string_handle = dde_create_string_handle(instance_id=0, string='Any String', code_page_id=CP_WINANSI)}}
+        spec{ use{ @string_handle = DdeCreateStringHandle(id=0, string_pointer, code_page_id=CP_WINANSI) }}
+        spec{ use{ @string_handle = dde_create_string_handle(id=0, string='Any String', code_page_id=CP_WINANSI)}}
 
         it 'returns nonzero Integer handle to a string (passable to other DDEML functions)' do
           @string_handle = dde_create_string_handle(@id, 'My String', CP_WINANSI)
@@ -170,7 +169,13 @@ module WinDDETest
           spec{ use{ string = dde_query_string(@id, @string_handle, code_page=CP_WINANSI )}}
 
           it 'retrieves string that given string handle refers to' do
-            string = dde_query_string(@id, @string_handle)
+            num_chars = DdeQueryString(@id, @string_handle, buf = buffer, buf.size, CP_WINANSI)
+            num_chars.should == 11
+            buf.read_string.should == 'My String 2'
+          end
+
+          it 'retrieves string that given string handle refers to' do
+            string = dde_query_string(@id, @string_handle, CP_WINANSI)
             string.should == 'My String 2'
           end
 
@@ -200,34 +205,22 @@ module WinDDETest
             res.should == false
           end
 
-          it 'keeps string accessible if there are more handles to it around' do
+          it 'keeps string accessible while references to it still exist' do
+            # creates second handle to 'My String 2'
             string_handle_1 = dde_create_string_handle(@id, 'My String 2', CP_WINANSI)
 
             dde_free_string_handle(@id, @string_handle)
-
             dde_query_string(@id, @string_handle).should == 'My String 2'
+
             dde_free_string_handle(@id, string_handle_1)
+            dde_query_string(@id, @string_handle).should == nil
           end
 
           it 'makes string inaccessible once its last handle is freed' do
             dde_free_string_handle(@id, @string_handle)
-
             dde_query_string(@id, @string_handle).should == nil
           end
         end # describe '#dde_free_string_handle'
-
-        describe '#dde_name_service' do
-          spec{ use{ success = dde_name_service(@id, @string_handle, cmd=DNS_UNREGISTER ) }}
-          spec{ use{ success = DdeNameService(@id, @string_handle, reserved=0, cmd=DNS_UNREGISTER) }}
-
-          it 'registers or unregisters the service names that DDE server supports' do
-            success = dde_name_service(@id, @string_handle, DNS_REGISTER )
-            success.should == true
-
-            success = dde_name_service(@id, @string_handle, DNS_UNREGISTER )
-            success.should == true
-          end
-        end # describe '#dde_name_service'
 
         describe '#dde_get_last_error' do
           spec{ use{ error_code = DdeGetLastError(@id) }}
@@ -254,8 +247,8 @@ module WinDDETest
       before(:each) do
         @client_calls = []
         @server_calls = []
-        @client_id, status = dde_initialize(APPCLASS_STANDARD) {|*args| @client_calls << extract_values(*args); 1}
-        @server_id, status = dde_initialize(APPCLASS_STANDARD) {|*args| @server_calls << extract_values(*args); 1}
+        @client_id, st = dde_initialize(APPCLASS_STANDARD) {|*args| @client_calls << extract_values(*args); DDE_FACK}
+        @server_id, st = dde_initialize(APPCLASS_STANDARD) {|*args| @server_calls << extract_values(*args); DDE_FACK}
         @service_handle = dde_create_string_handle(@server_id, 'service 2', CP_WINANSI)
         @topic_handle = dde_create_string_handle(@client_id, 'topic 2', CP_WINANSI)
         dde_name_service(@server_id, @service_handle, DNS_REGISTER)
@@ -268,6 +261,22 @@ module WinDDETest
         dde_uninitialize(@client_id)
         dde_uninitialize(@server_id)
       end
+
+      describe '#dde_name_service' do
+        spec{ use{ success = dde_name_service(@server_id, @service_handle, cmd=DNS_UNREGISTER ) }}
+        spec{ use{ success = DdeNameService(@server_id, @service_handle, reserved=0, cmd=DNS_UNREGISTER) }}
+
+        it 'registers or unregisters the service names that DDE server supports' do
+          success = dde_name_service(@server_id, @service_handle, DNS_REGISTER )
+          success.should == true
+          p @server_calls, @client_calls
+          success = dde_name_service(@server_id, @service_handle, DNS_UNREGISTER )
+          success.should == true
+          get_message while peek_message
+          p @server_calls, @client_calls
+          1.should == 0
+        end
+      end # describe '#dde_name_service'
 
       describe '#dde_connect' do
         after(:each) { dde_disconnect(@conv_handle) if @conv_handle}
@@ -316,21 +325,23 @@ module WinDDETest
 
       describe "#dde_client_transaction" do
         after(:each) do
-          p @server_calls, @client_calls, @server_conv
+           p @server_calls, @client_calls, @server_conv
           p ERRORS[dde_get_last_error(@server_id)]
           p ERRORS[dde_get_last_error(@client_id)]
         end
 
-        spec{ use{ res = DdeClientTransaction(data=nil, size=0, conv=0, item=0, format=0, type=0, timeout=0, result=nil) }}
-        spec{ use{ res = dde_client_transaction(data=nil, size=0, conv=0, item=0, format=0, type=0, timeout=0, result=nil) }}
+        spec{ use{ DdeClientTransaction(data=nil, size=0, conv=0, item=0, format=0, type=0, timeout=0, result=nil) }}
+        spec{ use{ dde_client_transaction(data=nil, size=0, conv=0, item=0, format=0, type=0, timeout=0, result=nil) }}
 
         it "original api is used by CLIENT to begins a data transaction with server" do
-          p @conv_handle = dde_connect( @server_id, @service_handle, @topic_handle, context=nil)
+          @conv_handle = dde_connect( @server_id, @service_handle, @topic_handle, context=nil)
           str = FFI::MemoryPointer.from_string "Poke_string\n\x00\x00"
-#          res = DdeClientTransaction(str, str.size, @conv_handle, @topic_handle, CF_TEXT, XTYP_POKE, 1000, nil)
+          res = DdeClientTransaction(str, str.size, @conv_handle, @topic_handle, CF_TEXT, XTYP_POKE, 1000, nil)
             #get_message() if peek_message()
+          #dde_disconnect(@conv_handle)
+          3.times {dde_name_service(@server_id, @service_handle, DNS_UNREGISTER)}
             res = dde_client_transaction(str, str.size, @conv_handle, @topic_handle, 0, XTYP_EXECUTE, 1000, nil)
-            p res
+  #          p res
            1.should be_false
         end
 

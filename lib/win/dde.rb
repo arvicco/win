@@ -925,47 +925,6 @@ module Win
     # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
 
     ##
-    # The DdeGetData function copies data from the specified Dynamic Data Exchange (DDE) object to the specified
-    # local buffer.
-    #
-    # [*Syntax*] DWORD DdeGetData( HDDEDATA hData, LPBYTE pDst, DWORD cbMax, DWORD cbOff );
-    #
-    # hData:: [in] Handle to the DDE object that contains the data to copy.
-    # pDst:: [out] Pointer to the buffer that receives the data. If this parameter is NULL, the DdeGetData
-    #        function returns the amount of data, in bytes, that would be copied to the buffer.
-    # cbMax:: [in] Specifies the maximum amount of data, in bytes, to copy to the buffer pointed to by the pDst
-    #         parameter. Typically, this parameter specifies the length of the buffer pointed to by pDst.
-    # cbOff:: [in] Specifies an offset within the DDE object. Data is copied from the object beginning at this offset.
-    #
-    # *Returns*:: If the pDst parameter points to a buffer, return value is the size, in bytes, of the memory object
-    #             associated with the data handle or the size specified in the cbMax parameter, whichever is lower.
-    #             If the pDst parameter is NULL, the return value is the size, in bytes, of the memory object
-    #             associated with the data handle.
-    #             The DdeGetLastError function can be used to get the error code, which can be one of the following:
-    #             - DMLERR_DLL_NOT_INITIALIZED
-    #             - DMLERR_INVALIDPARAMETER
-    #             - DMLERR_NO_ERROR
-    # ---
-    # <b> Enhanced (snake_case) API accepts only data handle, and optionally max and offset (no need to pre-allocate
-    # buffer). It returns buffer with copied DDE data (FFI::MemoryPointer) or nil for failure. DDE data length is
-    # determined internally, no need to call function twice (first time with nil buffer just to determine length).</b>
-    # ---
-    #
-    # :call-seq:
-    #  buffer, success = dde_get_data( data_handle, [max = infinite, offset = 0] )
-    #
-    function :DdeGetData, [:ulong, :pointer, :uint32, :uint32], :uint,
-             &->(api, data_handle, max=1073741823, offset=0){     # max is maximum DWORD Fixnum
-             length = api.call(data_handle, nil, 0, 0)   # determining data set length
-             if length != 0
-               copy_length = length < max ? length : max
-               buffer = FFI::MemoryPointer.new(:char, offset + copy_length)
-               length = api.call(data_handle, buffer, copy_length, offset)
-             end
-             length != 0 ? buffer: nil }
-    # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
-
-    ##
     # DdeConnect function establishes a conversation with a server application that supports the specified service
     # name and topic name pair. If more than one such server exists, the system selects only one.
     #
@@ -1157,7 +1116,119 @@ module Win
     # :call-seq:
     #  data_handle = dde_client_transaction(data_pointer, size, conv, item, format, type, timeout, result)
     #
-    function :DdeClientTransaction, [:pointer, :uint32, :ulong, :ulong, :uint, :uint, :uint32, :pointer], :HDDEDATA
+    function :DdeClientTransaction, [:pointer, :uint32, :ulong, :ulong, :uint, :uint, :uint32, :pointer],
+             :HDDEDATA, boolean: true
+
+    ##
+    # The DdeGetData function copies data from the specified Dynamic Data Exchange (DDE) object to the specified
+    # local buffer.
+    #
+    # [*Syntax*] DWORD DdeGetData( HDDEDATA hData, LPBYTE pDst, DWORD cbMax, DWORD cbOff );
+    #
+    # hData:: [in] Handle to the DDE object that contains the data to copy.
+    # pDst:: [out] Pointer to the buffer that receives the data. If this parameter is NULL, the DdeGetData
+    #        function returns the amount of data, in bytes, that would be copied to the buffer.
+    # cbMax:: [in] Specifies the maximum amount of data, in bytes, to copy to the buffer pointed to by the pDst
+    #         parameter. Typically, this parameter specifies the length of the buffer pointed to by pDst.
+    # cbOff:: [in] Specifies an offset within the DDE object. Data is copied from the object beginning at this offset.
+    #
+    # *Returns*:: If the pDst parameter points to a buffer, return value is the size, in bytes, of the memory object
+    #             associated with the data handle or the size specified in the cbMax parameter, whichever is lower.
+    #             If the pDst parameter is NULL, the return value is the size, in bytes, of the memory object
+    #             associated with the data handle.
+    #             The DdeGetLastError function can be used to get the error code, which can be one of the following:
+    #             - DMLERR_DLL_NOT_INITIALIZED
+    #             - DMLERR_INVALIDPARAMETER
+    #             - DMLERR_NO_ERROR
+    # ---
+    # <b> Enhanced (snake_case) API accepts data handle, and optionally max and offset (no need to pre-allocate
+    # buffer). It returns pointer to copied DDE data (FFI::MemoryPointer) and size of copied data in bytes.
+    # In case of failure, it returns [nil, 0]. This API is the same as for enhanced dde_access_data.
+    # No need to call function twice (first time with nil buffer just to determine length).</b>
+    # ---
+    #
+    # :call-seq:
+    #  buffer, size = dde_get_data( data_handle, [max = infinite, offset = 0] )
+    #
+    function :DdeGetData, [:ulong, :pointer, :uint32, :uint32], :uint,
+             &->(api, data_handle, max=1073741823, offset=0){     # max is maximum DWORD Fixnum
+             size = api.call(data_handle, nil, 0, 0)   # determining data set length
+             if size == 0
+               [nil, 0]
+             else
+               copy_size = size < max ? size : max
+               buffer = FFI::MemoryPointer.new(:char, offset + copy_size)
+               size = api.call(data_handle, buffer, copy_size, offset)
+               [buffer, size]
+             end }
+    # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
+
+
+    ##
+    # The DdeAccessData function provides access to the data in the specified Dynamic Data Exchange (DDE)
+    # object. An application must call the DdeUnaccessData function when it has finished accessing the data
+    # in the object.
+    #
+    # [*Syntax*] LPBYTE DdeAccessData( HDDEDATA hData, LPDWORD pcbDataSize );
+    #
+    # hData:: [in] Handle to the DDE object to access.
+    # pcbDataSize:: [out] Pointer to a variable that receives the size, in bytes, of the DDE object
+    #               identified by the hData parameter. If this parameter is NULL, no size information is
+    #               returned.
+    #
+    # *Returns*:: If the function succeeds, the return value is a pointer to the first byte of data in the
+    #             DDE object.
+    # If the function fails, the return value is NULL.
+    # The DdeGetLastError function can be used to get the error code, which can be one of the following
+    # values:
+    # DMLERR_DLL_NOT_INITIALIZED
+    # DMLERR_INVALIDPARAMETER
+    # DMLERR_NO_ERROR
+    # ---
+    # *Remarks*:
+    # If the hData parameter has not been passed to a Dynamic Data Exchange Management Library (DDEML)
+    # function, an application can use the pointer returned by DdeAccessData for read-write access to the
+    # DDE object. If hData has already been passed to a DDEML function, the pointer should be used only for
+    # read access to the memory object.
+    #
+    # ---
+    # <b>Enhanced (snake_case) API accepts DDE data handle and returns FFI::MemoryPointer to raw data and
+    # size of data set in bytes (same API as enhanced dde_get_data). Returns [nil, 0] in case of failure. </b>
+    #
+    # :call-seq:
+    #  data_pointer, size = dde_access_data( data_handle )
+    #
+    function :DdeAccessData, [:HDDEDATA, :pointer], :pointer,
+             &->(api, data_handle){
+             size_buffer = FFI::MemoryPointer.new(:int16)
+             buffer = api.call(data_handle, size_buffer)
+             size = size_buffer.get_int16(0)
+             size == 0 ? [nil, 0] : [buffer, size] }
+    # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
+
+      ##
+      # The DdeUnaccessData function unaccesses a Dynamic Data Exchange (DDE) object. An application must call
+      # this function after it has finished accessing the object.
+      #
+      # [*Syntax*] BOOL DdeUnaccessData( HDDEDATA hData );
+      #
+      # hData:: [in] Handle to the DDE object.
+      #
+      # *Returns*:: If the function succeeds, the return value is nonzero.
+      # If the function fails, the return value is zero.
+      # The DdeGetLastError function can be used to get the error code, which can be one of the following
+      # values:
+      # DMLERR_DLL_NOT_INITIALIZED
+      # DMLERR_INVALIDPARAMETER
+      # DMLERR_NO_ERROR
+      #
+      # ---
+      # <b>Enhanced (snake_case) API returns true/false instead of nonzero/zero: </b>
+      #
+      # :call-seq:
+      #  success = dde_unaccess_data(data_handle)
+      #
+      function :DdeUnaccessData, [:HDDEDATA], :int8, boolean: true
 
   end
 end

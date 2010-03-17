@@ -6,6 +6,8 @@ module WinDDETest
   include Win::DDE
   include Win::GUI::Message
 
+  POKE_STRING = "Poke_string\x00\x00"
+
   def dde_cmd
     APPCLASS_STANDARD
   end
@@ -33,6 +35,37 @@ module WinDDETest
      dde_query_string(@client_id, hsz1),
      dde_query_string(@client_id, hsz2),
      data, data1, data2]
+  end
+
+  def setup_server(&server_block)
+    @client_calls = []
+    @server_calls = []
+    @client_id, st = dde_initialize(APPCLASS_STANDARD) {|*args| @client_calls << extract_values(*args); DDE_FACK}
+    @server_id, st = dde_initialize(APPCLASS_STANDARD,
+                                    &server_block || proc {|*args| @server_calls << extract_values(*args); DDE_FACK} )
+    @service_handle = dde_create_string_handle(@server_id, 'service 2', CP_WINANSI)
+    @topic_handle = dde_create_string_handle(@server_id, 'topic 2', CP_WINANSI)
+    dde_name_service(@server_id, @service_handle, DNS_REGISTER)
+  end
+
+  def teardown_server
+    if @print
+      p @server_calls, @client_calls
+      p @server_conv
+      p ERRORS[dde_get_last_error(@server_id)]
+      p ERRORS[dde_get_last_error(@client_id)]
+      @print = nil
+    end
+    dde_name_service(@server_id, @service_handle, DNS_UNREGISTER) if @server_id && @service_handle
+    dde_free_string_handle(@server_id, @service_handle) if @server_id && @service_handle
+    dde_free_string_handle(@server_id, @topic_handle) if @server_id && @topic_handle
+    dde_uninitialize(@server_id) if @server_id
+    dde_uninitialize(@client_id) if @client_id
+    if @conv_handle
+      dde_disconnect(@conv_handle)
+      @conv_handle = nil
+    end
+    @data = nil
   end
 
   describe Win::DDE, ' contains a set of pre-defined Windows API functions' do
@@ -244,42 +277,23 @@ module WinDDETest
     end # context 'after initialization:'
 
     context 'with synthetic DDE client/server' do
-      before(:each) do
-        @client_calls = []
-        @server_calls = []
-        @client_id, st = dde_initialize(APPCLASS_STANDARD) {|*args| @client_calls << extract_values(*args); DDE_FACK}
-        @server_id, st = dde_initialize(APPCLASS_STANDARD) {|*args| @server_calls << extract_values(*args); DDE_FACK}
-        @service_handle = dde_create_string_handle(@server_id, 'service 2', CP_WINANSI)
-        @topic_handle = dde_create_string_handle(@client_id, 'topic 2', CP_WINANSI)
-        dde_name_service(@server_id, @service_handle, DNS_REGISTER)
-      end
-
-      after(:each) do
-        dde_name_service(@server_id, @service_handle, DNS_UNREGISTER)
-        dde_free_string_handle(@server_id, @service_handle)
-        dde_free_string_handle(@client_id, @topic_handle)
-        dde_uninitialize(@client_id)
-        dde_uninitialize(@server_id)
-      end
+      before(:each){ setup_server }
+      after(:each) { teardown_server}
 
       describe '#dde_name_service' do
         spec{ use{ success = dde_name_service(@server_id, @service_handle, cmd=DNS_UNREGISTER ) }}
         spec{ use{ success = DdeNameService(@server_id, @service_handle, reserved=0, cmd=DNS_UNREGISTER) }}
 
         it 'registers or unregisters the service names that DDE server supports' do
+          pending 'Register/Unregister messages don`t show up in @server_calls :('
           success = dde_name_service(@server_id, @service_handle, DNS_REGISTER )
           success.should == true
-          p @server_calls, @client_calls
           success = dde_name_service(@server_id, @service_handle, DNS_UNREGISTER )
           success.should == true
-          get_message while peek_message
-          p @server_calls, @client_calls
-          1.should == 0
         end
       end # describe '#dde_name_service'
 
       describe '#dde_connect' do
-        after(:each) { dde_disconnect(@conv_handle) if @conv_handle}
         spec{ use{ @conv_handle = DdeConnect( instance_id=0, service=0, topic=0, context=nil) }}
         spec{ use{ @conv_handle = dde_connect( instance_id=0, service=0, topic=0, context=nil) }}
 
@@ -294,19 +308,12 @@ module WinDDETest
           @server_calls[1][4].should == 'service 2'
           dde_disconnect(@server_conv).should == true
           dde_disconnect(@conv_handle).should == true
-#
-#          p @server_calls, @client_calls, @conv_handle, @server_conv
-#          p ERRORS[dde_get_last_error(@server_id)]
-#          p ERRORS[dde_get_last_error(@client_id)]
         end
 
-        it 'connects to existing DDE server (NOT self)' do
+        it 'connects to existing DDE server (from @client, NOT self)' do
           pending 'something is wrong when connecting to separate service instance, uninitialize fails'
-          conv_handle = dde_connect( @client_id, @service_handle, @topic_handle, context=nil)
-          puts conv_handle
-          p @server_calls, @client_calls, @server_conv
-          p dde_disconnect(@server_conv) #conv_handle)
-#          p @server_calls, @client_calls
+          @conv_handle = dde_connect( @client_id, @service_handle, @topic_handle, context=nil)
+          puts @conv_handle
         end
       end # describe '#dde_connect'
 
@@ -318,64 +325,196 @@ module WinDDETest
           dde_disconnect(12345).should == false
         end
 
-        it 'disconnects from existing DDE server' do
-          pending 'XTYP_DISCONNECT is not received by server callback for some reason'
+        it 'disconnects from existing (self) DDE server' do
+          conv_handle = dde_connect( @server_id, @service_handle, @topic_handle, context=nil)
+          dde_disconnect(conv_handle).should == true
         end
-      end # describe '#dde_disconnect'
 
-      describe "#dde_client_transaction" do
-        after(:each) do
-           p @server_calls, @client_calls, @server_conv
+        it 'disconnects from existing (self) DDE server' do
+          pending 'XTYP_DISCONNECT is not received by server callback (since we are disconnecting from self?)'
+          conv_handle = dde_connect( @server_id, @service_handle, @topic_handle, context=nil)
+          dde_disconnect(conv_handle).should == true
+          @server_calls.last[0].should == "XTYP_DISCONNECT"
+          p @server_calls, @client_calls, @server_conv
           p ERRORS[dde_get_last_error(@server_id)]
           p ERRORS[dde_get_last_error(@client_id)]
         end
-
-        spec{ use{ DdeClientTransaction(data=nil, size=0, conv=0, item=0, format=0, type=0, timeout=0, result=nil) }}
-        spec{ use{ dde_client_transaction(data=nil, size=0, conv=0, item=0, format=0, type=0, timeout=0, result=nil) }}
-
-        it "original api is used by CLIENT to begins a data transaction with server" do
-          @conv_handle = dde_connect( @server_id, @service_handle, @topic_handle, context=nil)
-          str = FFI::MemoryPointer.from_string "Poke_string\n\x00\x00"
-          res = DdeClientTransaction(str, str.size, @conv_handle, @topic_handle, CF_TEXT, XTYP_POKE, 1000, nil)
-            #get_message() if peek_message()
-          #dde_disconnect(@conv_handle)
-          3.times {dde_name_service(@server_id, @service_handle, DNS_UNREGISTER)}
-            res = dde_client_transaction(str, str.size, @conv_handle, @topic_handle, 0, XTYP_EXECUTE, 1000, nil)
-  #          p res
-           1.should be_false
-        end
-
-        it "snake_case api begins a data transaction between a client and a server. Only a Dynamic Data Exchange (DDE) client " do
-          pending
-          success = dde_client_transaction(p_data=0, cb_data=0, h_conv=0, hsz_item=0, w_fmt=0, w_type=0, dw_timeout=0, pdw_result=0)
-        end
-      end # describe dde_client_transaction
-
-      describe '#dde_get_data' do
-        spec{ use{ buffer, success = dde_get_data( data_handle = 123, max = 1073741823, offset = 0) }}
-        spec{ use{ length = DdeGetData( data_handle = 123, nil, 0, 0) }} # returns dde data set length
-        spec{ use{ length = DdeGetData( data_handle = 123, FFI::MemoryPointer.new(:char, 1024), max = 1024, offset = 0) }}
-
-        it 'original API returns 0 if trying to address invalid dde data handle' do
-          DdeGetData( data_handle = 123, nil, 0, 0).should == 0
-        end
-
-        it 'snake_case API returns nil if trying to address invalid dde data handle' do
-          dde_get_data( data_handle = 123, 3741823, 0).should == nil
-        end
-
-        it 'original API returns 1 if connect successful' do
-          pending
-          DdeGetData( data_handle = 123, nil, 0, 0).should == 0
-        end
-
-        it 'snake_case API returns returns true if connect successful' do
-          pending
-          dde_get_data( data_handle = 123, 3741823, 0).should == nil
-        end
-
-      end # describe '#dde_get_data'
-
+      end # describe '#dde_disconnect'
     end # context 'with synthetic DDE server'
+
+    describe "#dde_client_transaction" do
+      before(:each) do
+        setup_server do |*args|
+          @server_calls << extract_values(*args)
+          @data, size = dde_get_data(args[5]) if args.first == XTYP_POKE || args.first == XTYP_EXECUTE
+          DDE_FACK
+        end
+      end
+      after(:each) { teardown_server}
+
+      spec{ use{ DdeClientTransaction(data=nil, size=0, conv=0, item=0, format=0, type=0, timeout=0, result=nil) }}
+      spec{ use{ dde_client_transaction(data=nil, size=0, conv=0, item=0, format=0, type=0, timeout=0, result=nil) }}
+
+      it "original api is used by CLIENT to begins a data transaction with server" do
+        @conv_handle = dde_connect( @server_id, @service_handle, @topic_handle, context=nil)
+        str = FFI::MemoryPointer.from_string POKE_STRING
+        res = DdeClientTransaction(str, str.size, @conv_handle, @topic_handle, CF_TEXT, XTYP_POKE, 1000, nil)
+        res.should == 1
+        @server_calls.any? {|call| call[0] = 'XTYP_POKE'}.should be_true
+        @data.read_string.should == POKE_STRING.rstrip
+      end
+
+      it "snake_case api begins a data transaction between a client and a server" do
+        str = FFI::MemoryPointer.from_string POKE_STRING
+        @conv_handle = dde_connect( @server_id, @service_handle, @topic_handle, context=nil)
+        res = dde_client_transaction(str, str.size, @conv_handle, @topic_handle, 0, XTYP_EXECUTE, 1000, nil)
+        res.should == true
+        @server_calls.any? {|call| call[0] = 'XTYP_EXECUTE'}.should be_true
+        @data.read_string.should == POKE_STRING.rstrip
+      end
+    end # describe dde_client_transaction
+
+    describe '#dde_get_data' do
+      after(:each) { teardown_server}
+
+      spec{ use{ data_pointer, size = dde_get_data( data_handle = 123, max = 1073741823, offset = 0) }}
+      spec{ use{ size = DdeGetData( data_handle = 123, nil, 0, 0) }} # returns dde data set size in bytes
+      spec{ use{ size = DdeGetData( data_handle = 123, FFI::MemoryPointer.new(:char, 1024), max = 1024, offset = 0) }}
+
+      it 'original API returns 0 if trying to address invalid dde data handle' do
+        DdeGetData( data_handle = 123, nil, 0, 0).should == 0
+      end
+
+      it 'snake_case API returns [nil, 0] if trying to address invalid dde data handle' do
+        data, size = dde_get_data( data_handle = 123, 3741823, 0)
+        data.should == nil
+      end
+
+      it 'returns dde data if used inside dde callback block' do
+        setup_server do |*args|
+          @server_calls << extract_values(*args);
+          if args[0] == XTYP_POKE
+            data_handle = args[5]
+            data, size = dde_get_data(data_handle)
+            data.should be_an FFI::MemoryPointer
+            data.read_string.should == POKE_STRING.rstrip
+            size.should == 14
+            DdeGetData(data_handle, nil, 0, 0).should == 14
+            data = FFI::MemoryPointer.new(:char, 1024)
+            DdeGetData(data_handle, data, data.size, 0).should == 14
+            data.read_string.should == POKE_STRING.rstrip
+          end
+          DDE_FACK
+        end
+        @conv_handle = dde_connect( @server_id, @service_handle, @topic_handle, context=nil)
+        str = FFI::MemoryPointer.from_string POKE_STRING
+        dde_client_transaction(str, str.size, @conv_handle, @topic_handle, CF_TEXT, XTYP_POKE, 1000, nil)
+      end
+
+      it 'dde data handle expires once transaction is finished (DDE_FACK)' do
+        setup_server do |*args|
+          @server_calls << extract_values(*args);
+          DDE_FACK
+        end
+        @conv_handle = dde_connect( @server_id, @service_handle, @topic_handle, context=nil)
+        str = FFI::MemoryPointer.from_string POKE_STRING
+        dde_client_transaction(str, str.size, @conv_handle, @topic_handle, CF_TEXT, XTYP_POKE, 1000, nil)
+
+        # only inside callback block dde data handle is valid (while transaction still in progress)
+        data, size = dde_get_data(@server_calls.last[5])
+        data.should == nil
+        size.should == 0
+      end
+
+    end # describe '#dde_get_data'
+
+    describe "#dde_access_data" do
+      after(:each) { teardown_server}
+
+      spec{ use{ success = DdeAccessData(data_handle = 123, data_size=zero_id) }}
+      spec{ use{ data_pointer, size = dde_access_data(data_handle = 123) }}
+
+      it "provides access to the data in the specified DDE data handle (both inside and outside of callback)" do
+        setup_server do |*args|
+          @server_calls << extract_values(*args)
+          if args[0] == XTYP_POKE
+            data_handle = args[5]
+            data, size = dde_access_data(data_handle)
+            data.should be_kind_of FFI::Pointer
+            data.read_string.should == POKE_STRING.rstrip
+            size.should == 14
+            buf = FFI::MemoryPointer.new(:int16)
+            data = DdeAccessData(data_handle, buf)
+            buf.get_int16(0).should == 14
+            data.should be_kind_of FFI::Pointer
+            data.read_string.should == POKE_STRING.rstrip
+            dde_unaccess_data(data_handle)
+          end
+          DDE_FACK
+        end
+        @conv_handle = dde_connect( @server_id, @service_handle, @topic_handle, context=nil)
+        str = FFI::MemoryPointer.from_string POKE_STRING
+        dde_client_transaction(str, str.size, @conv_handle, @topic_handle, CF_TEXT, XTYP_POKE, 1000, nil)
+      end
+
+      it 'dde data handle expires once transaction is finished (DDE_FACK)' do
+        setup_server do |*args|
+          @server_calls << extract_values(*args);
+          DDE_FACK
+        end
+        @conv_handle = dde_connect( @server_id, @service_handle, @topic_handle, context=nil)
+        str = FFI::MemoryPointer.from_string POKE_STRING
+        dde_client_transaction(str, str.size, @conv_handle, @topic_handle, CF_TEXT, XTYP_POKE, 1000, nil)
+
+        # only inside callback block dde data handle is valid (while transaction still in progress)
+        data, size = dde_access_data(@server_calls.last[5])
+        data.should == nil
+        size.should == 0
+      end
+    end # describe dde_access_data
+
+    describe "#dde_unaccess_data" do
+      spec{ use{ success = DdeUnaccessData(data_handle = 123) }}
+      spec{ use{ success = dde_unaccess_data(data_handle = 123) }}
+
+      it "returns 0/false if given invalid DDE data handle " do
+        DdeUnaccessData(data_handle = 123).should == 0
+        dde_unaccess_data(data_handle = 123).should == false
+      end
+
+      it "unaccesses a DDE data handle that was previously accessed" do
+        setup_server do |*args|
+          @server_calls << extract_values(*args);
+          if args[0] == XTYP_POKE
+            data_handle = args[5]
+            dde_unaccess_data(data_handle).should == true
+
+            data, size = dde_access_data(data_handle)
+            data.should be_kind_of FFI::Pointer
+            data.read_string.should == POKE_STRING.rstrip
+
+            dde_unaccess_data(data_handle).should == true
+          end
+          DDE_FACK
+        end
+        @conv_handle = dde_connect( @server_id, @service_handle, @topic_handle, context=nil)
+        str = FFI::MemoryPointer.from_string POKE_STRING
+        dde_client_transaction(str, str.size, @conv_handle, @topic_handle, CF_TEXT, XTYP_POKE, 1000, nil)
+      end
+
+      it 'dde data handle expires once transaction is finished (DDE_FACK)' do
+        setup_server do |*args|
+          @server_calls << extract_values(*args);
+          DDE_FACK
+        end
+        @conv_handle = dde_connect( @server_id, @service_handle, @topic_handle, context=nil)
+        str = FFI::MemoryPointer.from_string POKE_STRING
+        dde_client_transaction(str, str.size, @conv_handle, @topic_handle, CF_TEXT, XTYP_POKE, 1000, nil)
+
+        # only inside callback block dde data handle is valid (while transaction still in progress)
+        dde_unaccess_data(@server_calls.last[5]).should == false
+      end
+
+    end # describe dde_unaccess_data
   end
 end

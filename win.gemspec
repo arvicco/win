@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{win}
-  s.version = "0.1.26"
+  s.version = "0.1.27"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["arvicco"]
-  s.date = %q{2010-03-19}
+  s.date = %q{2010-03-23}
   s.description = %q{Rubyesque interfaces and wrappers for Windows API functions pre-defined using FFI }
   s.email = %q{arvitallian@gmail.com}
   s.extra_rdoc_files = [

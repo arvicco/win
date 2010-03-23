@@ -281,7 +281,7 @@ module Win
             DMLERR_EXECACKTIMEOUT => 'A request for a synchronous execute transaction has timed out.',
             DMLERR_INVALIDPARAMETER => 'A parameter failed to be validated by the DDEML. Possible causes: ' +
                     'Application used a data handle initialized with a different item name handle than was required ' +
-                    'by the transaction.' +
+                    'by the transaction. ' +
                     'The application used a data handle that was initialized with a different clipboard data format ' +
                     'than was required by the transaction. ' +
                     'The application used a client-side conversation handle with server-side function or vice versa. ' +
@@ -755,7 +755,7 @@ module Win
              &->(api, old_id=0, cmd, &block){
              raise ArgumentError, 'No callback block' unless block
              old_id = 0 unless old_id
-             id = FFI::MemoryPointer.new(:long).put_uint32(0, old_id)
+             id = FFI::MemoryPointer.new(:uint32).put_uint32(0, old_id)
              status = api.call(id, block, cmd, 0)
              id = status == 0 ? id.get_uint32(0) : nil
              [id, status] }
@@ -778,7 +778,6 @@ module Win
     #  success = dde_uninitialize( instance_id )
     #
     function :DdeUninitialize, [:uint32], :int, boolean: true
-
 
     ##
     # The DdeCreateStringHandle function creates a handle that identifies the specified string.
@@ -814,7 +813,8 @@ module Win
     #
     function :DdeCreateStringHandle, [:uint32, :pointer, :int], :ulong, zeronil: true,
              &->(api, instance_id, string, code_page=CP_WINANSI){
-             api.call(instance_id, FFI::MemoryPointer.from_string(string), code_page) }
+             string_pointer = FFI::MemoryPointer.from_string(string)
+             api.call(instance_id, string_pointer, code_page) }
 
     ##
     # The DdeFreeStringHandle function frees a string handle in the calling application.
@@ -1117,7 +1117,7 @@ module Win
     #  data_handle = dde_client_transaction(data_pointer, size, conv, item, format, type, timeout, result)
     #
     function :DdeClientTransaction, [:pointer, :uint32, :ulong, :ulong, :uint, :uint, :uint32, :pointer],
-             :HDDEDATA, boolean: true
+             :HDDEDATA, zeronil: true
 
     ##
     # The DdeGetData function copies data from the specified Dynamic Data Exchange (DDE) object to the specified
@@ -1200,9 +1200,9 @@ module Win
     #
     function :DdeAccessData, [:HDDEDATA, :pointer], :pointer,
              &->(api, data_handle){
-             size_buffer = FFI::MemoryPointer.new(:int16)
+             size_buffer = FFI::MemoryPointer.new(:uint32)
              buffer = api.call(data_handle, size_buffer)
-             size = size_buffer.get_int16(0)
+             size = size_buffer.get_uint32(0)
              size == 0 ? [nil, 0] : [buffer, size] }
     # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
 

@@ -6,7 +6,7 @@ module WinDDETest
   include Win::DDE
   include Win::GUI::Message
 
-  POKE_STRING = "Poke_string\x00\x00"
+  POKE_STRING = "Poke_string"
 
   def dde_cmd
     APPCLASS_STANDARD
@@ -346,31 +346,40 @@ module WinDDETest
       before(:each) do
         setup_server do |*args|
           @server_calls << extract_values(*args)
-          @data, size = dde_get_data(args[5]) if args.first == XTYP_POKE || args.first == XTYP_EXECUTE
+          @data_out, size = dde_get_data(args[5]) if args.first == XTYP_POKE || args.first == XTYP_EXECUTE
           DDE_FACK
         end
+        @conv_handle = dde_connect( @server_id, @service_handle, @topic_handle, context=nil)
+        @data_in = FFI::MemoryPointer.from_string POKE_STRING
       end
       after(:each) { teardown_server}
 
       spec{ use{ DdeClientTransaction(data=nil, size=0, conv=0, item=0, format=0, type=0, timeout=0, result=nil) }}
       spec{ use{ dde_client_transaction(data=nil, size=0, conv=0, item=0, format=0, type=0, timeout=0, result=nil) }}
 
+
+      it "returns 0/nil if initiated transaction unsuccessful" do
+        res = DdeClientTransaction(@data_in, @data_in.size, 1234, @topic_handle, CF_TEXT, XTYP_POKE, 1000, nil)
+        res.should == 0     # wrong conversation handle
+        res = dde_client_transaction(@data_in, @data_in.size, 1234, @topic_handle, CF_TEXT, XTYP_POKE, 1000, nil)
+        res.should == nil   # wrong conversation handle
+        res = dde_client_transaction(@data_in, @data_in.size, @conv_handle, 0, CF_TEXT, XTYP_POKE, 1000, nil)
+        res.should == nil   # wrong item handle (cannot be NULL in XTYP_POKE transaction)
+        @server_calls.any? {|call| call[0] == 'XTYP_POKE'}.should be_false
+      end
+
       it "original api is used by CLIENT to begins a data transaction with server" do
-        @conv_handle = dde_connect( @server_id, @service_handle, @topic_handle, context=nil)
-        str = FFI::MemoryPointer.from_string POKE_STRING
-        res = DdeClientTransaction(str, str.size, @conv_handle, @topic_handle, CF_TEXT, XTYP_POKE, 1000, nil)
+        res = DdeClientTransaction(@data_in, @data_in.size, @conv_handle, @topic_handle, CF_TEXT, XTYP_POKE, 1000, nil)
         res.should == 1
-        @server_calls.any? {|call| call[0] = 'XTYP_POKE'}.should be_true
-        @data.read_string.should == POKE_STRING.rstrip
+        @server_calls.any? {|call| call[0] == 'XTYP_POKE'}.should be_true
+        @data_out.read_string.should == POKE_STRING.rstrip
       end
 
       it "snake_case api begins a data transaction between a client and a server" do
-        str = FFI::MemoryPointer.from_string POKE_STRING
-        @conv_handle = dde_connect( @server_id, @service_handle, @topic_handle, context=nil)
-        res = dde_client_transaction(str, str.size, @conv_handle, @topic_handle, 0, XTYP_EXECUTE, 1000, nil)
-        res.should == true
-        @server_calls.any? {|call| call[0] = 'XTYP_EXECUTE'}.should be_true
-        @data.read_string.should == POKE_STRING.rstrip
+        res = dde_client_transaction(@data_in, @data_in.size, @conv_handle, 0, 0, XTYP_EXECUTE, 1000, nil)
+        res.should be_true
+        @server_calls.any? {|call| call[0] == 'XTYP_EXECUTE'}.should be_true
+        @data_out.read_string.should == POKE_STRING.rstrip
       end
     end # describe dde_client_transaction
 
@@ -398,10 +407,10 @@ module WinDDETest
             data, size = dde_get_data(data_handle)
             data.should be_an FFI::MemoryPointer
             data.read_string.should == POKE_STRING.rstrip
-            size.should == 14
-            DdeGetData(data_handle, nil, 0, 0).should == 14
+            size.should == 12
+            DdeGetData(data_handle, nil, 0, 0).should == 12
             data = FFI::MemoryPointer.new(:char, 1024)
-            DdeGetData(data_handle, data, data.size, 0).should == 14
+            DdeGetData(data_handle, data, data.size, 0).should == 12
             data.read_string.should == POKE_STRING.rstrip
           end
           DDE_FACK
@@ -442,10 +451,10 @@ module WinDDETest
             data, size = dde_access_data(data_handle)
             data.should be_kind_of FFI::Pointer
             data.read_string.should == POKE_STRING.rstrip
-            size.should == 14
+            size.should == 12
             buf = FFI::MemoryPointer.new(:int16)
             data = DdeAccessData(data_handle, buf)
-            buf.get_int16(0).should == 14
+            buf.get_int16(0).should == 12
             data.should be_kind_of FFI::Pointer
             data.read_string.should == POKE_STRING.rstrip
             dde_unaccess_data(data_handle)

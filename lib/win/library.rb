@@ -63,7 +63,7 @@ module Win
         @namespace.send(@function_name.to_sym, *args)
       end
 
-      alias_method :[], :call
+     # alias_method :[], :call
     end
 
     # Contains class methods (macros) that can be used in any module mixing in Win::Library
@@ -355,11 +355,11 @@ module Win
             end
           else
             if zeronil
-              ->(*args, &block){ (res = block ? block[api[*args]] : api[*args]) != 0 ? res : nil }
+              ->(*args, &block){ (res = block ? block[api.call(*args)] : api.call(*args)) != 0 ? res : nil }
             elsif boolean
-              ->(*args, &block){ block ? block[api[*args]] : api[*args] != 0 }
+              ->(*args, &block){ block ? block[api.call(*args)] : api.call(*args) != 0 }
             else
-              ->(*args, &block){ block ? block[api[*args]] : api[*args] }
+              ->(*args, &block){ block ? block[api.call(*args)] : api.call(*args) }
             end
           end
 

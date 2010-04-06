@@ -2,7 +2,7 @@ require 'win/library'
 require 'win/gui/message' # needed because some convenience methods work via PostMessage
 
 module Win
-  module GUI
+  module Gui
     # Contains constants and Win32API functions related to window manipulation
     #
     module Window
@@ -629,7 +629,7 @@ module Win
       #             thread's message queue. Otherwise, the return value is NULL.
       #
       #  Remarks: To get the handle to the foreground window, you can use GetForegroundWindow.
-      #  To get the window handle to the active window in the message queue for another thread, use GetGUIThreadInfo.
+      #  To get the window handle to the active window in the message queue for another thread, use GetGuiThreadInfo.
       #
       #:call-seq:
       #   win_handle = [get_]active_window()
@@ -660,7 +660,7 @@ module Win
       # I have not found so far how to REALLY destroy window in different thread without it asking user anything.
       #
       def shut_window( win_handle )
-        post_message(win_handle, Win::GUI::Message::WM_SYSCOMMAND, Win::GUI::Message::SC_CLOSE, nil)
+        post_message(win_handle, Win::Gui::Message::WM_SYSCOMMAND, Win::Gui::Message::SC_CLOSE, nil)
       end
 
       ##
@@ -670,7 +670,7 @@ module Win
       #
       def text( win_handle )
         buffer = FFI::MemoryPointer.new :char, 1024
-        num_chars = send_message win_handle, Win::GUI::Message::WM_GETTEXT, buffer.size, buffer
+        num_chars = send_message win_handle, Win::Gui::Message::WM_GETTEXT, buffer.size, buffer
         num_chars == 0 ?  nil : buffer.get_bytes(0, num_chars)
       end
     end

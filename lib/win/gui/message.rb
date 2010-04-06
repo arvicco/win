@@ -1,7 +1,7 @@
 require 'win/library'
 
 module Win
-  module GUI
+  module Gui
     #  Contains constants and Win32API functions related to Windows messaging
     #
     #  Below is a table of system-defined message prefixes:

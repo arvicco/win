@@ -2,12 +2,12 @@ require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 require 'win/gui/input'
 require 'win/error'
 
-module WinGUIMessageTest
+module WinGuiMessageTest
 
   include WinTestApp
-  include Win::GUI::Message
-  include Win::GUI::Window
-  include Win::GUI::Input
+  include Win::Gui::Message
+  include Win::Gui::Window
+  include Win::Gui::Input
   include Win::Error
 
   def buffer
@@ -15,7 +15,7 @@ module WinGUIMessageTest
   end
 
   def msg
-    @msg ||=Win::GUI::Message::Msg.new
+    @msg ||=Win::Gui::Message::Msg.new
   end
 
   def msg_callback
@@ -39,7 +39,7 @@ module WinGUIMessageTest
     get_message while peek_message
   end
 
-  describe Win::GUI::Message, ' defines a set of API functions related to Window messaging'  do
+  describe Win::Gui::Message, ' defines a set of API functions related to Window messaging'  do
     before(:all){clear_thread_queue}
 
     describe '#post_message' do
@@ -230,7 +230,7 @@ module WinGUIMessageTest
 
     end # describe dispatch_message
 
-  end # Win::GUI::Message, ' defines a set of API functions related to Window messaging'
+  end # Win::Gui::Message, ' defines a set of API functions related to Window messaging'
 end
 
 

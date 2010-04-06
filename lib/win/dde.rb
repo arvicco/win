@@ -4,7 +4,7 @@ module Win
 
   # Includes functions related to DDE exchange protocol in Windows
   #
-  module DDE
+  module Dde
     include Win::Library
 
     # Windows ANSI codepage:

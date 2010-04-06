@@ -2,7 +2,7 @@ require 'ffi'
 require 'win/extensions'
 
 # Related Windows API functions are grouped by topic and defined in separate namespaces (modules),
-# that also contain related constants and convenience methods. For example, Win::DDE module
+# that also contain related constants and convenience methods. For example, Win::Dde module
 # contains only functions related to DDE protocol such as DdeInitialize() as well as constants
 # such as DMLERR_NO_ERROR, APPCLASS_STANDARD, etc. So if you need only DDE-related functions,
 # there is no need to load all the other modules, clogging your namespaces - just <b> require 'win/dde' </b>

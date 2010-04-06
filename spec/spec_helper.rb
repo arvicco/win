@@ -9,18 +9,6 @@ $debug = true
 # Customize RSpec with my own extensions
 module ClassMacros
 
-  def os
-    `ver`
-  end
-
-  def vista?
-    os =~ /Version 6/
-  end
-
-  def xp?
-    os =~ /XP/
-  end
-
   # wrapper for it method that extracts description from example source code, such as:
   # spec { use{    function(arg1 = 4, arg2 = 'string')  }}
   def spec &block
@@ -65,6 +53,23 @@ Spec::Runner.configure do |config|
   end
 end
 
+# Global test methods
+def cygwin?
+  @cygwin_flag ||= `ruby -v` =~ /cygwin/
+end
+
+def os
+  @os_flag ||= cygwin? ? `cmd /c ver` : `ver`
+end
+
+def vista?
+  os =~ /Version 6/
+end
+
+def xp?
+  os =~ /XP/
+end
+
 module WinTest
 
   TEST_KEY_DELAY = 0.001
@@ -72,7 +77,7 @@ module WinTest
   TEST_CONVERSION_ERROR = /Can.t convert/
   TEST_SLEEP_DELAY = 0.02
   TEST_APP_PATH = File.join(File.dirname(__FILE__), "test_apps/locknote/LockNote.exe" )
-  TEST_APP_START = 'start "" "' + TEST_APP_PATH + '"'
+  TEST_APP_START = cygwin? ? "cmd /c start `cygpath -w #{TEST_APP_PATH}`" : 'start "" "' + TEST_APP_PATH + '"'
   TEST_WIN_TITLE = 'LockNote - Steganos LockNote'
   TEST_WIN_CLASS = 'ATL:00434098'
   TEST_WIN_RECT = [710, 400, 1210, 800]
@@ -95,8 +100,8 @@ end
 module WinTestApp
 
   include WinTest
-  include Win::GUI
-  #include Win::GUI::Convenience
+  include Win::Gui
+  #include Win::Gui::Convenience
 
   def launch_test_app
     system TEST_APP_START

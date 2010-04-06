@@ -5,7 +5,7 @@ require 'win/gui/window'
 module WinErrorTest
   include WinTest
   include Win::Error
-  include Win::GUI::Window
+  include Win::Gui::Window
 
   def buffer
     FFI::MemoryPointer.new(:char, 260)

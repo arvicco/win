@@ -4,7 +4,7 @@ require 'win/gui/window'
 module WinWindowTest
 
   include WinTestApp
-  include Win::GUI::Window
+  include Win::Gui::Window
 
   def window_should_be(handle, tests)
     tests.each{|test, result| send(test.to_sym, handle).should == result}
@@ -31,7 +31,7 @@ module WinWindowTest
     end
   end
 
-  describe Win::GUI::Window, ' defines a set of API functions related to Window manipulation' do
+  describe Win::Gui::Window, ' defines a set of API functions related to Window manipulation' do
     context 'ensuring test app closes' do
       after(:each){close_test_app if @launched_test_app}
 
@@ -406,8 +406,8 @@ module WinWindowTest
       after(:all){close_test_app}
 
       describe '#enum_windows' do
-        before(:all){@app = launch_test_app}
-        after(:all){close_test_app}
+#        before(:each){@app = launch_test_app}
+#        after(:each){close_test_app}
 
         spec{ use{ handles = enum_windows(value = 13)   }}
         spec{ use{ enum_windows do |handle, message|
@@ -423,9 +423,10 @@ module WinWindowTest
 
         it 'returns an array of top-level window handles if block is not given' do
           enum = enum_windows(13)
+#          p enum
           enum.should be_a_kind_of Array
           enum.should_not be_empty
-          enum.should have_at_least(50).elements # typical number of top windows in WinXP system?
+          enum.should have_at_least(5).elements # typical number of top windows in WinXP system?
           enum.each do |handle|
             handle.should be_an Integer
             handle.should be > 0
@@ -492,9 +493,9 @@ module WinWindowTest
       end
 
     end # context 'with single test app'
-  end # Win::GUI::Window, ' defines a set user32 API functions related to Window manipulation'
+  end # Win::Gui::Window, ' defines a set user32 API functions related to Window manipulation'
 
-  describe Win::GUI::Window, ' defines convenience/service methods on top of Windows API' do
+  describe Win::Gui::Window, ' defines convenience/service methods on top of Windows API' do
     after(:each){close_test_app if @launched_test_app}
 
     describe '#foreground?' do
@@ -544,5 +545,5 @@ module WinWindowTest
         end
       end
     end # describe '#text'
-  end # Win::GUI::Window, ' defines convenience/service methods on top of Windows API'
+  end # Win::Gui::Window, ' defines convenience/service methods on top of Windows API'
 end

@@ -1,10 +1,10 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 require 'win/dde'
 
-module WinDDETest
+module WinDdeTest
   include WinTest
-  include Win::DDE
-  include Win::GUI::Message
+  include Win::Dde
+  include Win::Gui::Message
 
   POKE_STRING = "Poke_string"
 
@@ -31,7 +31,7 @@ module WinDDETest
   def extract_values(*args)
     type, format, conv, hsz1, hsz2, data, data1, data2 = *args
     @server_conv = conv
-    [Win::DDE::TYPES[type], format, conv,
+    [Win::Dde::TYPES[type], format, conv,
      dde_query_string(@client_id, hsz1),
      dde_query_string(@client_id, hsz2),
      data, data1, data2]
@@ -68,7 +68,7 @@ module WinDDETest
     @data = nil
   end
 
-  describe Win::DDE, ' contains a set of pre-defined Windows API functions' do
+  describe Win::Dde, ' contains a set of pre-defined Windows API functions' do
 
     describe '#register_clipboard_format' do
       spec{ use{ RegisterClipboardFormat(format_name = "XlTable") }}

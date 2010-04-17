@@ -591,7 +591,7 @@ module Win
     #
     # [*Syntax*] UINT RegisterClipboardFormat( LPCTSTR lpszFormat )
     #
-    # lpszFormat:: [in] Pointer to a null-terminated string that names the new format.
+    # lpszFormat:: <in> Pointer to a null-terminated string that names the new format.
     #
     # *Returns*:: :uint or nil. If the function succeeds, the return value identifies the registered clipboard format.
     #             If the function fails, the return value is *nil*(not zero). For error info, call GetLastError.
@@ -617,7 +617,7 @@ module Win
     #
     # [*Syntax*] HDDEDATA CALLBACK DdeCallback( UINT uType, UINT uFmt, HCONV hconv, HDDEDATA hsz1, HDDEDATA hsz2,
     #            HDDEDATA hdata, HDDEDATA dwData1, HDDEDATA dwData2);
-    # uType:: [in] Specifies the type of the current transaction. This parameter consists of a combination of
+    # uType:: <in> Specifies the type of the current transaction. This parameter consists of a combination of
     #         transaction class flags and transaction type flags. The following table describes each of the
     #         transaction classes and provides a list of the transaction types in each class. For information
     #         about a specific transaction type, see the individual description of that type.
@@ -671,16 +671,16 @@ module Win
     #           - XTYP_REGISTER
     #           - XTYP_XACT_COMPLETE
     #           - XTYP_UNREGISTER
-    # uFmt:: [in] Specifies the format in which data is sent or received.
-    # hconv:: [in] Handle to the conversation associated with the current transaction.
-    # hsz1:: [in] Handle to a string. The meaning of this parameter depends on the type of the current transaction.
+    # uFmt:: <in> Specifies the format in which data is sent or received.
+    # hconv:: <in> Handle to the conversation associated with the current transaction.
+    # hsz1:: <in> Handle to a string. The meaning of this parameter depends on the type of the current transaction.
     #        For the meaning of this parameter, see the description of the transaction type.
-    # hsz2:: [in] Handle to a string. The meaning of this parameter depends on the type of the current transaction.
+    # hsz2:: <in> Handle to a string. The meaning of this parameter depends on the type of the current transaction.
     #        For the meaning of this parameter, see the description of the transaction type.
-    # hdata:: [in] Handle to DDE data. The meaning of this parameter depends on the type of the current transaction.
+    # hdata:: <in> Handle to DDE data. The meaning of this parameter depends on the type of the current transaction.
     #         For the meaning of this parameter, see the description of the transaction type.
-    # dwData1:: [in] Specifies transaction-specific data. For the meaning, see the description of the transaction type.
-    # dwData2:: [in] Specifies transaction-specific data. For the meaning, see the description of the transaction type.
+    # dwData1:: <in> Specifies transaction-specific data. For the meaning, see the description of the transaction type.
+    # dwData2:: <in> Specifies transaction-specific data. For the meaning, see the description of the transaction type.
     # *Returns*:: The return value depends on the transaction class. For more information about the return values,
     #             see descriptions of the individual transaction types.
     # ---
@@ -702,7 +702,7 @@ module Win
     #
     # [*Syntax*] UINT DdeInitialize( LPDWORD pidInst, PFNCALLBACK pfnCallback, DWORD afCmd, DWORD ulRes );
     #
-    # pidInst:: [in, out] Pointer to the application instance identifier.
+    # pidInst:: <in, out> Pointer to the application instance identifier.
     #           At initialization, this parameter should point to 0. If the function succeeds, this parameter points
     #           to the instance identifier for the application. This value should be passed as the idInst parameter
     #           in all other DDEML functions that require it. If an application uses multiple instances of the DDEML
@@ -711,7 +711,7 @@ module Win
     #           case, pidInst must point to a valid application-instance identifier.
     # pfnCallback:: Pointer to the application-defined Dynamic Data Exchange DdeCallback function. This function
     #               processes DDE transactions sent by the system. For more information, see the DdeCallback.
-    # afCmd:: [in] Specifies a set of APPCMD_, CBF_, and MF_ flags. The APPCMD_ flags provide special
+    # afCmd:: <in> Specifies a set of APPCMD_, CBF_, and MF_ flags. The APPCMD_ flags provide special
     #         instructions to DdeInitialize. The CBF_ flags specify filters that prevent specific types of transactions
     #         from reaching the callback function. The MF_ flags specify the types of DDE activity that a DDE monitoring
     #         application monitors. Using these flags enhances the performance of a DDE application by eliminating
@@ -767,7 +767,7 @@ module Win
     #
     # [*Syntax*] BOOL DdeUninitialize( DWORD idInst);
     #
-    # idInst:: [in] Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
+    # idInst:: <in> Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
     # *Returns*:: If the function succeeds, the return value is nonzero.
     #             If the function fails, the return value is zero.
     # ---
@@ -786,12 +786,12 @@ module Win
     #
     # [*Syntax*] HSZ DdeCreateStringHandle( DWORD idInst, LPTSTR psz, int iCodePage );
     #
-    # idInst:: [in] Specifies the application instance identifier obtained by a previous call to the
+    # idInst:: <in> Specifies the application instance identifier obtained by a previous call to the
     #          DdeInitialize function.
-    # psz:: [in] Pointer to a buffer that contains the null-terminated string for which a handle
+    # psz:: <in> Pointer to a buffer that contains the null-terminated string for which a handle
     #       is to be created. This string can be up to 255 characters. The reason for this limit is that
     #       DDEML string management functions are implemented using global atoms.
-    # iCodePage:: [in] Specifies the code page used to render the string. This value should be either
+    # iCodePage:: <in> Specifies the code page used to render the string. This value should be either
     #             CP_WINANSI (the default code page) or CP_WINUNICODE, depending on whether the ANSI or Unicode
     #             version of DdeInitialize was called by the client application.
     #
@@ -821,8 +821,8 @@ module Win
     #
     # [*Syntax*] BOOL DdeFreeStringHandle( DWORD idInst, HSZ hsz );
     #
-    # idInst:: [in] Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
-    # hsz:: [in, out] Handle to the string handle to be freed. This handle must have been created by a previous call
+    # idInst:: <in> Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
+    # hsz:: <in, out> Handle to the string handle to be freed. This handle must have been created by a previous call
     #       to the DdeCreateStringHandle function.
     # *Returns*:: If the function succeeds, the return value is nonzero. If the function fails, it is zero.
     # ---
@@ -843,16 +843,16 @@ module Win
     #
     # [*Syntax*] DWORD DdeQueryString( DWORD idInst, HSZ hsz, LPTSTR psz, DWORD cchMax, int iCodePage);
     #
-    # idInst:: [in] Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
-    # hsz:: [in] Handle to the string to copy. This handle must have been created by a previous call to the
+    # idInst:: <in> Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
+    # hsz:: <in> Handle to the string to copy. This handle must have been created by a previous call to the
     #       DdeCreateStringHandle function.
-    # psz:: [in, out] Pointer to a buffer that receives the string. To obtain the length of the string, this parameter
+    # psz:: <in, out> Pointer to a buffer that receives the string. To obtain the length of the string, this parameter
     #       should be set to NULL.
-    # cchMax::  [in] Specifies the length, in TCHARs, of the buffer pointed to by the psz parameter. For the ANSI
+    # cchMax::  <in> Specifies the length, in TCHARs, of the buffer pointed to by the psz parameter. For the ANSI
     #           version of the function, this is the number of bytes; for the Unicode version, this is the number of
     #           characters. If the string is longer than ( cchMax– 1), it will be truncated. If the psz parameter is
     #           set to NULL, this parameter is ignored.
-    # iCodePage:: [in] Code page used to render the string. This value should be either CP_WINANSI or CP_WINUNICODE.
+    # iCodePage:: <in> Code page used to render the string. This value should be either CP_WINANSI or CP_WINUNICODE.
     #
     # *Returns*:: If the psz parameter specified a valid pointer, the return value is the length, in TCHARs, of the
     #             returned text (not including the terminating null character). If the psz parameter specified a NULL
@@ -884,11 +884,11 @@ module Win
     #
     # [*Syntax*] HDDEDATA DdeNameService( DWORD idInst, UINT hsz1, UINT hsz2, UINT afCmd );
     #
-    # idInst:: [in] Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
-    # hsz1:: [in] Handle to the string that specifies the service name the server is registering or unregistering.
+    # idInst:: <in> Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
+    # hsz1:: <in> Handle to the string that specifies the service name the server is registering or unregistering.
     #        An application that is unregistering all of its service names should set this parameter to 0L.
     # hsz2:: Reserved; should be set to 0L.
-    # afCmd:: [in] Specifies the service name options. This parameter can be one of the following values.
+    # afCmd:: <in> Specifies the service name options. This parameter can be one of the following values.
     #         DNS_REGISTER::  Registers the service name.
     #         DNS_UNREGISTER:: Unregisters the service name. If the hsz1 parameter is 0L,
     #                          all service names registered by the server will be unregistered.
@@ -930,15 +930,15 @@ module Win
     #
     # [*Syntax*] HCONV DdeConnect( DWORD idInst, HSZ hszService, HSZ hszTopic, PCONVCONTEXT pCC );
     #
-    # idInst::  [in] Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
-    # hszService:: [in] Handle to the string that specifies the service name of the server application with which
+    # idInst::  <in> Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
+    # hszService:: <in> Handle to the string that specifies the service name of the server application with which
     #              a conversation is to be established. This handle must have been created by a previous call to
     #              the DdeCreateStringHandle function. If this parameter is 0L, a conversation is established with
     #              any available server.
-    # hszTopic:: [in] Handle to the string that specifies the name of the topic on which a conversation is to be
+    # hszTopic:: <in> Handle to the string that specifies the name of the topic on which a conversation is to be
     #            established. This handle must have been created by a previous call to DdeCreateStringHandle.
     #            If this parameter is 0L, a conversation on any topic supported by the selected server is established.
-    # pCC:: [in] Pointer to the CONVCONTEXT structure that contains conversation context information. If this
+    # pCC:: <in> Pointer to the CONVCONTEXT structure that contains conversation context information. If this
     #            parameter is NULL, the server receives the default CONVCONTEXT structure during the XTYP_CONNECT
     #            or XTYP_WILDCONNECT transaction.
     # *Returns*:: If the function succeeds, the return value is the handle to the established conversation.
@@ -974,7 +974,7 @@ module Win
     #
     # [*Syntax*] BOOL DdeDisconnect( HCONV hConv );
     #
-    # hConv:: [in, out] Handle to the active conversation to be terminated.
+    # hConv:: <in, out> Handle to the active conversation to be terminated.
     #
     # *Returns*:: If the function succeeds, the return value is nonzero, otherwise zero. The DdeGetLastError function
     #             can be used to get the error code, which can be one of the following values:
@@ -1001,7 +1001,7 @@ module Win
     #
     # [*Syntax*] UINT DdeGetLastError( DWORD idInst );
     #
-    # idInst:: [in] Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
+    # idInst:: <in> Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
     #
     # *Returns*:: If the function succeeds, the return value is the last error code, which can be one of the following:
     # DMLERR_ADVACKTIMEOUT, DMLERR_EXECACKTIMEOUT, DMLERR_INVALIDPARAMETER, DMLERR_LOW_MEMORY, DMLERR_MEMORY_ERROR,
@@ -1024,27 +1024,27 @@ module Win
     # [*Syntax*]  HDDEDATA DdeClientTransaction( LPBYTE pData, DWORD cbData, HCONV hConv, HSZ hszItem, UINT
     #            wFmt, UINT wType, DWORD dwTimeout, LPDWORD pdwResult );
     #
-    # pData:: [in] Pointer to the beginning of the data the client must pass to the server.
+    # pData:: <in> Pointer to the beginning of the data the client must pass to the server.
     #         Optionally, an application can specify the data handle (HDDEDATA) to pass to the server and in that
     #         case the cbData parameter should be set to -1. This parameter is required only if the wType parameter
     #         is XTYP_EXECUTE or XTYP_POKE. Otherwise, this parameter should be NULL.
     #         For the optional usage of this parameter, XTYP_POKE transactions where pData is a data handle, the
     #         handle must have been created by a previous call to the DdeCreateDataHandle function, employing the
     #         same data format specified in the wFmt parameter.
-    # cbData:: [in] Specifies the length, in bytes, of the data pointed to by the pData parameter, including
+    # cbData:: <in> Specifies the length, in bytes, of the data pointed to by the pData parameter, including
     #          the terminating NULL, if the data is a string. A value of -1 indicates that pData is a data
     #          handle that identifies the data being sent.
-    # hConv:: [in] Handle to the conversation in which the transaction is to take place.
-    # hszItem:: [in] Handle to the data item for which data is being exchanged during the transaction. This
+    # hConv:: <in> Handle to the conversation in which the transaction is to take place.
+    # hszItem:: <in> Handle to the data item for which data is being exchanged during the transaction. This
     #           handle must have been created by a previous call to the DdeCreateStringHandle function. This
     #           parameter is ignored (and should be set to 0L) if the wType parameter is XTYP_EXECUTE.
-    # wFmt:: [in] Specifies the standard clipboard format in which the data item is being submitted or
+    # wFmt:: <in> Specifies the standard clipboard format in which the data item is being submitted or
     #        requested. If the transaction specified by the wType parameter does not pass data or is XTYP_EXECUTE,
     #        this parameter should be zero.
     #        If the transaction specified by the wType parameter references non-execute DDE data ( XTYP_POKE,
     #        XTYP_ADVSTART, XTYP_ADVSTOP, XTYP_REQUEST), the wFmt value must be either a valid predefined (CF_) DDE
     #        format or a valid registered clipboard format.
-    # wType:: [in] Specifies the transaction type. This parameter can be one of the following values.
+    # wType:: <in> Specifies the transaction type. This parameter can be one of the following values.
     #         - XTYP_ADVSTART: Begins an advise loop. Any number of distinct advise loops can exist within a
     #           conversation. An application can alter the advise loop type by combining the XTYP_ADVSTART
     #           transaction type with one or more of the following flags: Flag Meaning
@@ -1058,10 +1058,10 @@ module Win
     #         - XTYP_EXECUTE: Begins an execute transaction.
     #         - XTYP_POKE: Begins a poke transaction.
     #         - XTYP_REQUEST: Begins a request transaction.
-    # dwTimeout:: [in] Specifies the maximum amount of time, in milliseconds, that the client will wait for
+    # dwTimeout:: <in> Specifies the maximum amount of time, in milliseconds, that the client will wait for
     #             a response from the server application in a synchronous transaction. This parameter should
     #             be TIMEOUT_ASYNC for asynchronous transactions.
-    # pdwResult:: [out] Pointer to a variable that receives the result of the transaction. An application
+    # pdwResult:: <out> Pointer to a variable that receives the result of the transaction. An application
     #             that does not check the result can use NULL for this value. For synchronous transactions,
     #             the low-order word of this variable contains any applicable DDE_ flags resulting from the
     #             transaction. This provides support for applications dependent on DDE_APPSTATUS bits. It
@@ -1125,12 +1125,12 @@ module Win
     #
     # [*Syntax*] DWORD DdeGetData( HDDEDATA hData, LPBYTE pDst, DWORD cbMax, DWORD cbOff );
     #
-    # hData:: [in] Handle to the DDE object that contains the data to copy.
-    # pDst:: [out] Pointer to the buffer that receives the data. If this parameter is NULL, the DdeGetData
+    # hData:: <in> Handle to the DDE object that contains the data to copy.
+    # pDst:: <out> Pointer to the buffer that receives the data. If this parameter is NULL, the DdeGetData
     #        function returns the amount of data, in bytes, that would be copied to the buffer.
-    # cbMax:: [in] Specifies the maximum amount of data, in bytes, to copy to the buffer pointed to by the pDst
+    # cbMax:: <in> Specifies the maximum amount of data, in bytes, to copy to the buffer pointed to by the pDst
     #         parameter. Typically, this parameter specifies the length of the buffer pointed to by pDst.
-    # cbOff:: [in] Specifies an offset within the DDE object. Data is copied from the object beginning at this offset.
+    # cbOff:: <in> Specifies an offset within the DDE object. Data is copied from the object beginning at this offset.
     #
     # *Returns*:: If the pDst parameter points to a buffer, return value is the size, in bytes, of the memory object
     #             associated with the data handle or the size specified in the cbMax parameter, whichever is lower.
@@ -1171,8 +1171,8 @@ module Win
     #
     # [*Syntax*] LPBYTE DdeAccessData( HDDEDATA hData, LPDWORD pcbDataSize );
     #
-    # hData:: [in] Handle to the DDE object to access.
-    # pcbDataSize:: [out] Pointer to a variable that receives the size, in bytes, of the DDE object
+    # hData:: <in> Handle to the DDE object to access.
+    # pcbDataSize:: <out> Pointer to a variable that receives the size, in bytes, of the DDE object
     #               identified by the hData parameter. If this parameter is NULL, no size information is
     #               returned.
     #
@@ -1212,7 +1212,7 @@ module Win
       #
       # [*Syntax*] BOOL DdeUnaccessData( HDDEDATA hData );
       #
-      # hData:: [in] Handle to the DDE object.
+      # hData:: <in> Handle to the DDE object.
       #
       # *Returns*:: If the function succeeds, the return value is nonzero.
       # If the function fails, the return value is zero.

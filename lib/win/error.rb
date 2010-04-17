@@ -870,7 +870,7 @@ module Win
     # [*Syntax*] DWORD WINAPI FormatMessage( DWORD dwFlags, LPCVOID lpSource, DWORD dwMessageId, DWORD
     #            dwLanguageId, LPTSTR lpBuffer, DWORD nSize, va_list* Arguments );
     #
-    # dwFlags:: [in] The formatting options, and how to interpret the lpSource parameter. The low-order byte of dwFlags
+    # dwFlags:: <in> The formatting options, and how to interpret the lpSource parameter. The low-order byte of dwFlags
     #           specifies how the function handles line breaks in the output buffer. The low-order byte can also
     #           specify the maximum width of a formatted output line. Possible values:
     #           - FORMAT_MESSAGE_ALLOCATE_BUFFER - The lpBuffer parameter is a pointer to a PVOID pointer, and that
@@ -1075,7 +1075,7 @@ module Win
     #
     # [*Syntax*] void WINAPI SetLastError( DWORD dwErrCode );
     #
-    # dwErrCode:: [in] The last-error code for the thread.
+    # dwErrCode:: <in> The last-error code for the thread.
     #
     # *Returns*:: This function does not return a value.
     # ---

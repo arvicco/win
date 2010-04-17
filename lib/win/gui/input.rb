@@ -139,13 +139,13 @@ module Win
       #
       # [*Syntax*] VOID keybd_event( BYTE bVk, BYTE bScan, DWORD dwFlags, PTR dwExtraInfo);
       #
-      # bVk:: [in] Specifies a virtual-key code. The code must be a value in the range 1 to 254.
+      # bVk:: <in> Specifies a virtual-key code. The code must be a value in the range 1 to 254.
       #       For a complete list, see Virtual-Key Codes.
-      # bScan:: [in] Specifies a hardware scan code for the key.
-      # dwFlags:: [in] Specifies various aspects of function operation. This parameter can be
+      # bScan:: <in> Specifies a hardware scan code for the key.
+      # dwFlags:: <in> Specifies various aspects of function operation. This parameter can be
       #           one or more of the following values:
       #           KEYEVENTF_EXTENDEDKEY, KEYEVENTF_KEYUP, KEYEVENTF_KEYDOWN
-      # dwExtraInfo:: [in] Specifies an additional value associated with the key stroke.
+      # dwExtraInfo:: <in> Specifies an additional value associated with the key stroke.
       #
       # <b>NO Return Value</b>
       # ---
@@ -168,7 +168,7 @@ module Win
       #
       # [*Syntax*]  VOID mouse_event( DWORD dwFlags, DWORD dx, DWORD dy, DWORD dwData, ULONG_PTR dwExtraInfo );
       #
-      # dwFlags:: [in] Specifies various aspects of mouse motion and button clicking. This parameter can be certain
+      # dwFlags:: <in> Specifies various aspects of mouse motion and button clicking. This parameter can be certain
       #           combinations of the following values. The values that specify mouse button status are set to indicate
       #           changes in status, not ongoing conditions. For example, if the left mouse button is pressed and
       #           held down, MOUSEEVENTF_LEFTDOWN is set when the left button is first pressed, but not for subsequent
@@ -178,14 +178,14 @@ module Win
       #           MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_MOVE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP,
       #           MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP, MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP,
       #           MOUSEEVENTF_WHEEL, MOUSEEVENTF_XDOWN, MOUSEEVENTF_XUP
-      # dx:: [in] Specifies the mouse's absolute position along the x-axis or its amount of motion since the
+      # dx:: <in> Specifies the mouse's absolute position along the x-axis or its amount of motion since the
       #      last mouse event was generated, depending on the setting of MOUSEEVENTF_ABSOLUTE. Absolute data is
       #      specified as the mouse's actual x-coordinate; relative data is specified as the number of mickeys moved.
       #      A mickey is the amount that a mouse has to move for it to report that it has moved.
-      # dy:: [in] Specifies the mouse's absolute position along the y-axis or its amount of motion since the
+      # dy:: <in> Specifies the mouse's absolute position along the y-axis or its amount of motion since the
       #      last mouse event was generated, depending on the setting of MOUSEEVENTF_ABSOLUTE. Absolute data is
       #      specified as the mouse's actual y-coordinate; relative data is specified as the number of mickeys moved.
-      # dwData:: [in]
+      # dwData:: <in>
       #          - If dwFlags contains MOUSEEVENTF_WHEEL, then data specifies the amount of wheel movement.
       #            A positive value indicates that the wheel was rotated forward, away from the user; a negative value
       #            indicates that the wheel was rotated backward, toward the user. One wheel click is defined as
@@ -198,7 +198,7 @@ module Win
       #          - If flags is not MOUSEEVENTF_WHEEL, MOUSEEVENTF_XDOWN, or MOUSEEVENTF_XUP, then data should be zero.
       #          XBUTTON1 - Set if the first X button was pressed or released.
       #          XBUTTON2 - Set if the second X button was pressed or released.
-      # dwExtraInfo:: [in] Specifies an additional value associated with the mouse event. An application
+      # dwExtraInfo:: <in> Specifies an additional value associated with the mouse event. An application
       #               calls GetMessageExtraInfo to obtain this extra information.
       # <b>NO Return Value</b>
       # ---
@@ -245,8 +245,8 @@ module Win
       #
       # [*Syntax*] BOOL SetCursorPos( int X, int Y );
       #
-      # X:: [in] Specifies the new x-coordinate of the cursor, in screen coordinates.
-      # Y:: [in] Specifies the new y-coordinate of the cursor, in screen coordinates.
+      # X:: <in> Specifies the new x-coordinate of the cursor, in screen coordinates.
+      # Y:: <in> Specifies the new y-coordinate of the cursor, in screen coordinates.
       #
       # *Returns*:: Nonzero(*true*) if successful or zero(*false*) otherwise. To get extended error information,
       #             call GetLastError. Enhanced to return true/false instead of nonzero/zero
@@ -267,7 +267,7 @@ module Win
       #
       # [*Syntax*]  BOOL GetCursorPos( LPPOINT lpPoint );
       #
-      # lpPoint:: [out] Pointer to a POINT structure that receives the screen coordinates of the cursor.
+      # lpPoint:: <out> Pointer to a POINT structure that receives the screen coordinates of the cursor.
       #
       # *Returns*:: Returns nonzero if successful or zero otherwise. To get extended error information, call
       #             GetLastError.

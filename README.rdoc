@@ -20,7 +20,7 @@ You just want to put these function calls into your Ruby code without too much p
 You'd love this to be more or less natural extension of your Ruby code, preferably
 not turning your code base into an ugly spaghetty of CamelCase calls, String/Array
 pack/unpack gymnastics, buffer/pointer allocations, extracting return values
-from [in/out] parameters and checking return codes for 0.
+from <in/out> parameters and checking return codes for 0.
 
 You have several options at this point. You can use 'win32-api' or 'ffi' libraries
 to connect your ruby code to Windows API and manually define wrapper methods for
@@ -119,7 +119,7 @@ Contributors always welcome!
     require 'win/gui/window'
 
     class MyClass
-    include Win::GUI::Window
+    include Win::Gui::Window
 
     fg_window = foreground_window
     puts window_text(fg_window)

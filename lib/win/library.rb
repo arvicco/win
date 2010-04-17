@@ -307,11 +307,11 @@ module Win
       # will be called. Results coming from &def_block are then transformed and returned.
       # So, your *def_block* should specify all the behavior of the method being defined. You can use *def_block* to:
       # - Change original signature of API function, provide argument defaults, check argument types
-      # - Pack arguments into strings/structs for [in] or [in/out] parameters that expect a pointer
-      # - Allocate buffers/structs for pointers required by API functions [out] parameters
-      # - Unpack [out] and [in/out] parameters returned as pointers
-      # - Explicitly return results of API call that are returned in [out] and [in/out] parameters
-      # - Convert attached runtime blocks into callback functions and stuff them into [in] callback parameters
+      # - Pack arguments into strings/structs for <in> or <in/out> parameters that expect a pointer
+      # - Allocate buffers/structs for pointers required by API functions <out> parameters
+      # - Unpack <out> and <in/out> parameters returned as pointers
+      # - Explicitly return results of API call that are returned in <out> and <in/out> parameters
+      # - Convert attached runtime blocks into callback functions and stuff them into <in> callback parameters
       # - do other stuff that you think is appropriate to make Windows API function behavior more Ruby-like...
       # ---
       # Accepts following options:
@@ -449,13 +449,17 @@ module Win
     def self.included(klass)
       klass.extend FFI::Library
 
-      eigenklass = class << klass; self; end      # Extracting host class's eigenclass
+      # Extracting host class's eigenclass
+      # :stopdoc:
+      eigenklass = class << klass; self; end      # :nodoc:
+
       eigenklass.class_eval do
         define_method(:namespace) {klass}         # Defining new class method for host pointing to itself
         alias_method :attach_callback, :callback
 
         include ClassMethods
       end
+      # :startdoc:
 
       klass.ffi_lib 'user32', 'kernel32'  # Default libraries
       klass.ffi_convention :stdcall

@@ -94,7 +94,7 @@ module Win
       # The IsWindow function determines whether the specified window handle identifies an existing window.
       # [*Syntax*] BOOL IsWindow( HWND hWnd );
       #
-      # hWnd:: [in] Handle to the window to test.
+      # hWnd:: <in> Handle to the window to test.
       #
       # *Returns*:: If the window handle identifies an existing window, the return value is (*true*).
       #             If the window handle does not identify an existing window, the return value is (*false*).
@@ -113,7 +113,7 @@ module Win
       # The IsWindowVisible function retrieves the visibility state of the specified window.
       # [*Syntax*] BOOL IsWindowVisible( HWND hWnd );
       #
-      # hWnd:: [in] Handle to the window to test.
+      # hWnd:: <in> Handle to the window to test.
       #
       # *Returns*:: If the specified window, its parent window, its parent's parent window, and so forth,
       #             have the WS_VISIBLE style set, return value is *true*. Because the return value specifies
@@ -136,7 +136,7 @@ module Win
       # Tests whether the specified window is maximized.
       # [*Syntax*] BOOL IsZoomed( HWND hWnd );
       #
-      # hWnd:: [in] Handle to the window to test.
+      # hWnd:: <in> Handle to the window to test.
       #
       # *Returns*:: If the window is zoomed (maximized), the return value is *true*.
       #             If the window is not zoomed (maximized), the return value is *false*.
@@ -150,7 +150,7 @@ module Win
       # Tests whether the specified window is minimized.
       # [*Syntax*] BOOL IsIconic( HWND hWnd );
       #
-      # hWnd:: [in] Handle to the window to test.
+      # hWnd:: <in> Handle to the window to test.
       #
       # *Returns*:: If the window is iconic (minimized), the return value is *true*.
       #             If the window is not iconic (minimized), the return value is *false*.
@@ -168,8 +168,8 @@ module Win
       #
       # [*Syntax*] BOOL IsChild( HWND hWndParent, HWND hWnd);
       #
-      # hWndParent:: [in] Handle to the parent window.
-      # hWnd:: [in] Handle to the window to be tested.
+      # hWndParent:: <in> Handle to the parent window.
+      # hWnd:: <in> Handle to the window to be tested.
       #
       # *Returns*::  If the window is a child or descendant window of the specified parent window,
       #              the return value is *true*. If the window is not a child or descendant window of
@@ -188,14 +188,14 @@ module Win
       #
       # [*Syntax*] HWND FindWindow( LPCTSTR lpClassName, LPCTSTR lpWindowName );
       #
-      # lpClassName:: [in] Pointer to a null-terminated string that specifies the class name or a class
+      # lpClassName:: <in> Pointer to a null-terminated string that specifies the class name or a class
       #               atom created by a previous call to the RegisterClass or RegisterClassEx function.
       #               The atom must be in the low-order word of lpClassName; the high-order word must be zero.
       #               If lpClassName points to a string, it specifies the window class name. The class name
       #               can be any name registered with RegisterClass or RegisterClassEx, or any of the
       #               predefined control-class names.
       #               If lpClassName is NULL, it finds any window whose title matches the lpWindowName parameter.
-      # lpWindowName:: [in] Pointer to a null-terminated string that specifies the window name (the window's title).
+      # lpWindowName:: <in> Pointer to a null-terminated string that specifies the window name (the window's title).
       #                If this parameter is NULL, all window names match.
       # *Returns*:: If the function succeeds, the return value is a handle to the window that has the specified
       #             class name and window name. If the function fails, the return value is *nil*.
@@ -232,24 +232,24 @@ module Win
       #
       #  [*Syntax*] HWND FindWindowEx( HWND hwndParent, HWND hwndChildAfter, LPCTSTR lpszClass, LPCTSTR lpszWindow );
       #
-      #  hwndParent:: [in] Handle to the parent window whose child windows are to be searched.
+      #  hwndParent:: <in> Handle to the parent window whose child windows are to be searched.
       #               If hwndParent is NULL, the function uses the desktop window as the parent window.
       #               The function searches among windows that are child windows of the desktop.
       #               Microsoft Windows 2000 and Windows XP: If hwndParent is HWND_MESSAGE, the function
       #               searches all message-only windows.
-      #  hwndChildAfter:: [in] Handle to a child window. The search begins with the next child window in the Z order.
+      #  hwndChildAfter:: <in> Handle to a child window. The search begins with the next child window in the Z order.
       #                   The child window must be a direct child window of hwndParent, not just a descendant window.
       #                   If hwndChildAfter is NULL, the search begins with the first child window of hwndParent.
       #                   Note that if both hwndParent and hwndChildAfter are NULL, the function searches all
       #                   top-level and message-only windows.
-      #  lpszClass:: [in] Pointer to a null-terminated string that specifies the class name or a class atom created
+      #  lpszClass:: <in> Pointer to a null-terminated string that specifies the class name or a class atom created
       #              by a previous call to the RegisterClass or RegisterClassEx function. The atom must be placed in
       #              the low-order word of lpszClass; the high-order word must be zero.
       #              If lpszClass is a string, it specifies the window class name. The class name can be any name
       #              registered with RegisterClass or RegisterClassEx, or any of the predefined control-class names,
       #              or it can be MAKEINTATOM(0x800). In this latter case, 0x8000 is the atom for a menu class. For
       #              more information, see the Remarks section of this topic.
-      #  lpszWindow:: [in] Pointer to a null-terminated string that specifies the window name (the window's title).
+      #  lpszWindow:: <in> Pointer to a null-terminated string that specifies the window name (the window's title).
       #               If this parameter is NULL, all window names match.
       #
       #  *Returns*:: If the function succeeds, the return value is a handle to the window that has the specified
@@ -321,9 +321,9 @@ module Win
       # GetClassName retrieves the name of the class to which the specified window belongs.
       # [*Syntax*] int GetClassName( HWND hWnd, LPTSTR lpClassName, int nMaxCount );
       # *Original* Parameters:
-      # hWnd:: [in] Handle to the window and, indirectly, the class to which the window belongs.
-      # lpClassName:: [out] Pointer to the buffer that is to receive the class name string.
-      # nMaxCount:: [in] Specifies the length, in TCHAR, of the buffer pointed to by the lpClassName parameter.
+      # hWnd:: <in> Handle to the window and, indirectly, the class to which the window belongs.
+      # lpClassName:: <out> Pointer to the buffer that is to receive the class name string.
+      # nMaxCount:: <in> Specifies the length, in TCHAR, of the buffer pointed to by the lpClassName parameter.
       #             The class name string is truncated if it is longer than the buffer and is always null-terminated.
       # *Original* Return:: Length, in characters, of the copied string, not including the terminating null character,
       #                     indicates success. Zero indicates that the window has no title bar or text, if the title
@@ -376,7 +376,7 @@ module Win
       #
       # [*Syntax*]: BOOL CloseWindow( HWND hWnd );
       #
-      # hWnd:: [in] Handle to the window to be minimized.
+      # hWnd:: <in> Handle to the window to be minimized.
       #
       # *Returns*:: If the function succeeds, the return value is nonzero (*true* in snake_case method). If the function
       #             fails, the return value is zero (*false). To get extended error information, call GetLastError.
@@ -400,7 +400,7 @@ module Win
       #
       # [*Syntax*]: BOOL DestroyWindow( HWND hWnd );
       #
-      # hWnd:: [in] Handle to the window to be destroyed.
+      # hWnd:: <in> Handle to the window to be destroyed.
       #
       # *Returns*:: If the function succeeds, the return value is nonzero (snake_case method: *true*). If the function
       #             fails, the return value is zero (*false*). To get extended error information, call GetLastError.
@@ -420,8 +420,8 @@ module Win
       # [*Syntax*] DWORD GetWindowThreadProcessId( HWND hWnd, LPDWORD lpdwProcessId );
       #
       # *Original* Parameters:
-      # hWnd:: [in] Handle to the window.
-      # lpdwProcessId:: [out] Pointer to a variable that receives the process identifier. If this parameter
+      # hWnd:: <in> Handle to the window.
+      # lpdwProcessId:: <out> Pointer to a variable that receives the process identifier. If this parameter
       #                 is not NULL, GetWindowThreadProcessId copies the identifier of the process to the
       #                 variable; otherwise, it does not.
       # *Original* Return:: The identifier of the thread that created the window.
@@ -450,8 +450,8 @@ module Win
       # [*Syntax*] BOOL GetWindowRect( HWND hWnd, LPRECT lpRect );
       #
       # *Original* Parameters:
-      # hWnd::  [in] Handle to the window.
-      # lpRect:: [out] Pointer to a structure that receives the screen coordinates of the upper-left and
+      # hWnd::  <in> Handle to the window.
+      # lpRect:: <out> Pointer to a structure that receives the screen coordinates of the upper-left and
       #          lower-right corners of the window.
       # *Original* Return:: Nonzero indicates success. Zero indicates failure. For error info, call GetLastError.
       # ---
@@ -482,8 +482,8 @@ module Win
       #
       # [*Syntax*] BOOL CALLBACK EnumWindowsProc( HWND hwnd, LPARAM lParam );
       #
-      # hWnd:: [in] Handle to a top-level window.
-      # lParam:: [in] Specifies the application-defined value given in EnumWindows or EnumDesktopWindows.
+      # hWnd:: <in> Handle to a top-level window.
+      # lParam:: <in> Specifies the application-defined value given in EnumWindows or EnumDesktopWindows.
       # *Return* *Value*:: To continue enumeration, the callback function must return TRUE;
       #                    to stop enumeration, it must return FALSE.
       # ---
@@ -505,8 +505,8 @@ module Win
       # [*Syntax*] BOOL EnumWindows( WNDENUMPROC lpEnumFunc, LPARAM lParam );
       #
       # *Original* Parameters:
-      # lpEnumFunc:: [in] Pointer to an application-defined callback function of EnumWindowsProc type.
-      # lParam:: [in] Specifies an application-defined value(message) to be passed to the callback function.
+      # lpEnumFunc:: <in> Pointer to an application-defined callback function of EnumWindowsProc type.
+      # lParam:: <in> Specifies an application-defined value(message) to be passed to the callback function.
       # *Original* Return:: Nonzero if the function succeeds, zero if the function fails. GetLastError for error info.
       #                     If callback returns zero, the return value is also zero. In this case, the callback
       #                     function should call SetLastError to obtain a meaningful error code to be returned to
@@ -578,11 +578,11 @@ module Win
       # [*Syntax*] BOOL EnumChildWindows( HWND hWndParent, WNDENUMPROC lpEnumFunc, LPARAM lParam );
       #
       # *Original* Parameters:
-      # hWndParent:: [in] Handle to the parent window whose child windows are to be enumerated. If this parameter
+      # hWndParent:: <in> Handle to the parent window whose child windows are to be enumerated. If this parameter
       #              is NULL, this function is equivalent to EnumWindows.
       #              Windows 95/98/Me: hWndParent cannot be NULL.
-      # lpEnumFunc:: [in] Pointer to an application-defined callback. For more information, see EnumChildProc.
-      # lParam:: [in] Specifies an application-defined value to be passed to the callback function.
+      # lpEnumFunc:: <in> Pointer to an application-defined callback. For more information, see EnumChildProc.
+      # lParam:: <in> Specifies an application-defined value to be passed to the callback function.
       #
       # *Return*:: Not used!
       # ---

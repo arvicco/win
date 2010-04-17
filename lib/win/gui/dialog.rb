@@ -14,8 +14,8 @@ module Win
       #
       # [*Syntax*]  HWND GetDlgItem( HWND hDlg, int nIDDlgItem );
       #
-      # hDlg:: [in] Handle to the dialog box that contains the control.
-      # nIDDlgItem:: [in] Specifies the identifier of the control to be retrieved.
+      # hDlg:: <in> Handle to the dialog box that contains the control.
+      # nIDDlgItem:: <in> Specifies the identifier of the control to be retrieved.
       # *Returns*:: If the function succeeds, the return value is the window handle of the specified control.
       #             If the function fails, the return value is NULL, indicating an invalid dialog box handle
       #             or a nonexistent control. To get extended error information, call GetLastError.

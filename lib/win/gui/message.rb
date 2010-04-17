@@ -342,12 +342,12 @@ module Win
       #
       # [*Syntax*] VOID SendAsyncProc( HWND hwnd, UINT uMsg, ULONG_PTR dwData, LRESULT lResult );
       #
-      # hwnd:: [in] Handle to the window whose window procedure received the message. If SendMessageCallback
+      # hwnd:: <in> Handle to the window whose window procedure received the message. If SendMessageCallback
       #        function was called with its hwnd parameter set to HWND_BROADCAST, the system calls the
       #        SendAsyncProc function once for each top-level window.
-      # uMsg:: [in] Specifies the message.
-      # dwData:: [in] Specifies an application-defined value sent from the SendMessageCallback function.
-      # lResult:: [in] Specifies the result of the message processing. This value depends on the message.
+      # uMsg:: <in> Specifies the message.
+      # dwData:: <in> Specifies an application-defined value sent from the SendMessageCallback function.
+      # lResult:: <in> Specifies the result of the message processing. This value depends on the message.
       #
       # :call-seq:
       #  SendAsyncProc callback block: {|handle, msg, data, l_result| your callback code }
@@ -363,16 +363,16 @@ module Win
       #  [*Syntax*] BOOL SendMessageCallback( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam,
       #             SENDASYNCPROC lpCallBack, ULONG_PTR dwData);
       #
-      #  hWnd:: [in] Handle to the window whose window procedure will receive the message. If this parameter is
+      #  hWnd:: <in> Handle to the window whose window procedure will receive the message. If this parameter is
       #         HWND_BROADCAST, the message is sent to all top-level windows in the system, including disabled or
       #         invisible, unowned, overlapped and pop-up windows; but the message is not sent to child windows.
-      #  Msg:: [in] Specifies the message to be sent.
-      #  wParam:: [in] Specifies additional message-specific information.
-      #  lParam:: [in] Specifies additional message-specific information.
-      #  lpCallBack:: [in] Pointer to a callback function that the system calls after the window procedure processes
+      #  Msg:: <in> Specifies the message to be sent.
+      #  wParam:: <in> Specifies additional message-specific information.
+      #  lParam:: <in> Specifies additional message-specific information.
+      #  lpCallBack:: <in> Pointer to a callback function that the system calls after the window procedure processes
       #               the message. For more information, see SendAsyncProc. If hWnd is HWND_BROADCAST, the system calls
       #               SendAsyncProc callback function once for each top-level window.
-      #  dwData:: [in] Specifies an application-defined value to be sent to the callback function pointed to by
+      #  dwData:: <in> Specifies an application-defined value to be sent to the callback function pointed to by
       #           the lpCallBack parameter.
       #  *Returns*:: Nonzero if the function succeeds, zero if it fails. For extended error info, call GetLastError.
       #  ---
@@ -404,14 +404,14 @@ module Win
       #
       # [*Syntax*] BOOL PostMessage( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
       #
-      # hWnd::   [in] Handle to the window whose window procedure will receive the message. If this parameter is
+      # hWnd::   <in> Handle to the window whose window procedure will receive the message. If this parameter is
       #          HWND_BROADCAST, the message is sent to all top-level windows in the system, including disabled or
       #          invisible unowned windows, overlapped windows, and pop-up windows; but the message is not posted to
       #          child windows. If it is NULL, the function behaves like a call to PostThreadMessage()
       #          with the dwThreadId parameter set to the identifier of the current thread.
-      # Msg:: [in] Specifies the message to be posted.
-      # wParam:: [in] Specifies additional message-specific information.
-      # lParam:: [in] Specifies additional message-specific information.
+      # Msg:: <in> Specifies the message to be posted.
+      # wParam:: <in> Specifies additional message-specific information.
+      # lParam:: <in> Specifies additional message-specific information.
       #
       # *Returns*:: Nonzero if the function succeeds, zero if it fails. For extended error info, call GetLastError.
       # ---
@@ -444,16 +444,16 @@ module Win
       #
       # [*Syntax*] LRESULT SendMessage( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam );
       #
-      # hWnd:: [in] Handle to the window whose window procedure will receive the message. If this parameter is
+      # hWnd:: <in> Handle to the window whose window procedure will receive the message. If this parameter is
       #        HWND_BROADCAST, the message is sent to all top-level windows in the system, including disabled or
       #        invisible unowned windows, overlapped windows, and pop-up windows; but the message is not sent to
       #        child windows.
       #        Microsoft Windows Vista and later. Message sending is subject to User Interface Privilege Isolation
       #        (UIPI). The thread of a process can send messages only to message queues of threads in processes of
       #        lesser or equal integrity level.
-      # Msg:: [in] Specifies the message to be sent.
-      # wParam:: [in] Specifies additional message-specific information.
-      # lParam:: [in/out?] Specifies additional message-specific information.
+      # Msg:: <in> Specifies the message to be sent.
+      # wParam:: <in> Specifies additional message-specific information.
+      # lParam:: <in/out?> Specifies additional message-specific information.
       #
       # *Return*:: The return value specifies the result of the message processing; it depends on the message sent.
       # ---
@@ -512,21 +512,21 @@ module Win
       #
       # [*Syntax*]  BOOL GetMessage( LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax );
       #
-      # lpMsg:: [out] Pointer to an MSG structure that receives message information from the thread's message
+      # lpMsg:: <out> Pointer to an MSG structure that receives message information from the thread's message
       #         queue.
-      # hWnd:: [in] Handle to the window whose messages are to be retrieved. The window must belong to the current
+      # hWnd:: <in> Handle to the window whose messages are to be retrieved. The window must belong to the current
       #        thread. If hWnd is NULL, GetMessage retrieves messages for any window that belongs to the current
       #        thread, and any messages on the current thread's message queue whose hwnd value is NULL (see the MSG
       #        structure). Therefore if hWnd is NULL, both window messages and thread messages are processed.
       #        If hWnd is -1, GetMessage retrieves only messages on the current thread's message queue whose hwnd
       #        value is NULL, that is, thread messages as posted by PostMessage (when the hWnd parameter is NULL) or
       #        PostThreadMessage.
-      # wMsgFilterMin:: [in] Specifies the integer value of the lowest message value to be retrieved. Use WM_KEYFIRST
+      # wMsgFilterMin:: <in> Specifies the integer value of the lowest message value to be retrieved. Use WM_KEYFIRST
       #                 to specify the first keyboard message or WM_MOUSEFIRST to specify the first mouse message.
       #                 Windows XP: Use WM_INPUT here and in wMsgFilterMax to specify only the WM_INPUT messages.
       #                 If wMsgFilterMin and wMsgFilterMax are both zero, GetMessage returns all available messages
       #                 (that is, no range filtering is performed).
-      # wMsgFilterMax:: [in] Specifies the integer value of the highest message value to be retrieved. Use
+      # wMsgFilterMax:: <in> Specifies the integer value of the highest message value to be retrieved. Use
       #                 WM_KEYLAST to specify the last keyboard message or WM_MOUSELAST to specify the last
       #                 mouse message.
       #
@@ -606,22 +606,22 @@ module Win
       # [*Syntax*]  BOOL PeekMessage( LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax,
       #                               UINT wRemoveMsg );
       #
-      # lpMsg:: [out] Pointer to an MSG structure that receives message information.
-      # hWnd:: [in] Handle to the window whose messages are to be retrieved. The window must belong to the current
+      # lpMsg:: <out> Pointer to an MSG structure that receives message information.
+      # hWnd:: <in> Handle to the window whose messages are to be retrieved. The window must belong to the current
       #        thread. If hWnd is NULL, PeekMessage retrieves messages for any window that belongs to the current
       #        thread, and any messages on the current thread's message queue whose hwnd value is NULL (see MSG).
       #        Therefore if hWnd is NULL, both window messages and thread messages are processed.
       #        If hWnd is -1, PeekMessage retrieves only messages on the current thread's message queue whose hwnd
       #        value is NULL, that is, thread messages as posted by PostMessage (when the hWnd parameter is NULL) or
       #        PostThreadMessage.
-      # wMsgFilterMin:: [in] Specifies the value of the first message in the range of messages to be examined.
+      # wMsgFilterMin:: <in> Specifies the value of the first message in the range of messages to be examined.
       #                 Use WM_KEYFIRST to specify the first keyboard message or WM_MOUSEFIRST to specify the
       #                 first mouse message. If wMsgFilterMin and wMsgFilterMax are both zero, PeekMessage returns all
       #                 available messages (that is, no range filtering is performed).
-      # wMsgFilterMax:: [in] Specifies the value of the last message in the range of messages to be examined.
+      # wMsgFilterMax:: <in> Specifies the value of the last message in the range of messages to be examined.
       #                 Use WM_KEYLAST to specify the last keyboard message or WM_MOUSELAST to specify the
       #                 last mouse message.
-      # wRemoveMsg:: [in] Specifies how messages are handled. This parameter can be one of the following values.
+      # wRemoveMsg:: <in> Specifies how messages are handled. This parameter can be one of the following values.
       #              - PM_NOREMOVE - Messages are not removed from the queue after processing by PeekMessage.
       #              - PM_REMOVE - Messages are removed from the queue after processing by PeekMessage.
       #              You can optionally combine the value PM_NOYIELD with either PM_NOREMOVE or PM_REMOVE. This flag
@@ -687,7 +687,7 @@ module Win
       #
       # [*Syntax*]  BOOL TranslateMessage( const MSG *lpMsg );
       #
-      # lpMsg:: [in] Pointer to an MSG structure that contains message information retrieved from the calling
+      # lpMsg:: <in> Pointer to an MSG structure that contains message information retrieved from the calling
       #         thread's message queue by using the GetMessage or PeekMessage function.
       #
       # *Returns*:: If the message is translated (that is, a character message is posted to the thread's
@@ -726,7 +726,7 @@ module Win
       #
       # [*Syntax*] LRESULT DispatchMessage( const MSG *lpmsg );
       #
-      # lpmsg:: [in] Pointer to an MSG structure that contains the message.
+      # lpmsg:: <in> Pointer to an MSG structure that contains the message.
       #
       # *Returns*:: The return value specifies the value returned by the window procedure. Although its
       #             meaning depends on the message being dispatched, the return value generally is ignored.

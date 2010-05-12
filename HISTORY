@@ -6,3 +6,7 @@
 == 0.3.3 / 2010-04-17
 
 * Moved from Jeweler to own Rake tasks
+
+== 0.3.4 / 2010-05-12
+
+* Cleanup

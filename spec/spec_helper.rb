@@ -4,7 +4,7 @@ require 'spec'
 require 'spec/autorun'
 require 'win/gui'
 
-$debug = true
+$debug = false
 
 # Customize RSpec with my own extensions
 module ClassMacros
@@ -13,7 +13,6 @@ module ClassMacros
   # spec { use{    function(arg1 = 4, arg2 = 'string')  }}
   def spec &block
     it description_from(caller[0]), &block # it description_from(*block.source_location), &block
-    #do lambda(&block).should_not raise_error end
   end
 
   # reads description line from source file and drops external brackets like its{}, use{}
@@ -46,11 +45,11 @@ Spec::Runner.configure do |config|
   config.extend(ClassMacros)
   config.include(InstanceMacros)
 
-  class << Spec::ExampleGroup
-#    def spoc &block
-#      it description_from(caller[0]), &block
-#    end
-  end
+#  class << Spec::ExampleGroup
+##    def spoc &block
+##      it description_from(caller[0]), &block
+##    end
+#  end
 end
 
 # Global test methods
@@ -110,8 +109,8 @@ module WinTestApp
     textarea = find_window_ex(handle, 0, TEST_TEXTAREA_CLASS, nil)
     app = "Locknote" # App identifier
 
-    eigenklass = class << app; self; end      # Extracting app's eigenclass
-    eigenklass.class_eval do                  # Defining singleton methods on app
+    eigen_class = class << app; self; end      # Extracting app's eigenclass
+    eigen_class.class_eval do                  # Defining singleton methods on app
       define_method(:handle) {handle}
       define_method(:textarea) {textarea}
     end

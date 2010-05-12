@@ -365,8 +365,8 @@ module Win
 
           define_method snake_name, &method_body       # define snake_case instance method
 
-          eigenklass = class << self; self; end        # Extracting eigenclass
-          eigenklass.class_eval do
+          eigen_class = class << self; self; end        # Extracting eigenclass
+          eigen_class.class_eval do
             define_method snake_name, &method_body       # define snake_case class method
           end
         end
@@ -446,23 +446,23 @@ module Win
     # Hook executed when Win::Library is included into class or module. It extends host class/module
     # with both FFI::Library methods and Win::Library macro methods like 'function'.
     #
-    def self.included(klass)
-      klass.extend FFI::Library
+    def self.included(host_class)
+      host_class.extend FFI::Library
 
       # Extracting host class's eigenclass
       # :stopdoc:
-      eigenklass = class << klass; self; end      # :nodoc:
+      eigen_class = class << host_class; self; end      # :nodoc:
 
-      eigenklass.class_eval do
-        define_method(:namespace) {klass}         # Defining new class method for host pointing to itself
+      eigen_class.class_eval do
+        define_method(:namespace) {host_class}         # Defining new class method for host class pointing to itself
         alias_method :attach_callback, :callback
 
         include ClassMethods
       end
       # :startdoc:
 
-      klass.ffi_lib 'user32', 'kernel32'  # Default libraries
-      klass.ffi_convention :stdcall
+      host_class.ffi_lib 'user32', 'kernel32'  # Default libraries
+      host_class.ffi_convention :stdcall
     end
   end
 end

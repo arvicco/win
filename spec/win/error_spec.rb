@@ -21,14 +21,14 @@ module WinErrorTest
       spec{ use{ err_message = get_last_error() }}
 
       it "original api retrieves the calling thread's last-error code value" do
-        find_window(TEST_IMPOSSIBLE, TEST_IMPOSSIBLE)
+        find_window(IMPOSSIBLE, IMPOSSIBLE)
         GetLastError().should == ERROR_FILE_NOT_FOUND
         window_text(0)
         GetLastError().should == ERROR_INVALID_WINDOW_HANDLE
       end
 
       it "enhanced api retrieves the message corresponding to last error code" do
-        find_window(TEST_IMPOSSIBLE, TEST_IMPOSSIBLE)
+        find_window(IMPOSSIBLE, IMPOSSIBLE)
         get_last_error.should == "The system cannot find the file specified."
         window_text(0)
         get_last_error.should == "Invalid window handle."
@@ -40,7 +40,7 @@ module WinErrorTest
       spec{ use{ message = format_message(sys_flags, source=nil, message_id=0, language_id=0, :int, 0) }}
 
       it "original api formats a message string - system message" do
-        find_window(TEST_IMPOSSIBLE, TEST_IMPOSSIBLE)
+        find_window(IMPOSSIBLE, IMPOSSIBLE)
         message_id = GetLastError()
         buf = buffer()
         num_chars = FormatMessage(sys_flags, nil, message_id, dw_language_id=0, buf, buf.size, :int, 0)
@@ -48,7 +48,7 @@ module WinErrorTest
       end
 
       it "snake_case api Formats a message string - system message" do
-        find_window(TEST_IMPOSSIBLE, TEST_IMPOSSIBLE)
+        find_window(IMPOSSIBLE, IMPOSSIBLE)
         message = format_message(sys_flags, nil, dw_message_id=GetLastError())
         message.should == "The system cannot find the file specified."
       end

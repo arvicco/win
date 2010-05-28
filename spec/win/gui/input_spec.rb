@@ -17,9 +17,9 @@ module WinWindowTest
           text = '12 34'
           text.upcase.each_byte do |b| # upcase needed since user32 keybd_event expects upper case chars
             keybd_event(b.ord, 0, KEYEVENTF_KEYDOWN, 0)
-            sleep TEST_KEY_DELAY
+            sleep KEY_DELAY
             keybd_event(b.ord, 0, KEYEVENTF_KEYUP, 0)
-            sleep TEST_KEY_DELAY
+            sleep KEY_DELAY
           end
           text(app.textarea).should =~ Regexp.new(text)
           5.times {keystroke(VK_CONTROL, 'Z'.ord)} # rolling back changes to allow window closing without dialog!

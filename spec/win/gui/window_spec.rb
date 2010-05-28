@@ -135,16 +135,16 @@ module WinWindowTest
 
         it 'returns either Integer Window handle or nil' do
           find_window(nil, nil).should be_a_kind_of Integer
-          find_window(TEST_IMPOSSIBLE, nil).should == nil
+          find_window(IMPOSSIBLE, nil).should == nil
         end
 
         it 'returns nil if Window is not found' do
-          find_window(TEST_IMPOSSIBLE, nil).should == nil
-          find_window(nil, TEST_IMPOSSIBLE).should == nil
-          find_window(TEST_IMPOSSIBLE, TEST_IMPOSSIBLE).should == nil
-          find_window_w(TEST_IMPOSSIBLE, nil).should == nil
-          find_window_w(nil, TEST_IMPOSSIBLE).should == nil
-          find_window_w(TEST_IMPOSSIBLE, TEST_IMPOSSIBLE).should == nil
+          find_window(IMPOSSIBLE, nil).should == nil
+          find_window(nil, IMPOSSIBLE).should == nil
+          find_window(IMPOSSIBLE, IMPOSSIBLE).should == nil
+          find_window_w(IMPOSSIBLE, nil).should == nil
+          find_window_w(nil, IMPOSSIBLE).should == nil
+          find_window_w(IMPOSSIBLE, IMPOSSIBLE).should == nil
         end
 
         it 'finds at least one window if both args are nils' do
@@ -154,10 +154,10 @@ module WinWindowTest
 
         it 'finds top-level window by window class or title' do
           test_app do |app|
-            find_window(TEST_WIN_CLASS, nil).should == app.handle
-            find_window(nil, TEST_WIN_TITLE).should == app.handle
-            find_window_w(TEST_WIN_CLASS.to_w, nil).should == app.handle
-            find_window_w(nil, TEST_WIN_TITLE.to_w).should == app.handle
+            find_window(WIN_CLASS, nil).should == app.handle
+            find_window(nil, WIN_TITLE).should == app.handle
+            find_window_w(WIN_CLASS.to_w, nil).should == app.handle
+            find_window_w(nil, WIN_TITLE.to_w).should == app.handle
           end
         end
       end
@@ -168,13 +168,13 @@ module WinWindowTest
 
         it 'returns nil if wrong control is given' do
           parent_handle = any_handle
-          find_window_ex(parent_handle, 0, TEST_IMPOSSIBLE, nil).should == nil
-          find_window_ex(parent_handle, 0, nil, TEST_IMPOSSIBLE).should == nil
+          find_window_ex(parent_handle, 0, IMPOSSIBLE, nil).should == nil
+          find_window_ex(parent_handle, 0, nil, IMPOSSIBLE).should == nil
         end
 
         it 'finds child window/control by class' do
           test_app do |app|
-            ta_handle = find_window_ex(app.handle, 0, TEST_TEXTAREA_CLASS, nil)
+            ta_handle = find_window_ex(app.handle, 0, TEXTAREA_CLASS, nil)
             ta_handle.should_not == nil
             ta_handle.should == app.textarea
           end
@@ -252,10 +252,10 @@ module WinWindowTest
 
         it 'returns correct window text' do
           test_app do |app|
-            get_window_text(app.handle).should == TEST_WIN_TITLE
-            get_window_text_w(app.handle).should == TEST_WIN_TITLE
-            window_text(app.handle).should == TEST_WIN_TITLE
-            window_text_w(app.handle).should == TEST_WIN_TITLE
+            get_window_text(app.handle).should == WIN_TITLE
+            get_window_text_w(app.handle).should == WIN_TITLE
+            window_text(app.handle).should == WIN_TITLE
+            window_text_w(app.handle).should == WIN_TITLE
           end
         end
       end
@@ -272,10 +272,10 @@ module WinWindowTest
 
         it 'returns correct window class name' do
           test_app do |app|
-            get_class_name(app.handle).should == TEST_WIN_CLASS
-            class_name(app.handle).should == TEST_WIN_CLASS
-            class_name_w(app.handle).should == TEST_WIN_CLASS  #!!!!!!!!!!! nil?
-            get_class_name_w(app.handle).should == TEST_WIN_CLASS #!!!!!! nil?
+            get_class_name(app.handle).should == WIN_CLASS
+            class_name(app.handle).should == WIN_CLASS
+            class_name_w(app.handle).should == WIN_CLASS  #!!!!!!!!!!! nil?
+            get_class_name_w(app.handle).should == WIN_CLASS #!!!!!! nil?
           end
         end
       end
@@ -310,7 +310,7 @@ module WinWindowTest
 
         it 'returns window`s border rectangle' do
           test_app do |app|
-            get_window_rect(app.handle).should == TEST_WIN_RECT
+            get_window_rect(app.handle).should == WIN_RECT
           end
         end
       end
@@ -399,11 +399,127 @@ module WinWindowTest
         end
       end # describe 'destroy_window'
 
+
     end # context 'ensuring test app closes'
 
     context 'with single test app' do
       before(:all){@app = launch_test_app}
       after(:all){close_test_app}
+
+      describe "#get_parent" do
+        spec{ use{ parent = GetParent(any_handle) }}
+        spec{ use{ parent = get_parent(any_handle) }}
+
+        it "retrieves a handle to the specified window's parent or owner." do
+          child = find_window_ex(@app.handle, 0, nil, nil)
+          parent1 = GetParent(child)
+          parent2 = get_parent(child)
+          parent1.should == parent2
+          parent1.should == @app.handle
+        end
+
+        it "returns 0/nil if the specified window has no parent or owner." do
+          GetParent(@app.handle).should == 0
+          get_parent(@app.handle).should == nil
+        end
+      end # describe get_parent
+
+      describe "#get_ancestor" do
+        spec{ use{ ancestor = GetAncestor(any_handle, ga_flags=0) }}
+        spec{ use{ ancestor = get_ancestor(any_handle, ga_flags=0) }}
+
+        context 'GA_PARENT - Retrieves parent window. Unlike GetParent function, this does NOT include the owner.' do
+          it "retrieves a handle to the specified window's parent" do
+            child = find_window_ex(@app.handle, 0, nil, nil)
+            parent1 = GetAncestor(child, GA_PARENT)
+            parent2 = get_ancestor(child, GA_PARENT)
+            parent1.should == parent2
+            parent1.should == @app.handle
+          end
+
+          it "returns desktop handle for top-level window" do
+            parent = get_ancestor(@app.handle, GA_PARENT)
+            class_name(parent).should == DESKTOP_CLASS
+          end
+
+          it "returns 0/nil if the specified window is a desktop (has REALLY no parent)" do
+            desktop = get_ancestor(@app.handle, GA_PARENT)
+            GetAncestor(desktop, GA_PARENT).should == 0
+            get_ancestor(desktop, GA_PARENT).should == nil
+          end
+        end # context GA_PARENT
+
+        #           GA_ROOT - Retrieves the root window by walking the chain of parent windows.
+        #           GA_ROOTOWNER - Retrieves the owned root window by walking the chain of parent and owner windows
+        #                          returned by GetParent.
+        it "original api retrieves the handle to the ancestor of the specified window. " do
+          pending
+          success = GetAncestor(hwnd=0, ga_flags=0)
+        end
+
+        it "snake_case api retrieves the handle to the ancestor of the specified window. " do
+          pending
+          success = get_ancestor(hwnd=0, ga_flags=0)
+        end
+
+      end # describe get_ancestor
+
+      describe "#get_window" do
+        spec{ use{ handle = GetWindow(any_handle, command=0) }}
+        spec{ use{ handle = get_window(any_handle, command=0) }}
+
+        context "GW_CHILD retrieves a window handle to a first (top of the Z order) child of given window" do
+          before(:all) do
+            #        GW_CHILD - The retrieved handle identifies the child window at the top of the Z order, if the specified
+            @child1 = GetWindow(@app.handle, GW_CHILD)
+            @child2 = get_window(@app.handle, GW_CHILD)
+          end
+
+          it 'returns active window handle' do
+            window?(@child1).should == true
+          end
+          it 'returns the same value for original and snake case API' do
+            @child1.should == @child2
+          end
+          it 'returns first direct child of a given window' do
+            @child1.should == find_window_ex(@app.handle, 0, nil, nil)
+          end
+          it 'returns nil/0 if no children for a given window' do
+            GetWindow(@child1, GW_CHILD).should == 0
+            get_window(@child1, GW_CHILD).should == nil
+          end
+        end # context GW_CHILD
+
+        context "GW_OWNER - retrieves a handle to an owner of a given Window" do
+          #        GW_OWNER - The retrieved handle identifies the specified window's owner window, if any. For more
+
+          it 'returns owner (but NOT parent!) of a given window' do
+            pending
+
+            child = find_window_ex(@app.handle, 0, nil, nil)
+            p owner1 = GetWindow(child, GW_OWNER)
+            p owner2 = get_window(child, GW_OWNER)
+            owner1.should == owner2
+            owner1.should == @app.handle
+          end
+
+          it 'returns nil/0 if no owner for a given window' do
+            GetWindow(@app.handle, GW_OWNER).should == 0
+            get_window(@app.handle, GW_OWNER).should == nil
+          end
+
+        end
+
+        it "GW_OWNER - retrieves a handle to a window that has the specified relationship to given Window" do
+          pending
+          #        GW_ENABLEDPOPUP - Windows 2000/XP: The retrieved handle identifies the enabled popup window owned by
+          #        GW_HWNDFIRST - The retrieved handle identifies the window of the same type that is highest in Z order.
+          #        GW_HWNDLAST -  The retrieved handle identifies the window of the same type that is lowest in the Z order.
+          #        GW_HWNDNEXT -  The retrieved handle identifies the window below the specified window in the Z order.
+          #        GW_HWNDPREV -  The retrieved handle identifies the window above the specified window in the Z order.
+          #        GW_OWNER - The retrieved handle identifies the specified window's owner window, if any. For more
+        end
+      end # describe get_window
 
       describe '#enum_windows' do
 #        before(:each){@app = launch_test_app}
@@ -460,8 +576,8 @@ module WinWindowTest
           enum = enum_child_windows(@app.handle, 13)
           enum.should be_a_kind_of Array
           enum.should have(2).elements
-          class_name(enum.first).should == TEST_STATUSBAR_CLASS
-          class_name(enum.last).should == TEST_TEXTAREA_CLASS
+          class_name(enum.first).should == STATUSBAR_CLASS
+          class_name(enum.last).should == TEXTAREA_CLASS
         end
 
         it 'loops through all children of given window, passing each found window handle and a message to a given block' do
@@ -471,8 +587,8 @@ module WinWindowTest
             message.should == 13
           end
           enum.should have(2).elements
-          class_name(enum.first).should == TEST_STATUSBAR_CLASS
-          class_name(enum.last).should == TEST_TEXTAREA_CLASS
+          class_name(enum.first).should == STATUSBAR_CLASS
+          class_name(enum.last).should == TEXTAREA_CLASS
         end
 
         it 'breaks loop if given block returns false' do
@@ -482,7 +598,7 @@ module WinWindowTest
             false
           end
           enum.should have(1).element
-          class_name(enum.first).should == TEST_STATUSBAR_CLASS
+          class_name(enum.first).should == STATUSBAR_CLASS
         end
 
         it 'defaults message to 0 if it is omitted from method call' do
@@ -528,7 +644,7 @@ module WinWindowTest
         app = launch_test_app
 
         shut_window(app.handle).should == true
-        sleep TEST_SLEEP_DELAY
+        sleep SLEEP_DELAY
 
         window?(app.handle).should == false
       end
@@ -540,7 +656,7 @@ module WinWindowTest
       it 'returns text associated with window by sending WM_GETTEXT message to it' do
         test_app do |app|
 
-          text(app.handle).should == TEST_WIN_TITLE
+          text(app.handle).should == WIN_TITLE
           text(app.textarea).should =~ /Welcome to Steganos LockNote/
         end
       end

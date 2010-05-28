@@ -52,7 +52,7 @@ module WinGuiMessageTest
       it 'places (posts) a message in the message queue associated with the thread that created the specified window' do
         app = launch_test_app
         post_message(app.handle, WM_SYSCOMMAND, SC_CLOSE, nil).should == true
-        sleep TEST_SLEEP_DELAY
+        sleep SLEEP_DELAY
         window?(app.handle).should == false
       end
 
@@ -80,7 +80,7 @@ module WinGuiMessageTest
         buffer.get_bytes(0, num_chars).should =~ /Welcome to Steganos LockNote/
 
         send_message(app.handle, WM_SYSCOMMAND, SC_CLOSE, nil)
-        sleep TEST_SLEEP_DELAY  # delay to allow window close
+        sleep SLEEP_DELAY  # delay to allow window close
         window?(app.handle).should == false
       end
     end # describe '#send_message'
@@ -104,7 +104,7 @@ module WinGuiMessageTest
         @data.should == nil
         @result.should == nil
 
-        sleep TEST_SLEEP_DELAY # small delay to allow message delivery
+        sleep SLEEP_DELAY # small delay to allow message delivery
         peek_message           # dispatching sent message (even though there is nothing in queue)
 
         @handle.should == @app.handle
@@ -118,7 +118,7 @@ module WinGuiMessageTest
         sent.should == true
         @data.should == nil
 
-        sleep TEST_SLEEP_DELAY # small delay to allow message delivery
+        sleep SLEEP_DELAY # small delay to allow message delivery
         peek_message           # dispatching sent message (even though there is nothing in queue)
 
         @data.should == 0

@@ -43,6 +43,20 @@ module Win
       # flag when minimizing windows from a different thread.
       SW_FORCEMINIMIZE  = 11
 
+      # GetWindow constants:
+      GW_HWNDFIRST = 0
+      GW_HWNDLAST = 1
+      GW_HWNDNEXT = 2
+      GW_HWNDPREV = 3
+      GW_OWNER = 4
+      GW_CHILD = 5
+      GW_ENABLEDPOPUP = 6
+
+      # GetAncestor constants:
+      GA_PARENT = 1
+      GA_ROOT = 2
+      GA_ROOTOWNER = 3
+
       class << self
         # Def_block that calls API function expecting EnumWindowsProc callback (EnumWindows, EnumChildWindows, ...).
         # Default callback pushes all passed handles into Array that is returned if Enum function call was successful.
@@ -227,7 +241,7 @@ module Win
 
       ##
       #  The FindWindowEx function retrieves a handle to a window whose class name and window name match the specified
-      #  strings. The function searches child windows, beginning with the one following the specified child window.
+      #  strings. The function searches only child windows, beginning with the one following the specified child window.
       #  This function does not perform a case-sensitive search.
       #
       #  [*Syntax*] HWND FindWindowEx( HWND hwndParent, HWND hwndChildAfter, LPCTSTR lpszClass, LPCTSTR lpszWindow );
@@ -257,7 +271,11 @@ module Win
       #              call GetLastError.
       #  ---
       #  *Remarks*:
-      #  - If the lpszWindow parameter is not NULL, FindWindowEx calls the GetWindowText function to retrieve the window name for comparison. For a description of a potential problem that can arise, see the Remarks section of GetWindowText.
+      #  - Only DIRECT children of given parent window being searched, not ALL its the descendants. This behavior is
+      #    different from EnumChildWindows which enumerates also non-direct descendants.
+      #  - If the lpszWindow parameter is not nil, FindWindowEx calls the GetWindowText function to retrieve the window
+      #    name for comparison. For a description of a potential problem that can arise, see the Remarks section of
+      #    GetWindowText.
       #  - An application can call this function in the following way.
       #         find_window_ex( nil, nil, MAKEINTATOM(0x8000), nil )
       #    0x8000 is the atom for a menu class. When an application calls this function, the function checks whether
@@ -470,11 +488,8 @@ module Win
       function :GetWindowRect, [:HWND, :pointer], :int,
                &->(api, handle) {
                rect = FFI::MemoryPointer.new(:long, 4)
-               #rect.write_array_of_long([0, 0, 0, 0])
                res = api.call handle, rect
                res == 0 ? [nil, nil, nil, nil] :  rect.read_array_of_long(4) }
-      # weird lambda literal instead of normal block is needed because current version of RDoc
-      # goes crazy if block is attached to meta-definition
 
       ##
       # EnumWindowsProc is an application-defined callback function that receives top-level window handles
@@ -499,8 +514,8 @@ module Win
 
       ##
       # The EnumWindows function enumerates all top-level windows on the screen by passing the handle to
-      #   each window, in turn, to an application-defined callback function. EnumWindows continues until
-      #   the last top-level window is enumerated or the callback function returns FALSE.
+      # each window, in turn, to an application-defined callback function. EnumWindows continues until
+      # the last top-level window is enumerated or the callback function returns FALSE.
       #
       # [*Syntax*] BOOL EnumWindows( WNDENUMPROC lpEnumFunc, LPARAM lParam );
       #
@@ -636,7 +651,112 @@ module Win
       #
       function :GetActiveWindow, [], :HWND, zeronil: true
 
+      ##
+      # The GetWindow function retrieves a handle to a window that has the specified relationship (Z-Order or
+      # owner) to the specified window.
+      #
+      # [*Syntax*] HWND GetWindow( HWND hWnd, UINT uCmd );
+      #
+      # hWnd:: [in] Handle to a window. The window handle retrieved is relative to this window, based on the
+      #        value of the uCmd parameter.
+      # uCmd:: [in] Specifies the relationship between the specified window and the window whose handle is to
+      #        be retrieved. This parameter can be one of the following values.
+      #        GW_CHILD - The retrieved handle identifies the child window at the top of the Z order, if the specified
+      #                   window is a parent window; otherwise, the retrieved handle is NULL. The function examines
+      #                   only child windows of the specified window. It does not examine descendant windows.
+      #        GW_ENABLEDPOPUP - Windows 2000/XP: The retrieved handle identifies the enabled popup window owned by
+      #                          the specified window (the search uses the first such window found using GW_HWNDNEXT);
+      #                          otherwise, if there are no enabled popup windows, the retrieved handle is that of the
+      #                          specified window.
+      #        GW_HWNDFIRST - The retrieved handle identifies the window of the same type that is highest in Z order.
+      #                       If the specified window is a topmost window, the handle identifies the topmost window
+      #                       that is highest in the Z order. If the specified window is a top-level window, the handle
+      #                       identifies the top-level window that is highest in the Z order. If the specified window
+      #                       is a child window, the handle identifies the sibling window that is highest in Z order.
+      #        GW_HWNDLAST -  The retrieved handle identifies the window of the same type that is lowest in the Z order.
+      #                       If the specified window is a topmost window, the handle identifies the topmost window that
+      #                       is lowest in the Z order. If the specified window is a top-level window, the handle
+      #                       identifies the top-level window that is lowest in the Z order. If the specified window is
+      #                       a child window, the handle identifies the sibling window that is lowest in the Z order.
+      #        GW_HWNDNEXT -  The retrieved handle identifies the window below the specified window in the Z order.
+      #                       If the specified window is a topmost window, the handle identifies the topmost window
+      #                       below the specified window. If the specified window is a top-level window, the handle
+      #                       identifies the top-level window below the specified window. If the specified window is
+      #                       a child window, the handle identifies the sibling window below the specified window.
+      #        GW_HWNDPREV -  The retrieved handle identifies the window above the specified window in the Z order.
+      #                       If the specified window is a topmost window, the handle identifies the topmost window
+      #                       above the specified window. If the specified window is a top-level window, the handle
+      #                       identifies the top-level window above the specified window. If the specified window is
+      #                       a child window, the handle identifies the sibling window above the specified window.
+      #        GW_OWNER - The retrieved handle identifies the specified window's owner window, if any. For more
+      #                   information, see Owned Windows.
+      # *Returns*:: If the function succeeds, the return value is a window handle. If no window exists with
+      #             the specified relationship to the specified window, the return value is NULL. To get
+      #             extended error information, call GetLastError.
+      # ---
+      # *Remarks*:
+      # The EnumChildWindows function is more reliable than calling GetWindow in a loop. An application that
+      # calls GetWindow to perform this task risks being caught in an infinite loop or referencing a handle to
+      # a window that has been destroyed.
+      # Function Information
+      #
+      # ---
+      # <b>Enhanced (snake_case) API: returns nil instead of 0 in case of failure</b>
+      #
+      # :call-seq:
+      #  window_handle = get_window(h_wnd, u_cmd)
+      #
+      function :GetWindow, [:HWND, :UINT], :HWND, zeronil: true
 
+      ##
+      # The GetParent function retrieves a handle to the specified window's parent OR OWNER.
+      # To retrieve a handle to a specified ancestor, use the GetAncestor function.
+      #
+      # [*Syntax*] HWND GetParent( HWND hWnd );
+      #
+      # hWnd:: [in] Handle to the window whose parent window handle is to be retrieved.
+      #
+      # *Returns*:: If the window is a child window, the return value is a handle to the parent window. If the
+      #             window is a top-level window, the return value is a handle to the owner window. If the
+      #             window is a top-level unowned window or if the function fails, the return value is NULL.
+      #             To get extended error information, call GetLastError. For example, this would determine,
+      #             when the function returns NULL, if the function failed or the window was a top-level window.
+      # ---
+      # *Remarks*:
+      # Note that, despite its name, this function can return an owner window instead of a parent window. To
+      # obtain the parent window and not the owner, use GetAncestor with the GA_PARENT flag.
+      #
+      # ---
+      # <b>Enhanced (snake_case) API: returns nil instead of 0 in case of failure</b>
+      #
+      # :call-seq:
+      #  parent = get_parent(h_wnd)
+      #
+      function :GetParent, [:HWND], :HWND, zeronil: true
+
+      ##
+      # The GetAncestor function retrieves the handle to the ancestor of the specified window.
+      #
+      # [*Syntax*] HWND GetAncestor( HWND hwnd, UINT gaFlags );
+      #
+      # hwnd:: [in] Handle to the window whose ancestor is to be retrieved. If this parameter is the desktop
+      #        window, the function returns NULL.
+      # gaFlags:: [in] Specifies the ancestor to be retrieved. This parameter can be one of the following values:
+      #           GA_PARENT - Retrieves parent window. Unlike GetParent function, this does NOT include the owner.
+      #           GA_ROOT - Retrieves the root window by walking the chain of parent windows.
+      #           GA_ROOTOWNER - Retrieves the owned root window by walking the chain of parent and owner windows
+      #                          returned by GetParent.
+      #
+      # *Returns*:: The return value is the handle to the ancestor window.
+      # ---
+      # <b>Enhanced (snake_case) API: returns nil instead of 0 in case of failure</b>
+      #
+      # :call-seq:
+      #  ancestor = get_ancestor(hwnd, ga_flags)
+      #
+      function :GetAncestor, [:HWND, :UINT], :HWND, zeronil: true
+
+      
       # Convenience wrapper methods:
 
       ##

@@ -53,20 +53,20 @@ module WinTest
       end
       
       it 'raises error if char is not implemented punctuation' do
-       ('!'..'/').each {|char| lambda {char.to_vkeys}.should raise_error TEST_CONVERSION_ERROR }
-       (':'..'@').each {|char| lambda {char.to_vkeys}.should raise_error TEST_CONVERSION_ERROR }
-       ('['..'`').each {|char| lambda {char.to_vkeys}.should raise_error TEST_CONVERSION_ERROR }
-       ('{'..'~').each {|char| lambda {char.to_vkeys}.should raise_error TEST_CONVERSION_ERROR }
+       ('!'..'/').each {|char| lambda {char.to_vkeys}.should raise_error CONVERSION_ERROR }
+       (':'..'@').each {|char| lambda {char.to_vkeys}.should raise_error CONVERSION_ERROR }
+       ('['..'`').each {|char| lambda {char.to_vkeys}.should raise_error CONVERSION_ERROR }
+       ('{'..'~').each {|char| lambda {char.to_vkeys}.should raise_error CONVERSION_ERROR }
       end
       
       it 'raises error if char is non-printable or non-ascii' do
-        lambda {1.chr.to_vkeys}.should raise_error TEST_CONVERSION_ERROR
-        lambda {230.chr.to_vkeys}.should raise_error TEST_CONVERSION_ERROR
+        lambda {1.chr.to_vkeys}.should raise_error CONVERSION_ERROR
+        lambda {230.chr.to_vkeys}.should raise_error CONVERSION_ERROR
       end
       
       it 'raises error if string is multi-char' do
-        lambda {'hello'.to_vkeys}.should raise_error TEST_CONVERSION_ERROR
-        lambda {'23'.to_vkeys}.should raise_error TEST_CONVERSION_ERROR
+        lambda {'hello'.to_vkeys}.should raise_error CONVERSION_ERROR
+        lambda {'23'.to_vkeys}.should raise_error CONVERSION_ERROR
       end  
     end
   end

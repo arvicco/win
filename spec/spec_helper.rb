@@ -71,17 +71,19 @@ end
 
 module WinTest
 
-  TEST_KEY_DELAY = 0.001
-  TEST_IMPOSSIBLE = 'Impossible'
-  TEST_CONVERSION_ERROR = /Can.t convert/
-  TEST_SLEEP_DELAY = 0.02
-  TEST_APP_PATH = File.join(File.dirname(__FILE__), "test_apps/locknote/LockNote.exe" )
-  TEST_APP_START = cygwin? ? "cmd /c start `cygpath -w #{TEST_APP_PATH}`" : 'start "" "' + TEST_APP_PATH + '"'
-  TEST_WIN_TITLE = 'LockNote - Steganos LockNote'
-  TEST_WIN_CLASS = 'ATL:00434098'
-  TEST_WIN_RECT = [710, 400, 1210, 800]
-  TEST_STATUSBAR_CLASS = 'msctls_statusbar32'
-  TEST_TEXTAREA_CLASS = 'ATL:00434310'
+  KEY_DELAY = 0.001
+  IMPOSSIBLE = 'Impossible'
+  CONVERSION_ERROR = /Can.t convert/
+  SLEEP_DELAY = 0.02
+  APP_PATH = File.join(File.dirname(__FILE__), "test_apps/locknote/LockNote.exe" )
+  APP_START = cygwin? ? "cmd /c start `cygpath -w #{APP_PATH}`" : 'start "" "' + APP_PATH + '"'
+  WIN_TITLE = 'LockNote - Steganos LockNote'
+  WIN_RECT = [710, 400, 1210, 800]
+  WIN_CLASS = 'ATL:00434098'
+  STATUSBAR_CLASS = 'msctls_statusbar32'
+  TEXTAREA_CLASS = 'ATL:00434310'
+  DESKTOP_CLASS = '#32769'
+  MENU_CLASS = '#32768'
 
   def any_handle
     find_window(nil, nil)
@@ -103,10 +105,10 @@ module WinTestApp
   #include Win::Gui::Convenience
 
   def launch_test_app
-    system TEST_APP_START
-    sleep TEST_SLEEP_DELAY until (handle = find_window(nil, TEST_WIN_TITLE))
+    system APP_START
+    sleep SLEEP_DELAY until (handle = find_window(nil, WIN_TITLE))
 
-    textarea = find_window_ex(handle, 0, TEST_TEXTAREA_CLASS, nil)
+    textarea = find_window_ex(handle, 0, TEXTAREA_CLASS, nil)
     app = "Locknote" # App identifier
 
     eigen_class = class << app; self; end      # Extracting app's eigenclass
@@ -119,9 +121,9 @@ module WinTestApp
   end
 
   def close_test_app(app = @launched_test_app)
-    while app && app.respond_to?( :handle) && find_window(nil, TEST_WIN_TITLE)
+    while app && app.respond_to?( :handle) && find_window(nil, WIN_TITLE)
       shut_window app.handle
-      sleep TEST_SLEEP_DELAY
+      sleep SLEEP_DELAY
     end
     @launched_test_app = nil
   end
@@ -131,7 +133,7 @@ module WinTestApp
     app = launch_test_app
 
 #    def app.textarea #define singleton method retrieving app's text area
-#      Window::Window.new find_window_ex(self.handle, 0, TEST_TEXTAREA_CLASS, nil)
+#      Window::Window.new find_window_ex(self.handle, 0, TEXTAREA_CLASS, nil)
 #    end
 
     yield app

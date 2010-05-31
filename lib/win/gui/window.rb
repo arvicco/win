@@ -788,8 +788,8 @@ module Win
       # ---
       # *Remarks*: It is *different* from GetWindowText that returns only window title
       #
-      def text( win_handle )
-        buffer = FFI::MemoryPointer.new :char, 1024
+      def text( win_handle, buffer_size=1024 )
+        buffer = FFI::MemoryPointer.new :char, buffer_size
         num_chars = send_message win_handle, Win::Gui::Message::WM_GETTEXT, buffer.size, buffer
         num_chars == 0 ?  nil : buffer.get_bytes(0, num_chars)
       end

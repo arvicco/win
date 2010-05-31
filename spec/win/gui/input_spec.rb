@@ -11,24 +11,35 @@ module WinWindowTest
 
     describe '#keydb_event' do
       spec{ use{ keybd_event(vkey = 0, bscan = 0, flags = 0, extra_info = 0) }}
+      before(:each){ (@app=launch_test_app)}
+      after(:each) do
+        3.times do  # rolling back changes to allow window closing without dialog!
+          keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYDOWN, 0)
+          sleep KEY_DELAY
+          keybd_event('Z'.ord, 0, KEYEVENTF_KEYDOWN, 0)
+          sleep KEY_DELAY
+          keybd_event('Z'.ord, 0, KEYEVENTF_KEYUP, 0)
+          sleep KEY_DELAY
+          keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0)
+          sleep KEY_DELAY
+        end
+        close_test_app
+      end
 
       it 'synthesizes a numeric keystrokes, emulating keyboard driver' do
-        test_app do |app|
-          text = '12 34'
-          text.upcase.each_byte do |b| # upcase needed since user32 keybd_event expects upper case chars
-            keybd_event(b.ord, 0, KEYEVENTF_KEYDOWN, 0)
-            sleep KEY_DELAY
-            keybd_event(b.ord, 0, KEYEVENTF_KEYUP, 0)
-            sleep KEY_DELAY
-          end
-          text(app.textarea).should =~ Regexp.new(text)
-          5.times {keystroke(VK_CONTROL, 'Z'.ord)} # rolling back changes to allow window closing without dialog!
+        text = '123'
+        text.upcase.each_byte do |b| # upcase needed since user32 keybd_event expects upper case chars
+          keybd_event(b.ord, 0, KEYEVENTF_KEYDOWN, 0)
+          sleep KEY_DELAY
+          keybd_event(b.ord, 0, KEYEVENTF_KEYUP, 0)
+          sleep KEY_DELAY
         end
+        text(@app.textarea).should =~ Regexp.new(text)
       end
     end # describe '#keydb_event'
-    
+
     describe '#mouse_event' do
-      spec { use {mouse_event( flags = MOUSEEVENTF_ABSOLUTE , dx = 0, dy = 0, data=0, extra_info=0 )}}
+      spec { use {mouse_event( flags = MOUSEEVENTF_ABSOLUTE, dx = 0, dy = 0, data=0, extra_info=0 )}}
       it 'Emulates Mouse clicks'
     end # describe '#mouse_event'
 
@@ -61,41 +72,13 @@ module WinWindowTest
 
       it 'sets cursor`s position, in screen coordinates' do
         SetCursorPos(x=600, y=600).should be_true
-        get_cursor_pos().should == [600,600]
+        get_cursor_pos().should == [600, 600]
         set_cursor_pos(x=0, y=0).should be_true
-        get_cursor_pos().should == [0,0]
+        get_cursor_pos().should == [0, 0]
       end
     end # describe '#set_cursor_pos'
 
   end # Win::Gui::Input, ' defines a set of API functions related to user input'
 
-  describe Win::Gui::Input, ' defines convenience/service methods on top of Windows API' do
-    describe '#keystroke' do
-      spec{ use{ keystroke( vkey = 30, vkey = 30) }}
-
-      it 'emulates combinations of keys pressed (Ctrl+Alt+P+M, etc)' do
-        test_app do |app|
-          keystroke(VK_CONTROL, 'A'.ord)
-          keystroke(VK_SPACE)
-          text(app.textarea).should.should == ' '
-          2.times {keystroke(VK_CONTROL, 'Z'.ord)} # rolling back changes to allow window closing without dialog!
-        end
-      end
-    end # describe '#keystroke'
-
-    describe '#type_in' do
-      spec{ use{ type_in(message = '') }}
-
-      it 'types text message into the window holding the focus' do
-        test_app do |app|
-          text = '12 34'
-          type_in(text)
-          text(app.textarea).should =~ Regexp.new(text)
-          5.times {keystroke(VK_CONTROL, 'Z'.ord)} # rolling back changes to allow window closing without dialog!
-        end
-      end
-    end # describe '#type_in'
-
-  end # Win::Gui::Input, ' defines convenience/service methods on top of Windows API'
 end
 

@@ -651,7 +651,7 @@ module WinWindowTest
     end
 
     describe '#text' do
-      spec{ use{ text = text(any_handle) }}
+      spec{ use{ text = text(any_handle, buffer_size=1024) }}
 
       it 'returns text associated with window by sending WM_GETTEXT message to it' do
         test_app do |app|

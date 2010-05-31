@@ -343,7 +343,8 @@ module Win
         # Create API object that holds information about function names, params, etc
         api = API.new(namespace, name, effective_name, params, returns, libs)
 
-        # Only define enhanced API if snake_name is different from original name (e.g. keybd_event)
+        # Only define enhanced API if snake_name is different from original name (e.g. keybd_event),
+        # If names are the same, this function is already "attached", not possible to enhance its API 
         unless snake_name.to_s == name.to_s
           method_body = if def_block
             if zeronil

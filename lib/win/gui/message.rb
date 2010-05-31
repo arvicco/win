@@ -7,36 +7,37 @@ module Win
     #  Below is a table of system-defined message prefixes:
     #
     #  *Prefix*:: *Message* *category* 
-    #  ABM::    Application desktop toolbar
-    #  BM::     Button control
-    #  CB::     Combo box control
-    #  CBEM::   Extended combo box control
-    #  CDM::    Common dialog box
-    #  DBT::    Device
-    #  DL::     Drag list box
-    #  DM::     Default push button control
-    #  DTM::    Date and time picker control
-    #  EM::     Edit control
-    #  HDM::    Header control
-    #  HKM::    Hot key control
-    #  IPM::    IP address control
-    #  LB::     List box control
-    #  LVM::    List view control
-    #  MCM::    Month calendar control
-    #  PBM::    Progress bar
-    #  PGM::    Pager control
-    #  PSM::    Property sheet
-    #  RB::     Rebar control
-    #  SB::     Status bar window
-    #  SBM::    Scroll bar control
-    #  STM::    Static control
-    #  TB::     Toolbar
-    #  TBM::    Trackbar
-    #  TCM::    Tab control
-    #  TTM::    Tooltip control
-    #  TVM::    Tree-view control
-    #  UDM::    Up-down control
-    #  WM::     General window
+    #  ABM:: Application desktop toolbar
+    #  BM:: Button control
+    #  CB:: Combo box control
+    #  CBEM:: Extended combo box control
+    #  CDM:: Common dialog box
+    #  DBT:: Device
+    #  DL::  Drag list box
+    #  DM::  Default push button control
+    #  DTM:: Date and time picker control
+    #  EM::  Edit control
+    #  HDM:: Header control
+    #  HKM:: Hot key control
+    #  IPM:: IP address control
+    #  LB::  List box control
+    #  LVM:: List view control
+    #  MCM:: Month calendar control
+    #  PBM:: Progress bar
+    #  PGM:: Pager control
+    #  PSM:: Property sheet
+    #  RB::  Rebar control
+    #  SB::  Status bar window
+    #  SBM:: Scroll bar control
+    #  STM:: Static control
+    #  TB::  Toolbar
+    #  TBM:: Trackbar
+    #  TCM:: Tab control
+    #  TTM:: Tooltip control
+    #  TVM:: Tree-view control
+    #  UDM:: Up-down control
+    #  WM::  General window
+
     module Message
       include Win::Library
 
@@ -334,6 +335,33 @@ module Win
       # PM_QS_SENDMESSAGE - Windows 98/Me, Windows 2000/XP: Process all sent messages.
       PM_QS_SENDMESSAGE= (QS_SENDMESSAGE << 16)
 
+      # The MSG structure contains message information from a thread's message queue.
+      #
+      #  typedef struct {
+      #     HWND hwnd;
+      #     UINT message;
+      #     WPARAM wParam;
+      #     LPARAM lParam;
+      #     DWORD time;
+      #     POINT pt;
+      #  } MSG, *PMSG;
+      #
+      #  hwnd:: Handle to the window whose window procedure receives the message. NULL when the message is a thread message.
+      #  message:: Message identifier. Applications can only use the low word; the high word is reserved by the system.
+      #  wParam:: Additional info about the message. Exact meaning depends on the value of the message member.
+      #  lParam:: Additional info about the message. Exact meaning depends on the value of the message member.
+      #  time:: Specifies the time at which the message was posted.
+      #  pt:: POINT structure - the cursor position, in screen coordinates, when the message was posted.
+      #       (in my definition, it is changed to two longs: x, y - has the same effect, just avoid nested structs)
+      class Msg < FFI::Struct
+        layout :hwnd, :ulong,
+               :message, :uint,
+               :w_param, :long,
+               :l_param, :pointer,
+               :time, :uint32,
+               :x, :long,
+               :y, :long
+      end
 
       ##
       # The SendAsyncProc function is an application-defined callback function used with the SendMessageCallback
@@ -476,34 +504,6 @@ module Win
       # send_message(handle, msg, w_param, l_param)
       #
       function :SendMessage, [:ulong, :uint, :uint, :pointer], :int   # LPARAM different from PostMessage!
-
-      # The MSG structure contains message information from a thread's message queue.
-      #
-      #  typedef struct {
-      #     HWND hwnd;
-      #     UINT message;
-      #     WPARAM wParam;
-      #     LPARAM lParam;
-      #     DWORD time;
-      #     POINT pt;
-      #  } MSG, *PMSG;
-      #
-      #  hwnd:: Handle to the window whose window procedure receives the message. NULL when the message is a thread message.
-      #  message:: Message identifier. Applications can only use the low word; the high word is reserved by the system.
-      #  wParam:: Additional info about the message. Exact meaning depends on the value of the message member.
-      #  lParam:: Additional info about the message. Exact meaning depends on the value of the message member.
-      #  time:: Specifies the time at which the message was posted.
-      #  pt:: POINT structure - the cursor position, in screen coordinates, when the message was posted.
-      #       (in my definition, it is changed to two longs: x, y - has the same effect, just avoid nested structs) 
-      class Msg < FFI::Struct
-        layout :hwnd, :ulong,
-               :message, :uint,
-               :w_param, :long,
-               :l_param, :pointer,
-               :time, :uint32,
-               :x, :long,
-               :y, :long
-      end
 
       ##
       # The GetMessage function retrieves a message from the calling thread's message queue. The function

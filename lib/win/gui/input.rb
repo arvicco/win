@@ -7,12 +7,7 @@ module Win
     module Input
       include Win::Library
 
-      # Internal constants:
-
-      # Key event delay
-      KEY_DELAY  = 0.00001
-
-      # Windows keyboard-related Constants:
+      # Windows defined constants:
 
       # Key down keyboard event (the key is being depressed)
       KEYEVENTF_KEYDOWN = 0
@@ -295,26 +290,6 @@ module Win
 
 
       # Convenience methods
-
-      ##
-      # Emulates combinations of (any amount of) keys pressed one after another (Ctrl+Alt+P) and then released
-      # *keys should be a sequence of a virtual-key codes. The codes must be a value in the range 1 to 254.
-      # For a complete list, see msdn:Virtual Key Codes.
-      def keystroke(*keys)
-        return if keys.empty?
-        keybd_event keys.first, 0, KEYEVENTF_KEYDOWN, 0
-        sleep KEY_DELAY
-        keystroke *keys[1..-1]
-        sleep KEY_DELAY
-        keybd_event keys.first, 0, KEYEVENTF_KEYUP, 0
-      end
-
-      # types text message into window holding the focus
-      def type_in(message)
-        message.scan(/./m) do |char|
-          keystroke(*char.to_vkeys)
-        end
-      end
     end
   end
 end

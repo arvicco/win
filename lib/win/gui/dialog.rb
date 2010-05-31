@@ -6,6 +6,17 @@ module Win
     # Contains constants and Win32API functions related to dialog manipulation
     #
     module Dialog
+
+      # IDs of standard dialog controls and items
+      IDOK = 1
+      IDCANCEL = 2
+      IDABORT = 3
+      IDRETRY = 4
+      IDIGNORE = 5
+      IDYES = 6
+      IDNO = 7
+      ErrorIcon = 0x0014
+
       include Win::Library
       include Win::Gui::Window
 
@@ -31,18 +42,6 @@ module Win
       #
       function :GetDlgItem, [:ulong, :int], :ulong
 
-      # Convenience methods:
-
-      # finds top-level dialog window by title and yields found dialog window to block if given
-#      def dialog(title, seconds=3)
-#        d = begin
-#          win = Window::Window.top_level(title, seconds)
-#          yield(win) ? win : nil
-#        rescue TimeoutError
-#        end
-#        d.wait_for_close if d
-#        return d
-#      end
     end
   end
 end

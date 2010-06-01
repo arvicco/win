@@ -1,5 +1,5 @@
 require 'ffi'
-require 'win/extensions'
+require 'extension'
 
 # Related Windows API functions are grouped by topic and defined in separate namespaces (modules),
 # that also contain related constants and convenience methods. For example, Win::Dde module

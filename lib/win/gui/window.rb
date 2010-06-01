@@ -635,6 +635,62 @@ module Win
       function :GetForegroundWindow, [], :HWND, zeronil: true
 
       ##
+      # SetForegroundWindow function puts the thread that created the specified window into the foreground
+      # and activates the window. Keyboard input is directed to the window, and various visual cues are 
+      # changed for the user. The system assigns a slightly higher priority to the thread that created the
+      # foreground window than it does to other threads.
+      #
+      # [*Syntax*] BOOL SetForegroundWindow( HWND hWnd );
+      #
+      # hWnd:: [in] Handle to the window that should be activated and brought to the foreground.
+      #
+      # *Returns*:: If the window was brought to the foreground, the return value is nonzero.
+      # If the window was not brought to the foreground, the return value is zero.
+      # ---
+      # *Remarks*:
+      # Windows 98/Me: The system restricts which processes can set the foreground window. A process can set
+      # the foreground window only if one of the following conditions is true:
+      # - The process is the foreground process.
+      # - The process was started by the foreground process.
+      # - The process received the last input event.
+      # - There is no foreground process.
+      # - The foreground process is being debugged.
+      # - The foreground is not locked (see LockSetForegroundWindow).
+      # - The foreground lock time-out has expired (see SPI_GETFOREGROUNDLOCKTIMEOUT in SystemParametersInfo).
+      # - Windows 2000/XP: No menus are active.
+      #
+      # With this change, an application cannot force a window to the foreground while the user is working
+      # with another window. Instead, Foreground and Background Windows will activate the window (see
+      # SetActiveWindow) and call the function to notify the user. However, on Microsoft Windows 98 and
+      # Windows Millennium Edition (Windows Me), if a nonforeground thread calls SetForegroundWindow and
+      # passes the handle of a window that was not created by the calling thread, the window is not flashed on
+      # the taskbar. To have SetForegroundWindow behave the same as it did on Windows 95 and Microsoft Windows
+      # NT 4.0, change the foreground lock timeout value when the application is installed. This can be done
+      # from the setup or installation application with the following function call:
+      # SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, (LPVOID)0, SPIF_SENDWININICHANGE |
+      # SPIF_UPDATEINIFILE);
+      # This method allows SetForegroundWindow on Windows 98/Windows Me and Windows 2000/Windows XP to behave
+      # the same as Windows 95 and Windows NT 4.0, respectively, for all applications. The setup application
+      # should warn the user that this is being done so that the user isn't surprised by the changed behavior.
+      # On Windows Windows 2000 and Windows XP, the call fails unless the calling thread can change the
+      # foreground window, so this must be called from a setup or patch application. For more information, see
+      # Foreground and Background Windows.
+      # A process that can set the foreground window can enable another process to set the foreground window
+      # by calling the AllowSetForegroundWindow function. The process specified by dwProcessId loses the
+      # ability to set the foreground window the next time the user generates input, unless the input is
+      # directed at that process, or the next time a process calls AllowSetForegroundWindow, unless that
+      # process is specified.
+      # The foreground process can disable calls to SetForegroundWindow by calling the LockSetForegroundWindow function.
+      #
+      # ---
+      # <b>Enhanced (snake_case) API: returns true/false</b>
+      #
+      # :call-seq:
+      #  success = set_foreground_window(h_wnd)
+      #
+      function :SetForegroundWindow, [:HWND], :int8, boolean: true
+
+      ##
       # The GetActiveWindow function retrieves the window handle to the active window attached to
       # the calling thread's message queue.
       #

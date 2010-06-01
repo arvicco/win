@@ -73,6 +73,15 @@ module Win
       #  HELP key
       VK_HELP     = 0x2F
 
+      # US semicolon
+      VK_OEM_1 = 0xBA
+      # US backslash
+      VK_OEM_102 = 0xE2
+      # US period (point)
+      VK_OEM_PERIOD = 0xBE
+      # US comma
+      VK_OEM_COMMA = 0xBC
+
 #  Public Type MOUSEINPUT
 #  dx As Long
 #  dy As Long

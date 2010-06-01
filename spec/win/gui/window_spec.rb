@@ -192,6 +192,25 @@ module WinWindowTest
         end
       end
 
+      describe "#set_foreground_window" do
+        spec{ use{ success = SetForegroundWindow(handle=0) }}
+        spec{ use{ success = set_foreground_window(handle=0) }}
+
+        it "puts the thread that created the specified window into the foreground and activates the window" do
+          test_app do |app|
+            set_foreground_window(any_handle).should be_true
+            foreground?(app.handle).should be_false
+            success = set_foreground_window(app.handle)
+            foreground?(app.handle).should be_true
+          end
+        end
+
+        it "returns false/0 if operation failed" do
+            set_foreground_window(not_a_handle).should == false
+            SetForegroundWindow(not_a_handle).should == 0
+        end
+      end # describe set_foreground_window
+
       describe '#get_foreground_window' do
         # ! Different from GetActiveWindow !
         spec{ use{ handle = GetForegroundWindow() }}
@@ -201,10 +220,10 @@ module WinWindowTest
         it 'returns handle to window that is currently in foreground' do
           test_app do |app|
             @app_handle = app.handle
-            fg1 = foreground_window
+            fg1 = get_foreground_window
             @app_handle.should == fg1
           end
-          fg2 = foreground_window
+          fg2 = get_foreground_window
           @app_handle.should_not == fg2
         end
 

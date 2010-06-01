@@ -120,10 +120,11 @@ module WinTestApp
     @launched_test_app = app
   end
 
-  def close_test_app(app = @launched_test_app)
-    while app && app.respond_to?( :handle) && find_window(nil, WIN_TITLE)
-      shut_window app.handle
+  def close_test_app
+    while @launched_test_app && find_window(nil, WIN_TITLE)
+      shut_window @launched_test_app.handle
       sleep SLEEP_DELAY
+      keystroke('N') if find_window(nil, "Steganos Locknote") # Dealing with closing modal dialog
     end
     @launched_test_app = nil
   end
@@ -131,12 +132,21 @@ module WinTestApp
   # Creates test app object and yields it back to the block
   def test_app
     app = launch_test_app
-
-#    def app.textarea #define singleton method retrieving app's text area
-#      Window::Window.new find_window_ex(self.handle, 0, TEXTAREA_CLASS, nil)
-#    end
-
     yield app
-    close_test_app app
+    close_test_app
+  end
+
+  # Emulates combinations of (any amount of) keys pressed one after another (Ctrl+Alt+P) and then released
+  # *keys should be a sequence of a virtual-key codes. These codes must be a value in the range 1 to 254.
+  # For a complete list, see msdn:Virtual Key Codes.
+  # If alphanumerical char is given instead of virtual key code, only lowercase letters result (no VK_SHIFT!).
+  def keystroke(*keys)
+    return if keys.empty?
+    key = String === keys.first ? keys.first.upcase.ord : keys.first.to_i
+    keybd_event key, 0, KEYEVENTF_KEYDOWN, 0
+    sleep KEY_DELAY
+    keystroke *keys[1..-1]
+    sleep KEY_DELAY
+    keybd_event key, 0, KEYEVENTF_KEYUP, 0
   end
 end

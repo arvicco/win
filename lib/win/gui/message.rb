@@ -748,57 +748,42 @@ module Win
       #
       function :DispatchMessage, [:pointer], :long
 
+      # Untested:
+
       ##
       function :BroadcastSystemMessage, 'LPIIL', 'L'
-
       ##
-      try_function :BroadcastSystemMessageEx, 'LPILLP', 'L'   # Windows XP or later
-
+      try_function :BroadcastSystemMessageEx, 'LPILLP', 'L'   # Windows XP or later only
       ##
       function :DefWindowProc, 'LLLL', 'L'
-
       ##
       function :GetInputState, 'V', 'B'
-
       ##
       function :GetMessageExtraInfo, 'V', 'L'
-
       ##
       function :GetMessagePos, 'V', 'L'
-
       ##
       function :GetMessageTime, 'V', 'L'
-
       ##
       function :GetQueueStatus, 'I', 'L'
-
       ##
       function :InSendMessage, 'V', 'B'
-
       ##
       function :InSendMessageEx, 'L', 'L'
-
       ##
       function :PostQuitMessage, 'I', 'V'
-
       ##
       function :PostThreadMessage, 'LILL', 'B'
-
       ##
       function :RegisterWindowMessage, 'P', 'I'
-
       ##
       function :ReplyMessage, 'L', 'B'
-
       ##
       function :SendMessageTimeout, 'LILLIIP', 'L'
-
       ##
       function :SendNotifyMessage, 'LILLIIP', 'L'
-
       ##
       function :SetMessageExtraInfo, 'L', 'L'
-
       ##
       function :WaitMessage, 'V', 'B'
     end

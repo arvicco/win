@@ -22,3 +22,7 @@
 == 0.3.7 / 2010-06-01
 
 * SetForegroudWindow added
+
+== 0.3.8 / 2010-06-02
+
+* Require paths bug fixed

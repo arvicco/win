@@ -8,6 +8,8 @@ module Win
     # Windows dialog basics can be found here:
     # http://msdn.microsoft.com/en-us/library/ms644996#init_box
     module Dialog
+      include Win::Library
+      include Win::Gui::Window
 
       # Message Box flags:
 
@@ -142,8 +144,54 @@ module Win
       # These are not returned, their presence helps to programmatically identify type of present dialog:
       ErrorIcon = 0x14  # ID of Error Icon (this dialog informs about some Error)
 
-      include Win::Library
-      include Win::Gui::Window
+      ##
+      # DialogProc is an application-defined callback function used with the CreateDialog and DialogBox
+      # families of functions. It processes messages sent to a modal or modeless dialog box. The DLGPROC
+      # type defines a pointer to this callback function. DialogProc is a placeholder for the
+      # application-defined function name.
+      #
+      # [*Syntax*] INT_PTR CALLBACK DialogProc( HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam );
+      #
+      # hwndDlg:: [in] Handle to the dialog box.
+      # uMsg:: [in] Specifies the message.
+      # wParam:: [in] Specifies additional message-specific information.
+      # lParam:: [in] Specifies additional message-specific information.
+      #
+      # *Returns*:: Typically, the dialog box procedure should return TRUE if it processed the message, and
+      #             FALSE if it did not. If the dialog box procedure returns FALSE, the dialog manager
+      #             performs the default dialog operation in response to the message.
+      # If the dialog box procedure processes a message that requires a specific return value, the dialog box
+      # procedure should set the desired return value by calling SetWindowLong(hwndDlg, DWL_MSGRESULT,
+      # lResult) immediately before returning TRUE. Note that you must call SetWindowLong immediately before
+      # returning TRUE; doing so earlier may result in the DWL_MSGRESULT value being overwritten by a nested
+      # dialog box message.
+      # The following messages are exceptions to the general rules stated above. Consult the documentation for
+      # the specific message for details on the semantics of the return value.
+      # WM_CHARTOITEM
+      # WM_COMPAREITEM
+      # WM_CTLCOLORBTN
+      # WM_CTLCOLORDLG
+      # WM_CTLCOLOREDIT
+      # WM_CTLCOLORLISTBOX
+      # WM_CTLCOLORSCROLLBAR
+      # WM_CTLCOLORSTATIC
+      # WM_INITDIALOG
+      # WM_QUERYDRAGICON
+      # WM_VKEYTOITEM
+      # ---
+      # *Remarks*:
+      # You should use the dialog box procedure only if you use the dialog box class for the dialog box. This
+      # is the default class and is used when no explicit class is specified in the dialog box template.
+      # Although the dialog box procedure is similar to a window procedure, it must not call the DefWindowProc
+      # function to process unwanted messages. Unwanted messages are processed internally by the dialog box
+      # window procedure.
+      # ---
+      # *See* *Also*:
+      # Dialog Boxes Overview, CreateDialog, CreateDialogIndirect, CreateDialogIndirectParam,
+      # CreateDialogParam, DefWindowProc, DialogBox, DialogBoxIndirect, DialogBoxIndirectParam,
+      # DialogBoxParam, SetFocus, WM_INITDIALOG
+      #
+      callback :DialogProc, [:HWND, :UINT, :WPARAM, :LPARAM], :int
 
       ##
       # The GetDlgItem function retrieves a handle to a control in the specified dialog box.
@@ -255,13 +303,13 @@ module Win
       # Untested:
 
       ##
-      #function :CreateDialogIndirectParam, 'LPLKL', 'L'
+      function :CreateDialogIndirectParam, ['L', 'P', 'L', :DialogProc, 'L'], 'L'
       ##
-      #function :CreateDialogParam, 'LPLKL', 'L'
+      function :CreateDialogParam, ['L', 'P', 'L', :DialogProc, 'L'], 'L'
       ##
-      #function :DialogBoxIndirectParam, 'LPLKL', 'P'
+      function :DialogBoxIndirectParam, ['L', 'P', 'L', :DialogProc, 'L'], 'P'
       ##
-      #function :DialogBoxParam, 'LPLKL', 'P'
+      function :DialogBoxParam, ['L', 'P', 'L', :DialogProc, 'L'], 'P'
       ##
       function :EndDialog, 'LP', 'B'
       ##
@@ -279,8 +327,6 @@ module Win
       ##
       function :MapDialogRect, 'LP', 'B'
       ##
-      function :MessageBox, 'LPPI', 'I'
-      ##
       function :MessageBoxEx, 'LPPII', 'I'
       ##
       function :MessageBoxIndirect, 'P', 'I'
@@ -293,22 +339,21 @@ module Win
 
       # Macros from WinUser.h
 
-#      def CreateDialog(hInstance, lpName, hParent, lpDialogFunc)
-#         CreateDialogParam(hInstance, lpName, hParent, lpDialogFunc, 0)
-#      end
-#
-#      def CreateDialogIndirect(hInst, lpTemp, hPar, lpDialFunc)
-#         CreateDialogIndirectParam(hInst, lpTemp, hPar, lpDialFunc, 0)
-#      end
-#
-#      def DialogBox(hInstance, lpTemp, hParent, lpDialogFunc)
-#         DialogBoxParam(hInstance, lpTemp, hParent, lpDialogFunc, 0)
-#      end
-#
-#      def DialogBoxIndirect(hInst, lpTemp, hParent, lpDialogFunc)
-#         DialogBoxParamIndirect(hInst, lpTemp, hParent, lpDialogFunc, 0)
-#      end
-#
+      def CreateDialog(hInstance, lpName, hParent, lpDialogFunc)
+         CreateDialogParam(hInstance, lpName, hParent, lpDialogFunc, 0)
+      end
+
+      def CreateDialogIndirect(hInst, lpTemp, hPar, lpDialFunc)
+         CreateDialogIndirectParam(hInst, lpTemp, hPar, lpDialFunc, 0)
+      end
+
+      def DialogBox(hInstance, lpTemp, hParent, lpDialogFunc)
+         DialogBoxParam(hInstance, lpTemp, hParent, lpDialogFunc, 0)
+      end
+
+      def DialogBoxIndirect(hInst, lpTemp, hParent, lpDialogFunc)
+         DialogBoxParamIndirect(hInst, lpTemp, hParent, lpDialogFunc, 0)
+      end
     end
   end
 end

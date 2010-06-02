@@ -1,8 +1,7 @@
 require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 require 'win/gui/input'
-#require 'win/gui/window'
 
-module WinWindowTest
+module WinGuiDialogTest
 
   include WinTestApp
   include Win::Gui::Dialog
@@ -11,12 +10,12 @@ module WinWindowTest
     test_app do |app|
       case type
         when :close
-          keystroke('A'.ord)
+          keystroke('A')
           shut_window app.handle
-          sleep 0.01 unless dialog = find_window(nil, "Steganos Locknote")
+          sleep 0.01 until dialog = find_window(nil, "Steganos Locknote")
         when :save
-          keystroke(VK_ALT, 'F'.ord, 'A'.ord)
-          sleep 0.01 unless dialog = find_window(nil, "Save As")
+          keystroke(VK_ALT, 'F', 'A')
+          sleep 0.01 until dialog = find_window(nil, "Save As")
       end
       yield app, dialog
       keystroke(VK_ESCAPE)
@@ -40,20 +39,22 @@ module WinWindowTest
 
 
     describe '#get_dlg_item' do
-      after(:each) { keystroke(VK_ESCAPE) }                 # Close modal dialog if it is still opened
-
       spec{ use{ control_handle = get_dlg_item(handle = 0, item_id = 1) }}
 
-      it 'returns handle to an existing control in a dialog' do
+      it 'returns handle to an existing controls in a dialog' do
         test_app_with_dialog(:close) do |app, dialog|
           get_dlg_item(dialog, item_id=IDYES).should_not == nil
           get_dlg_item(dialog, item_id=IDNO).should_not == nil
           get_dlg_item(dialog, item_id=IDCANCEL).should_not == nil
+        end
+      end
 
+      it 'returns nil/0 for non-existing controls in a dialog' do
+        test_app_with_dialog(:close) do |app, dialog|
           get_dlg_item(dialog, item_id=IDOK).should == nil
           get_dlg_item(dialog, item_id=IDABORT).should == nil
-          get_dlg_item(dialog, item_id=IDRETRY).should == nil
-          get_dlg_item(dialog, item_id=IDCONTINUE).should == nil
+          GetDlgItem(dialog, item_id=IDRETRY).should == 0
+          GetDlgItem(dialog, item_id=IDCONTINUE).should == 0
         end
       end
 

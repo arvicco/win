@@ -1,7 +1,7 @@
 require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 require 'win/gui/window'
 
-module WinWindowTest
+module WinGuiWindowTest
 
   include WinTestApp
   include Win::Gui::Window

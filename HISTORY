@@ -30,3 +30,7 @@
 == 0.3.9 / 2010-06-02
 
 * Changed Win::Library mix-in mode from include to extend
+
+== 0.3.10 / 2010-06-02
+
+* Win::Library.extended refactored with module_function

@@ -87,6 +87,7 @@ module WinLibraryTest
         it 'defines new instance methods with appropriate names' do
           MyLib.function :FindWindow, 'PP', 'L'
           respond_to?(:FindWindow).should be_true
+          MyLib.respond_to?(:find_window).should be_true
           respond_to?(:find_window).should be_true
         end
 

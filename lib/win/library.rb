@@ -325,9 +325,12 @@ module Win
 
         define_method snake_name, &method_body       # define snake_case instance method
 
+#        module_function snake_name    # TODO: Doesn't work as a replacement for eigen_class stuff. :( Why?
+
         eigen_class = class << self;
           self;
         end        # Extracting eigenclass
+
         eigen_class.class_eval do
           define_method snake_name, &method_body       # define snake_case class method
         end
@@ -404,16 +407,14 @@ module Win
 
     ##
     # Hook executed when Win::Library extends other module or class. It adds namespace method pointing
-    # to host module/class that is used by Win::Library to invoke attached (CamelCase) functions
-    #
+    # to host module/class that is used by Win::Library to invoke attached (CamelCase) functions.
+    # Also sets default ffi libs and calling conventions.
     def self.extended(host)
 
-      # In host module's eigenclass, define namespace method pointing to host class itself
-      # :stopdoc:
-      class << host
-        self
-      end.class_eval { define_method(:namespace) {host} }
-      # :startdoc:
+      host.class_eval do
+        define_method(:namespace) {host}
+        module_function :namespace
+      end
 
       host.ffi_lib 'user32', 'kernel32'  # Default libraries
       host.ffi_convention :stdcall

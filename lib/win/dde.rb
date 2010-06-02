@@ -5,7 +5,7 @@ module Win
   # Includes functions related to DDE exchange protocol in Windows
   #
   module Dde
-    include Win::Library
+    extend Win::Library
 
     # Windows ANSI codepage:
     CP_WINANSI = 1004

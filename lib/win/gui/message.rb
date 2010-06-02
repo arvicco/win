@@ -39,7 +39,7 @@ module Win
     #  WM::  General window
 
     module Message
-      include Win::Library
+      extend Win::Library
 
       # General window messages cover a wide range of information and requests, including messages for mouse and
       # keyboard input, menu and dialog box input, window creation and management, and Dynamic Data Exchange (DDE).
@@ -504,6 +504,13 @@ module Win
       # send_message(handle, msg, w_param, l_param)
       #
       function :SendMessage, [:ulong, :uint, :uint, :pointer], :int   # LPARAM different from PostMessage!
+
+      ##
+      # :method: :SendMessageLong?
+      # We need to attach another SendMessage function, this time accepting :long instead of :pointer lParam.
+      # I do not know yet how to make FFI attach functions with same name, but different signature...
+      #
+      # function :SendMessage, [:ulong, :uint, :uint, :long], :int, alias: send_message_long?
 
       ##
       # The GetMessage function retrieves a message from the calling thread's message queue. The function

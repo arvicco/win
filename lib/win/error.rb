@@ -7,7 +7,7 @@ module Win
   # other modules may contain additional error codes specific to their domain.
   #
   module Error
-    include Win::Library
+    extend Win::Library
 
     #Error codes:
 

@@ -6,7 +6,7 @@ module WinLibraryTest
   include WinTest
 
   module MyLib # namespace for defined functions
-    include Win::Library
+    extend Win::Library
   end
   include MyLib
 

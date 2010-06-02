@@ -8,7 +8,7 @@ module Win
     # Windows dialog basics can be found here:
     # http://msdn.microsoft.com/en-us/library/ms644996#init_box
     module Dialog
-      include Win::Library
+      extend Win::Library
       include Win::Gui::Window
 
       # Message Box flags:

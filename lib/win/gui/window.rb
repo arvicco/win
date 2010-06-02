@@ -6,7 +6,7 @@ module Win
     # Contains constants and Win32API functions related to window manipulation
     #
     module Window
-      include Win::Library
+      extend Win::Library
 
       # ShowWindow constants:
 
@@ -812,7 +812,7 @@ module Win
       #
       function :GetAncestor, [:HWND, :UINT], :HWND, zeronil: true
 
-      
+
       # Convenience wrapper methods:
 
       ##

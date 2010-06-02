@@ -85,10 +85,6 @@ module WinGuiMessageTest
       end
     end # describe '#send_message'
 
-    # :call-seq:
-    #  success = send_message_callback(handle, msg, w_param, l_param, data)
-    #            {|handle, msg, data, l_result| callback code }
-
     describe "#send_message_callback" do
       before(:all){@app=launch_test_app}
       after(:all){close_test_app if @launched_test_app}

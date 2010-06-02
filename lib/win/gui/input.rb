@@ -5,7 +5,7 @@ module Win
     # Contains constants and Win32API functions related to end user input
     #
     module Input
-      include Win::Library
+      extend Win::Library
 
       # Windows defined constants:
 

@@ -325,7 +325,7 @@ module Win
 
         define_method snake_name, &method_body       # define snake_case instance method
 
-#        module_function snake_name    # TODO: Doesn't work as a replacement for eigen_class stuff. :( Why?
+#        module_function snake_name    # TODO: Doesn't work as a perfect replacement for eigen_class stuff. :( Why?
 
         eigen_class = class << self;
           self;
@@ -411,7 +411,7 @@ module Win
     # Also sets default ffi libs and calling conventions.
     def self.extended(host)
 
-      host.class_eval do
+      host.module_eval do
         define_method(:namespace) {host}
         module_function :namespace
       end

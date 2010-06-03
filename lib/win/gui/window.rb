@@ -390,7 +390,7 @@ module Win
                &->(api, handle, cmd=SW_SHOW) { api.call handle, cmd }
 
       ##
-      # The CloseWindow function minimizes (but does not destroy) the specified window.
+      # The CloseWindow function MINIMIZES (but does not destroy) the specified window.
       #
       # [*Syntax*]: BOOL CloseWindow( HWND hWnd );
       #
@@ -451,7 +451,7 @@ module Win
       # *Returns*: Pair of identifiers of the thread and process_id that created the window.
       #
       #:call-seq:
-      #   thread, process_id = [get_]window_tread_process_id( win_handle )
+      #   thread, process_id = [get_]window_thread_process_id( win_handle )
       #
       function :GetWindowThreadProcessId, [:HWND, :pointer], :long,
                &->(api, handle) {

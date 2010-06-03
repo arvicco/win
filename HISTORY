@@ -34,3 +34,7 @@
 == 0.3.10 / 2010-06-02
 
 * Win::Library.extended refactored with module_function
+
+== 0.3.11 / 2010-06-03
+
+* GetDlgCtrlID function added

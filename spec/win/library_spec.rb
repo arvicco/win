@@ -13,8 +13,8 @@ module WinLibraryTest
   def should_be symbol, api
     case symbol
       when :find_window
-        #api.dll_name.should == 'user32' # The name of the DLL that exports the API function
-        api.effective_function_name.should == 'FindWindowA' # Actual function returned by the constructor: 'GetUserName' ->'GetUserNameA' or 'GetUserNameW'
+        api.dll.should == ["user32", "kernel32"] # The name of the DLL that exports the API function
+        api.effective_function_name.should == :FindWindowA # Actual function: 'GetUserName' ->'GetUserNameA' or 'GetUserNameW'
         api.function_name.should == :FindWindow # The name of the function passed to the constructor
         api.prototype.should == [:pointer, :pointer] # The prototype, returned as an array of characters
         api.return_type.should == :ulong # The prototype, returned as an array of characters
@@ -43,13 +43,12 @@ module WinLibraryTest
   end
 
   def redefined_methods
-    [:FindWindow, :IsWindow, :EnumWindows, :GetComputerName, :GetForegroundWindow]
+    [:FindWindow, :IsWindow, :EnumWindows, :GetComputerName, :GetForegroundWindow, :keybd_event]
   end
 
   def hide_method(*names) # hide original method(s) if it is defined
     names.map(&:to_s).each do |name|
       MyLib.module_eval do
-        # + remove_const
         aliases = generate_names(name).flatten + [name]
         aliases.map(&:to_s).each do |ali|
           if method_defined? ali
@@ -94,21 +93,21 @@ module WinLibraryTest
 
     context 'renaming and aliasing' do
       it ':snake_name option overrides default snake_case name for defined method but leaves CamelCase intact' do
-        MyLib.function :FindWindow, 'PP', 'L', :snake_name=> 'my_own_find', &@def_block
+        MyLib.function :FindWindow, 'PP', 'L', snake_name: 'my_own_find', &@def_block
         expect {find_window(nil, nil)}.to raise_error NoMethodError
         expect {FindWindow(nil, nil)}.to_not raise_error
         expect {my_own_find(nil, nil)}.to_not raise_error
       end
 
       it ':camel_name option overrides default CamelCase name for attached function but leaves snake_case intact' do
-        MyLib.function :FindWindow, 'PP', 'L', :camel_name=> 'MyOwnName', &@def_block
+        MyLib.function :FindWindow, 'PP', 'L', camel_name: 'MyOwnName', &@def_block
         expect {find_window(nil, nil)}.to_not raise_error
         expect {FindWindow(nil, nil)}.to raise_error NoMethodError
         expect {MyOwnName(nil, nil)}.to_not raise_error
       end
 
       it 'both :snake_name and :camel_name option can be used in one declaration' do
-        MyLib.function :FindWindow, 'PP', 'L', :camel_name=> 'MyOwnName', :snake_name=> 'my_own_find', &@def_block
+        MyLib.function :FindWindow, 'PP', 'L', camel_name: 'MyOwnName', snake_name: 'my_own_find', &@def_block
         expect {find_window(nil, nil)}.to raise_error NoMethodError
         expect {my_own_find(nil, nil)}.to_not raise_error
         expect {FindWindow(nil, nil)}.to raise_error NoMethodError
@@ -321,6 +320,14 @@ module WinLibraryTest
         it 'should enforce argument count to 0, NOT 1' do
           MyLib.function :GetForegroundWindow, [], 'L', zeronil: true
           should_count_args :GetForegroundWindow, :get_foreground_window, :foreground_window, [], [nil, 0, 123]
+        end
+      end
+
+      context 'defining API function that has snake_case name' do
+        it 'should define original function in (generated) CamelCase' do
+          MyLib.function :keybd_event, [:char, :char, :ulong, :ulong], :void
+          expect {KeybdEvent(Win::Gui::Input::VK_CONTROL, 0, Win::Gui::Input::KEYEVENTF_KEYDOWN, 0)}.to_not raise_error
+          expect {keybd_event(Win::Gui::Input::VK_CONTROL, 0, Win::Gui::Input::KEYEVENTF_KEYDOWN, 0)}.to_not raise_error
         end
       end
     end

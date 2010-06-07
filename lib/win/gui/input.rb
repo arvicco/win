@@ -134,7 +134,6 @@ module Win
       # Indicates NO data if dwFlags are NOT any of MOUSEEVENTF_WHEEL, MOUSEEVENTF_XDOWN, or MOUSEEVENTF_XUP
       INPUT_MOUSE = 0
 
-
       ##
       # The keybd_event function synthesizes a keystroke. The system can use such a synthesized keystroke to generate
       # a WM_KEYUP or WM_KEYDOWN message. The keyboard driver's interrupt handler calls the keybd_event function.

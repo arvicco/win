@@ -282,7 +282,7 @@ module Win
     # :zeronil:: Forces method to return nil if function result is zero
     #
     def function(name, params, returns, options={}, &def_block)
-      snake_name, effective_names, aliases = generate_names(name, options)
+      snake_name, camel_name, effective_names, aliases = generate_names(name, options)
       params, returns = generate_signature(params, returns)
       libs = ffi_libraries.map(&:name)
       boolean = options[:boolean]
@@ -290,8 +290,8 @@ module Win
 
       effective_name = effective_names.inject(nil) do |func, effective_name|
         func || begin
-          # tries to attach basic CamelCase method via FFI
-          attach_function(options[:camel_name] || name, effective_name, params.dup, returns)
+          # Try to attach basic CamelCase method via FFI
+          attach_function(camel_name, effective_name, params.dup, returns)
           effective_name
         rescue FFI::NotFoundError
           nil
@@ -301,44 +301,49 @@ module Win
       raise Win::Errors::NotFoundError.new(name, libs) unless effective_name
 
       # Create API object that holds information about function names, params, etc
-      api = API.new(namespace, name, effective_name, params, returns, libs)
+      api = API.new(namespace, camel_name, effective_name, params, returns, libs)
 
-      # Only define enhanced API if snake_name is different from original name (e.g. keybd_event),
-      # If names are the same, this function is already "attached", not possible to enhance its API
-      unless snake_name.to_s == name.to_s
-        method_body = if def_block
-          if zeronil
-            ->(*args, &block){ (res = def_block.(api, *args, &block)) != 0 ? res : nil }
-          elsif boolean
-            ->(*args, &block){ def_block.(api, *args, &block) != 0 }
-          else
-            ->(*args, &block){ def_block.(api, *args, &block) }
-          end
+      # Define snake_case method with enhanced API
+      # First, we need to form method body in accordance with given options (:boolean, :zeronil)
+      method_body = if def_block
+        if zeronil
+          ->(*args, &block){ (res = def_block.(api, *args, &block)) != 0 ? res : nil }
+        elsif boolean
+          ->(*args, &block){ def_block.(api, *args, &block) != 0 }
         else
-          if zeronil
-            ->(*args, &block){ (res = block ? block[api.call(*args)] : api.call(*args)) != 0 ? res : nil }
-          elsif boolean
-            ->(*args, &block){ block ? block[api.call(*args)] : api.call(*args) != 0 }
-          else
-            ->(*args, &block){ block ? block[api.call(*args)] : api.call(*args) }
-          end
+          ->(*args, &block){ def_block.(api, *args, &block) }
         end
-
-        define_method snake_name, &method_body       # define snake_case instance method
-
-#        module_function snake_name    # TODO: Doesn't work as a perfect replacement for eigen_class stuff. :( Why?
-
-        eigen_class = class << self;
-          self;
-        end        # Extracting eigenclass
-
-        eigen_class.class_eval do
-          define_method snake_name, &method_body       # define snake_case class method
+      else
+        if zeronil
+          ->(*args, &block){ (res = block ? block[api.call(*args)] : api.call(*args)) != 0 ? res : nil }
+        elsif boolean
+          ->(*args, &block){ block ? block[api.call(*args)] : api.call(*args) != 0 }
+        else
+          ->(*args, &block){ block ? block[api.call(*args)] : api.call(*args) }
         end
       end
 
-      aliases.each {|ali| alias_method ali, snake_name }  # define aliases
-      api   #return api object from function declaration
+      # Next, define snake_case instance method
+      define_method snake_name, &method_body
+
+      # Now, we need to define module(class) level method, but something went wrong with module_function :(
+#        module_function snake_name    # TODO: Doesn't work as a perfect replacement for eigen_class stuff. :( Why?
+
+      # OK, instead of module_method we're going to directly modify eigenclass
+      eigen_class = class << self;
+        self;
+      end
+
+      # Define snake_case class method inside eigenclass, that should do it
+      eigen_class.class_eval do
+        define_method snake_name, &method_body
+      end
+
+      # Define (instance method!) aliases, if any
+      aliases.each {|ali| alias_method ali, snake_name }
+
+      # Return api object from function declaration # TODO: Do we even NEED api object?
+      api
     end
 
     # Try to define platform-specific function, rescue error, return message
@@ -352,8 +357,7 @@ module Win
     end
 
     # Generates possible effective names for function in Win32 dll (name+A/W),
-    # Rubyesque name and aliases for method(s) defined based on function name,
-    # TODO: generate camel_name for original API (need this for SendMessage(2) and such)
+    # camel_case, snake_case and aliases method names
     #
     def generate_names(name, options={})
       name = name.to_s
@@ -361,6 +365,7 @@ module Win
       effective_names += ["#{name}A", "#{name}W"] unless name =~ /[WA]$/
       aliases = ([options[:alias]] + [options[:aliases]]).flatten.compact
       snake_name = options[:snake_name] || name.snake_case
+      camel_name = options[:camel_name] || name.camel_case
       case snake_name
         when /^is_/
           aliases << snake_name.sub(/^is_/, '') + '?'
@@ -369,7 +374,7 @@ module Win
         when /^get_/
           aliases << snake_name.sub(/^get_/, '')
       end
-      [snake_name, effective_names, aliases]
+      [snake_name, camel_name, effective_names, aliases]
     end
 
     ##
@@ -426,7 +431,8 @@ module Win
     class API
 
       # The name of the DLL(s) that export this API function
-      attr_reader :dll_name
+      attr_reader :dll
+      alias_method :dll_name, :dll
 
       # Ruby namespace (module) where this API function is attached
       attr_reader :namespace
@@ -444,18 +450,18 @@ module Win
       # The return type (:void for no return value)
       attr_reader :return_type
 
-      def initialize( namespace, function_name, effective_function_name, prototype, return_type, dll_name )
+      def initialize( namespace, function_name, effective_function_name, prototype, return_type, dll )
         @namespace = namespace
-        @function_name = function_name
-        @effective_function_name = effective_function_name
+        @function_name = function_name.to_sym
+        @effective_function_name = effective_function_name.to_sym
         @prototype = prototype
         @return_type = return_type
-        @dll_name = dll_name
+        @dll = dll
       end
 
       # Calls underlying CamelCase Windows API function with supplied args
       def call( *args )
-        @namespace.send(@function_name.to_sym, *args)
+        @namespace.send(@function_name, *args)
       end
 
       # alias_method :[], :call

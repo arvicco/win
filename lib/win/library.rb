@@ -275,7 +275,8 @@ module Win
     # ---
     # Accepts following options:
     # :dll:: Use this dll instead of default 'user32'
-    # :rename:: Use this name instead of standard (conventional) function name
+    # :snake_name:: Overrides default snake_case method name being defined
+    # :camel_name:: Overrides default CamelCase name for function being attached
     # :alias(es):: Provides additional alias(es) for defined method
     # :boolean:: Forces method to return true/false instead of nonzero/zero
     # :zeronil:: Forces method to return nil if function result is zero
@@ -290,7 +291,7 @@ module Win
       effective_name = effective_names.inject(nil) do |func, effective_name|
         func || begin
           # tries to attach basic CamelCase method via FFI
-          attach_function(name, effective_name, params.dup, returns)
+          attach_function(options[:camel_name] || name, effective_name, params.dup, returns)
           effective_name
         rescue FFI::NotFoundError
           nil
@@ -352,13 +353,14 @@ module Win
 
     # Generates possible effective names for function in Win32 dll (name+A/W),
     # Rubyesque name and aliases for method(s) defined based on function name,
+    # TODO: generate camel_name for original API (need this for SendMessage(2) and such)
     #
     def generate_names(name, options={})
       name = name.to_s
       effective_names = [name]
       effective_names += ["#{name}A", "#{name}W"] unless name =~ /[WA]$/
       aliases = ([options[:alias]] + [options[:aliases]]).flatten.compact
-      snake_name = options[:rename] || name.snake_case
+      snake_name = options[:snake_name] || name.snake_case
       case snake_name
         when /^is_/
           aliases << snake_name.sub(/^is_/, '') + '?'

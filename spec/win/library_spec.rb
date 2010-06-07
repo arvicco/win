@@ -76,20 +76,155 @@ module WinLibraryTest
     end
   end
 
+  shared_examples_for 'defining macro with options' do
+    context 'basic behavior' do
+      it 'defines new instance methods with appropriate names' do
+        MyLib.function :FindWindow, 'PP', 'L', &@def_block
+        MyLib.respond_to?(:FindWindow).should be_true
+        respond_to?(:FindWindow).should be_true
+        MyLib.respond_to?(:find_window).should be_true
+        respond_to?(:find_window).should be_true
+      end
+
+      it 'returns underlying Win32::API object' do
+        FWAPI = MyLib.function :FindWindow, 'PP', 'L', &@def_block
+        should_be :find_window, FWAPI
+      end
+    end
+
+    context 'renaming and aliasing' do
+      it ':snake_name option overrides default snake_case name for defined method but leaves CamelCase intact' do
+        MyLib.function :FindWindow, 'PP', 'L', :snake_name=> 'my_own_find', &@def_block
+        expect {find_window(nil, nil)}.to raise_error NoMethodError
+        expect {FindWindow(nil, nil)}.to_not raise_error
+        expect {my_own_find(nil, nil)}.to_not raise_error
+      end
+
+      it ':camel_name option overrides default CamelCase name for attached function but leaves snake_case intact' do
+        MyLib.function :FindWindow, 'PP', 'L', :camel_name=> 'MyOwnName', &@def_block
+        expect {find_window(nil, nil)}.to_not raise_error
+        expect {FindWindow(nil, nil)}.to raise_error NoMethodError
+        expect {MyOwnName(nil, nil)}.to_not raise_error
+      end
+
+      it 'both :snake_name and :camel_name option can be used in one declaration' do
+        MyLib.function :FindWindow, 'PP', 'L', :camel_name=> 'MyOwnName', :snake_name=> 'my_own_find', &@def_block
+        expect {find_window(nil, nil)}.to raise_error NoMethodError
+        expect {my_own_find(nil, nil)}.to_not raise_error
+        expect {FindWindow(nil, nil)}.to raise_error NoMethodError
+        expect {MyOwnName(nil, nil)}.to_not raise_error
+      end
+
+      it 'automatically adds Rubyesque alias to IsXxx API test function' do
+        MyLib.function 'IsWindow', 'L', 'B', &@def_block
+        respond_to?(:window?).should be_true
+        respond_to?(:is_window).should be_true
+      end
+
+      it 'automatically adds Rubyesque alias to GetXxx API getter function' do
+        MyLib.function 'GetComputerName', 'PP', 'I', :dll=> 'kernel32', &@def_block
+        respond_to?(:get_computer_name).should be_true
+        respond_to?(:computer_name).should be_true
+      end
+
+      it ':alias option adds alias for defined snake_case method' do
+        MyLib.function( :FindWindow, 'PP', 'L', :alias => 'my_own_find', &@def_block)
+        expect {find_window(nil, nil)}.to_not raise_error
+        expect {my_own_find(nil, nil)}.to_not raise_error
+      end
+
+      it ':aliases option adds aliases for defined snake_case method' do
+        MyLib.function :FindWindow, 'PP', 'L', :aliases => ['my_own_find', 'my_own_find1'], &@def_block
+        expect {find_window(nil, nil)}.to_not raise_error
+        expect {my_own_find(nil, nil)}.to_not raise_error
+        expect {my_own_find1(nil, nil)}.to_not raise_error
+      end
+    end
+
+    context ':boolean option converts result to boolean' do
+      before(:each) { MyLib.function :FindWindow, 'PP', 'L', :boolean => true, &@def_block }
+
+      it 'defines new instance method' do
+        respond_to?(:find_window).should be_true
+        respond_to?(:FindWindow).should be_true
+      end
+
+      it 'defined snake_case method returns false/true instead of zero/non-zero' do
+        find_window(nil, nil).should == true
+        find_window(nil, IMPOSSIBLE).should == false
+      end
+
+      it 'defined CamelCase method still returns zero/non-zero' do
+        FindWindow(nil, nil).should_not == true
+        FindWindow(nil, nil).should_not == 0
+        FindWindow(nil, IMPOSSIBLE).should == 0
+      end
+    end
+
+    context 'defining API with :zeronil option converts zero result to nil' do
+      before(:each) {MyLib.function :FindWindow, 'PP', 'L', :zeronil => true, &@def_block}
+
+      it 'defines new instance method' do
+        respond_to?(:find_window).should be_true
+        respond_to?(:FindWindow).should be_true
+      end
+
+      it 'defined CamelCase method still returns zero/non-zero' do
+        FindWindow(nil, nil).should_not == true
+        FindWindow(nil, nil).should_not == 0
+        FindWindow(nil, IMPOSSIBLE).should == 0
+      end
+
+      it 'defined method returns nil (but NOT false) instead of zero' do
+        find_window(nil, IMPOSSIBLE).should_not == false
+        find_window(nil, IMPOSSIBLE).should == nil
+      end
+
+      it 'defined method does not return true when result is non-zero' do
+        find_window(nil, nil).should_not == true
+        find_window(nil, nil).should_not == 0
+      end
+    end
+
+    context 'using DLL other than default user32 with :dll option' do
+      it 'defines new instance method with appropriate name' do
+        MyLib.function 'GetComputerName', 'PP', 'I', :dll=> 'kernel32', &@def_block
+        respond_to?(:GetComputerName).should be_true
+        respond_to?(:get_computer_name).should be_true
+        respond_to?(:computer_name).should be_true
+      end
+
+      it 'returns expected result' do
+        MyLib.function 'GetComputerName', ['P', 'P'], 'I', :dll=> 'kernel32', &@def_block
+        hostname = `hostname`.strip.upcase
+        name = " " * 128
+        get_computer_name(name, "128")
+        name.unpack("A*").first.should == hostname
+      end
+    end
+  end
+
   describe Win::Library, ' defines wrappers for Win32::API functions' do
 
     before(:each) { hide_method *redefined_methods } # hide original methods if  defined
     after(:each) { restore_method *redefined_methods } # restore original methods if hidden
-    context '::function' do
-      context 'defining enhanced API function method' do
-        spec{ use{ MyLib.function(:FindWindow, 'PP', 'l', rename: nil, aliases: nil, boolean: nil, zeronil: nil, &any_block) }}
 
-        it 'defines new instance methods with appropriate names' do
-          MyLib.function :FindWindow, 'PP', 'L'
-          respond_to?(:FindWindow).should be_true
-          MyLib.respond_to?(:find_window).should be_true
-          respond_to?(:find_window).should be_true
-        end
+    describe '::attach_function - delegates to FFI::Library::attach_function' do
+      it 'can be used to attach same function with different signatures' do
+        MyLib.attach_function :send_one, :SendMessageA, [:ulong, :uint, :uint, :long], :int
+        MyLib.attach_function :send_two, :SendMessageA, [:ulong, :uint, :uint, :pointer], :int
+        respond_to?(:send_one).should be_true
+        respond_to?(:send_two).should be_true
+        MyLib.respond_to?(:send_one).should be_true
+        MyLib.respond_to?(:send_two).should be_true
+      end
+    end
+
+    describe '::function - attaches external API function and defines enhanced snake_case method on top of it' do
+      spec{ use{ MyLib.function(:FindWindow, 'PP', 'l', aliases: nil, boolean: nil, zeronil: nil, &any_block) }}
+
+      context 'defining enhanced API function without defenition block (using defaults)' do
+        it_should_behave_like 'defining macro with options'
 
         it 'constructs argument prototype from uppercase string, enforces the args count' do
           expect { MyLib.function :FindWindow, 'PP', 'L' }.to_not raise_error
@@ -99,13 +234,6 @@ module WinLibraryTest
         it 'constructs argument prototype from (mixed) array, enforces the args count' do
           expect { MyLib.function :FindWindow, [:pointer, 'P'], 'L' }.to_not raise_error
           should_count_args :find_window, :FindWindow, [nil, nil], [nil, IMPOSSIBLE, 'cmd']
-        end
-
-        it 'with :rename option, overrides snake_case name for defined method but leaves CamelCase intact' do
-          MyLib.function :FindWindow, 'PP', 'L', :rename=> 'my_own_find'
-          expect {find_window(nil, nil)}.to raise_error NoMethodError
-          expect {FindWindow(nil, nil)}.to_not raise_error
-          expect {my_own_find(nil, nil)}.to_not raise_error
         end
 
         it 'defined snake_case method returns expected value when called' do
@@ -130,123 +258,14 @@ module WinLibraryTest
 #        should_be :find_window, find_window(:api)
 #      end
 
-        it 'returns underlying Win32::API object' do
-          FWAPI = MyLib.function :FindWindow, 'PP', 'L'
-          should_be :find_window, FWAPI
-        end
       end
 
-      context 'defining aliases' do
-        it 'adds alias for defined method with :alias option' do
-          MyLib.function( :FindWindow, 'PP', 'L', :alias => 'my_own_find')
-          expect {find_window(nil, nil)}.to_not raise_error
-          expect {my_own_find(nil, nil)}.to_not raise_error
+      context 'defining API function using explicit definition block' do
+        before(:each) do
+          @def_block = lambda{|api, *args| api.call(*args)}  # Trivial define_block for shared examples
         end
 
-        it 'adds aliases for defined method with :aliases option' do
-          MyLib.function :FindWindow, 'PP', 'L', :aliases => ['my_own_find', 'my_own_find1']
-          expect {find_window(nil, nil)}.to_not raise_error
-          expect {my_own_find(nil, nil)}.to_not raise_error
-          expect {my_own_find1(nil, nil)}.to_not raise_error
-        end
-
-        it 'adds Rubyesque alias to IsXxx API test function' do
-          MyLib.function 'IsWindow', 'L', 'B'
-          respond_to?(:window?).should be_true
-          respond_to?(:is_window).should be_true
-        end
-
-        it 'adds Rubyesque alias to GetXxx API getter function' do
-          MyLib.function 'GetComputerName', 'PP', 'I', :dll=> 'kernel32'
-          respond_to?(:get_computer_name).should be_true
-          respond_to?(:computer_name).should be_true
-        end
-      end
-
-      context 'defining API with :boolean option converts result to boolean' do
-        before(:each) { MyLib.function :FindWindow, 'PP', 'L', :boolean => true }
-
-        it 'defines new instance method' do
-          respond_to?(:find_window).should be_true
-          respond_to?(:FindWindow).should be_true
-        end
-
-        it 'defined snake_case method returns false/true instead of zero/non-zero' do
-          find_window(nil, nil).should == true
-          find_window(nil, IMPOSSIBLE).should == false
-        end
-
-        it 'defined CamelCase method still returns zero/non-zero' do
-          FindWindow(nil, nil).should_not == true
-          FindWindow(nil, nil).should_not == 0
-          FindWindow(nil, IMPOSSIBLE).should == 0
-        end
-
-        it 'defined methods enforce the argument count' do
-          should_count_args :find_window, :FindWindow, [nil, nil], [nil, IMPOSSIBLE, 'cmd']
-        end
-      end
-
-      context 'defining API with :zeronil option converts zero result to nil' do
-        before(:each) {MyLib.function :FindWindow, 'PP', 'L', :zeronil => true}
-
-        it 'defines new instance method' do
-          respond_to?(:find_window).should be_true
-          respond_to?(:FindWindow).should be_true
-        end
-
-        it 'defined CamelCase method still returns zero/non-zero' do
-          FindWindow(nil, nil).should_not == true
-          FindWindow(nil, nil).should_not == 0
-          FindWindow(nil, IMPOSSIBLE).should == 0
-        end
-
-        it 'defined method returns nil (but NOT false) instead of zero' do
-          find_window(nil, IMPOSSIBLE).should_not == false
-          find_window(nil, IMPOSSIBLE).should == nil
-        end
-
-        it 'defined method does not return true when result is non-zero' do
-          find_window(nil, nil).should_not == true
-          find_window(nil, nil).should_not == 0
-        end
-
-        it 'defined methods enforce the argument count' do
-          should_count_args :find_window, :FindWindow, [nil, nil], [nil, IMPOSSIBLE, 'cmd']
-        end
-      end
-
-      context 'using DLL other than default user32 with :dll option' do
-        before(:each) {MyLib.function 'GetComputerName', 'PP', 'I', :dll=> 'kernel32'}
-
-        it 'defines new instance method with appropriate name' do
-          respond_to?(:GetComputerName).should be_true
-          respond_to?(:get_computer_name).should be_true
-          respond_to?(:computer_name).should be_true
-        end
-
-        it 'returns expected result' do
-          MyLib.function 'GetComputerName', ['P', 'P'], 'I', :dll=> 'kernel32'
-          hostname = `hostname`.strip.upcase
-          name = " " * 128
-          get_computer_name(name, "128")
-          name.unpack("A*").first.should == hostname
-        end
-      end
-
-      context 'trying to define an invalid API function' do
-        it 'raises error when trying to define function with a wrong function name' do
-          expect { MyLib.function 'FindWindowImpossible', 'PP', 'L' }.
-                  to raise_error( /Function 'FindWindowImpossible' not found/ )
-        end
-      end
-
-      context 'defining API function using definition block' do
-        it 'defines new instance method' do
-          MyLib.function( :FindWindow, 'PP', 'L' ){|api, *args|}
-          respond_to?(:find_window).should be_true
-          respond_to?(:FindWindow).should be_true
-        end
+        it_should_behave_like 'defining macro with options'
 
         it 'does not enforce argument count outside of block' do
           MyLib.function( :FindWindow, 'PP', 'L' ){|api, *args|}
@@ -269,24 +288,12 @@ module WinLibraryTest
           @args.should == [1, 2, 3]
           should_be :find_window, @api
         end
+      end
 
-        it ':rename option overrides standard name for defined method' do
-          MyLib.function( :FindWindow, 'PP', 'L', :rename => 'my_own_find' ){|api, *args|}
-          expect {find_window(nil, nil, nil)}.to raise_error
-          expect {my_own_find(nil, nil)}.to_not raise_error
-        end
-
-        it 'adds alias for defined method with :alias option' do
-          MyLib.function( :FindWindow, 'PP', 'L', :alias => 'my_own_find' ){|api, *args|}
-          expect {find_window(nil, nil)}.to_not raise_error
-          expect {my_own_find(nil, nil)}.to_not raise_error
-        end
-
-        it 'adds aliases for defined method with :aliases option' do
-          MyLib.function( :FindWindow, 'PP', 'L', :aliases => ['my_own_find', 'my_own_find1'] ) {|api, *args|}
-          expect {find_window(nil, nil)}.to_not raise_error
-          expect {my_own_find(nil, nil)}.to_not raise_error
-          expect {my_own_find1(nil, nil)}.to_not raise_error
+      context 'trying to define an invalid API function' do
+        it 'raises error when trying to define function with a wrong function name' do
+          expect { MyLib.function 'FindWindowImpossible', 'PP', 'L' }.
+                  to raise_error( /Function 'FindWindowImpossible' not found/ )
         end
       end
 
@@ -319,19 +326,24 @@ module WinLibraryTest
     end
 
     context '::callback defining API callback TYPES' do
-      it '#callback macro creates a valid callback definition' do
+      it '#callback macro defines a valid callback TYPE' do
         expect { MyLib.callback :MyEnumWindowsProc, [:HWND, :long], :bool}.to_not raise_error
       end
 
-      it 'created callback definition can be used to define API function expecting callback' do
+      it 'pre-definsed callback type can be used to define API functions (expecting callback)' do
         expect {MyLib.function :EnumWindows, [:MyEnumWindowsProc, :long], :long}.to_not raise_error
+        expect {MyLib.function :EnumWindows, [:UndefinedProc, :long], :long}.to raise_error TypeError
+      end
+
+      it 'API function expecting callback accept lambdas representing callback' do
+        MyLib.function :EnumWindows, [:MyEnumWindowsProc, :long], :long
         expect { enum_windows(lambda{|handle, message| true }, 0) }.to_not raise_error
       end
     end
 
-    context '::try_function to define API function that are platform-specific' do
+    context '::try_function - possibly defines API functions that are platform-specific' do
       if xp?
-        it 'should silently fail to define function not present on current platform' do
+        it 'silently fails to define function not present on current platform' do
           expect {MyLib.function :GetErrorMode, [], :UINT}.to raise_error /Function 'GetErrorMode' not found/
           expect {MyLib.try_function :GetErrorMode, [], :UINT}.to_not raise_error
           expect { GetErrorMode() }.to raise_error /undefined method `GetErrorMode'/

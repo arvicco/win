@@ -218,6 +218,36 @@ module Win
       function :GetDlgItem, [:ulong, :int], :ulong, zeronil: true
 
       ##
+      # The GetDlgCtrlID function retrieves the identifier of the specified control. In other words,
+      # you give it a handle (say, for a button window inside a dialog), and it returns control ID
+      # that this window is associated with (say IDOK - meaning this window is in fact "OK" button.
+      #
+      # [*Syntax*] int GetDlgCtrlID( HWND hwndCtl );
+      #
+      # hwndCtl:: [in] Handle to the control.
+      #
+      # *Returns*:: If the function succeeds, the return value is the identifier of the control.
+      # If the function fails, the return value is zero. An invalid value for the hwndCtl parameter, for
+      # example, will cause the function to fail. To get extended error information, call GetLastError.
+      # ---
+      # *Remarks*:
+      # GetDlgCtrlID accepts child window handles as well as handles of controls in dialog boxes. An
+      # application sets the identifier for a child window when it creates the window by assigning the
+      # identifier value to the hmenu parameter when calling the CreateWindow or CreateWindowEx function.
+      # Although GetDlgCtrlID may return a value if hwndCtl is a handle to a top-level window, top-level
+      # windows cannot have identifiers and such a return value is never valid.
+      # ---
+      # *See* *Also*
+      # Dialog Boxes Overview, CreateWindow, CreateWindowEx, GetDlgItem
+      # ---
+      # <b>Enhanced (snake_case) API: returns nil instead of zero if function fails</b>
+      #
+      # :call-seq:
+      #  control_id = get_dlg_ctrl_id(control_handle)
+      #
+      function :GetDlgCtrlID, [:HWND], :int, zeronil: true
+
+      ##
       # MessageBox Function
       # --------------------------------------------------------------------------------
       # The MessageBox function creates, displays, and operates a message box. The message box contains an
@@ -299,36 +329,6 @@ module Win
                   text_pointer = FFI::MemoryPointer.from_string(text)
                   caption_pointer = FFI::MemoryPointer.from_string(caption)
                   api.call handle, text_pointer, caption_pointer, type }
-
-      ##
-      # The GetDlgCtrlID function retrieves the identifier of the specified control. In other words,
-      # you give it a handle (say, for a button window inside a dialog), and it returns control ID
-      # that this window is associated with (say IDOK - meaning this window is in fact "OK" button.
-      #
-      # [*Syntax*] int GetDlgCtrlID( HWND hwndCtl );
-      #
-      # hwndCtl:: [in] Handle to the control.
-      #
-      # *Returns*:: If the function succeeds, the return value is the identifier of the control.
-      # If the function fails, the return value is zero. An invalid value for the hwndCtl parameter, for
-      # example, will cause the function to fail. To get extended error information, call GetLastError.
-      # ---
-      # *Remarks*:
-      # GetDlgCtrlID accepts child window handles as well as handles of controls in dialog boxes. An
-      # application sets the identifier for a child window when it creates the window by assigning the
-      # identifier value to the hmenu parameter when calling the CreateWindow or CreateWindowEx function.
-      # Although GetDlgCtrlID may return a value if hwndCtl is a handle to a top-level window, top-level
-      # windows cannot have identifiers and such a return value is never valid.
-      # ---
-      # *See* *Also*
-      # Dialog Boxes Overview, CreateWindow, CreateWindowEx, GetDlgItem
-      # ---
-      # <b>Enhanced (snake_case) API: returns nil instead of zero if function fails</b>
-      #
-      # :call-seq:
-      #  control_id = get_dlg_ctrl_id(control_handle)
-      #
-      function :GetDlgCtrlID, [:HWND], :int, zeronil: true
 
       # Untested:
 

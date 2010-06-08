@@ -283,7 +283,28 @@ module Win
     #
     def function(name, params, returns, options={}, &def_block)
       snake_name, camel_name, effective_names, aliases = generate_names(name, options)
-      params, returns = generate_signature(params, returns)
+
+      api = define_api(name, camel_name, effective_names, params, returns)
+
+      define_snake_method(snake_name, aliases, api, options, &def_block) unless options[:camel_only]
+
+      api   # Return api object from function declaration # TODO: Do we even NEED api object?
+    end
+
+    # Try to define platform-specific function, rescue error, return message
+    #
+    def try_function(name, params, returns, options={}, &def_block)
+      begin
+        function name, params, returns, options={}, &def_block
+      rescue Win::Errors::NotFoundError
+        "This platform does not support function #{name}"
+      end
+    end
+
+    # Defines CamelCase method calling Win32 API function, and associated API object
+    #
+    def define_api(name, camel_name, effective_names, params, returns)
+      params, returns = generate_signature(params.dup, returns)
       libs = ffi_libraries.map(&:name)
 
       effective_name = effective_names.inject(nil) do |func, effective_name|
@@ -299,23 +320,36 @@ module Win
       raise Win::Errors::NotFoundError.new(name, libs) unless effective_name
 
       # Create API object that holds information about defined and effective function names, params, etc.
-      # This object is used by enhanced snake_case method to reflect on underlying function and intelligently call it.  
-      api = API.new(namespace, camel_name, effective_name, params, returns, libs)
-
-      define_snake_method(snake_name, aliases, api, options, &def_block) unless options[:camel_only]
-
-      # Return api object from function declaration # TODO: Do we even NEED api object?
-      api
+      # This object is further used by enhanced snake_case method to reflect on underlying API and
+      # intelligently call it.
+      API.new(namespace, camel_name, effective_name, params, returns, libs)
     end
 
-    # Try to define platform-specific function, rescue error, return message
+    # Defines enhanced snake_case method and (optionally) aliases to it.
+    # Both instance method and module-level method with the same name is defined
     #
-    def try_function(name, params, returns, options={}, &def_block)
-      begin
-        function name, params, returns, options={}, &def_block
-      rescue Win::Errors::NotFoundError
-        "This platform does not support function #{name}"
+    def define_snake_method(snake_name, aliases, api, options, &def_block)
+      # Generate body for snake_case method
+      method_body = generate_snake_method_body(api, options, &def_block)
+
+      # Define snake_case instance method
+      define_method snake_name, &method_body
+
+      # We need to define module(class) level method, but something went wrong with module_function :(
+#      module_function snake_name    # TODO: Doesn't work as a perfect replacement for eigen_class stuff. :( Why?
+
+      # OK, instead of module_method we're going to directly modify eigenclass
+      eigen_class = class << self;
+        self;
       end
+
+      # Define snake_case class method inside eigenclass, that should do it
+      eigen_class.class_eval do
+        define_method snake_name, &method_body
+      end
+
+      # Define (instance method!) aliases, if any
+      aliases.each {|ali| alias_method ali, snake_name }
     end
 
     # Generates possible effective names for function in Win32 dll (name+A/W),
@@ -370,30 +404,6 @@ module Win
           ->(*args, &block){ block ? block[api.call(*args)] : api.call(*args) }
         end
       end
-    end
-
-    def define_snake_method(snake_name, aliases, api, options, &def_block)
-      # Generate body for snake_case method
-      method_body = generate_snake_method_body(api, options, &def_block)
-
-      # Define snake_case instance method
-      define_method snake_name, &method_body
-
-      # We need to define module(class) level method, but something went wrong with module_function :(
-#      module_function snake_name    # TODO: Doesn't work as a perfect replacement for eigen_class stuff. :( Why?
-
-      # OK, instead of module_method we're going to directly modify eigenclass
-      eigen_class = class << self;
-        self;
-      end
-
-      # Define snake_case class method inside eigenclass, that should do it
-      eigen_class.class_eval do
-        define_method snake_name, &method_body
-      end
-
-      # Define (instance method!) aliases, if any
-      aliases.each {|ali| alias_method ali, snake_name }
     end
 
     ##

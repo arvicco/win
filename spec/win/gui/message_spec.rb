@@ -49,11 +49,27 @@ module WinGuiMessageTest
       spec{ use{ success = PostMessage(handle = 0, msg = 0, w_param = 0, l_param = nil) }}
       spec{ use{ success = post_message(handle = 0, msg = 0, w_param = 0, l_param = nil) }}
 
-      it 'places (posts) a message in the message queue associated with the thread that created the specified window' do
-        app = launch_test_app
-        post_message(app.handle, WM_SYSCOMMAND, SC_CLOSE, nil).should == true
-        sleep SLEEP_DELAY
-        window?(app.handle).should == false
+      context 'places (posts) a message in the message queue associated with the thread that created the specified window' do
+        it 'with nil as last argument(lParam)' do
+          app = launch_test_app
+          post_message(app.handle, WM_SYSCOMMAND, SC_CLOSE, nil).should == true
+          sleep SLEEP_DELAY
+          window?(app.handle).should == false
+        end
+
+        it 'with pointer as last argument(lParam)' do
+          app = launch_test_app
+          post_message(app.handle, WM_SYSCOMMAND, SC_CLOSE, FFI::MemoryPointer.new(:long)).should == true
+          sleep SLEEP_DELAY
+          window?(app.handle).should == false
+        end
+
+        it 'with Fixnum as last argument(lParam)' do
+          app = launch_test_app
+          post_message(app.handle, WM_SYSCOMMAND, SC_CLOSE, 0).should == true
+          sleep SLEEP_DELAY
+          window?(app.handle).should == false
+        end
       end
 
       it 'places (posts) a message into current thread`s queue if first arg is 0' do
@@ -126,11 +142,11 @@ module WinGuiMessageTest
         send_message_callback(not_a_handle, WM_USER, 0, nil){|*args|@data=args[2]}
         sent.should == 0
         get_last_error.should == "Invalid window handle."
-       end
+      end
     end # describe send_message_callback
 
     describe "#get_message" do
-      before(:all){clear_thread_queue; 2.times {post_message 0,0,0,nil}}
+      before(:all){clear_thread_queue; 2.times {post_message 0, 0, 0, nil}}
 
       spec{ use{ res = GetMessage(msg, handle=0, msg_filter_min=0, msg_filter_max=0) }}
       spec{ use{ message = get_message(msg, handle=0, msg_filter_min=0, msg_filter_max=0) }}

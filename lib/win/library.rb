@@ -275,7 +275,7 @@ module Win
     # ---
     # Accepts following options:
     # :dll:: Use this dll instead of default 'user32'
-    # :snake_name:: Overrides default snake_case method name being defined
+    # :snake_name:: Overrides default snake_case method name being defined (if nil, no snake_case method defined)
     # :camel_name:: Overrides default CamelCase name for function being attached
     # :alias(es):: Provides additional alias(es) for defined method
     # :boolean:: Forces method to return true/false instead of nonzero/zero
@@ -285,8 +285,6 @@ module Win
       snake_name, camel_name, effective_names, aliases = generate_names(name, options)
       params, returns = generate_signature(params, returns)
       libs = ffi_libraries.map(&:name)
-      boolean = options[:boolean]
-      zeronil = options[:zeronil]
 
       effective_name = effective_names.inject(nil) do |func, effective_name|
         func || begin
@@ -300,47 +298,11 @@ module Win
 
       raise Win::Errors::NotFoundError.new(name, libs) unless effective_name
 
-      # Create API object that holds information about function names, params, etc
+      # Create API object that holds information about defined and effective function names, params, etc.
+      # This object is used by enhanced snake_case method to reflect on underlying function and intelligently call it.  
       api = API.new(namespace, camel_name, effective_name, params, returns, libs)
 
-      # Define snake_case method with enhanced API
-      # First, we need to form method body in accordance with given options (:boolean, :zeronil)
-      method_body = if def_block
-        if zeronil
-          ->(*args, &block){ (res = def_block.(api, *args, &block)) != 0 ? res : nil }
-        elsif boolean
-          ->(*args, &block){ def_block.(api, *args, &block) != 0 }
-        else
-          ->(*args, &block){ def_block.(api, *args, &block) }
-        end
-      else
-        if zeronil
-          ->(*args, &block){ (res = block ? block[api.call(*args)] : api.call(*args)) != 0 ? res : nil }
-        elsif boolean
-          ->(*args, &block){ block ? block[api.call(*args)] : api.call(*args) != 0 }
-        else
-          ->(*args, &block){ block ? block[api.call(*args)] : api.call(*args) }
-        end
-      end
-
-      # Next, define snake_case instance method
-      define_method snake_name, &method_body
-
-      # Now, we need to define module(class) level method, but something went wrong with module_function :(
-#        module_function snake_name    # TODO: Doesn't work as a perfect replacement for eigen_class stuff. :( Why?
-
-      # OK, instead of module_method we're going to directly modify eigenclass
-      eigen_class = class << self;
-        self;
-      end
-
-      # Define snake_case class method inside eigenclass, that should do it
-      eigen_class.class_eval do
-        define_method snake_name, &method_body
-      end
-
-      # Define (instance method!) aliases, if any
-      aliases.each {|ali| alias_method ali, snake_name }
+      define_snake_method(snake_name, aliases, api, options, &def_block) unless options[:camel_only]
 
       # Return api object from function declaration # TODO: Do we even NEED api object?
       api
@@ -385,6 +347,53 @@ module Win
       params.map! {|param| TYPES[param.to_sym] || param} # Convert chars into FFI type symbols
       returns = TYPES[returns.to_sym] || returns # Convert chars into FFI type symbols
       [params, returns]
+    end
+
+    # Generates body for snake_case method according to directives contained in options
+    # options (:boolean, :zeronil) currently supported
+    #
+    def generate_snake_method_body(api, options, &def_block)
+      if def_block
+        if options[:zeronil]
+          ->(*args, &block){ (res = def_block.(api, *args, &block)) != 0 ? res : nil }
+        elsif options[:boolean]
+          ->(*args, &block){ def_block.(api, *args, &block) != 0 }
+        else
+          ->(*args, &block){ def_block.(api, *args, &block) }
+        end
+      else
+        if options[:zeronil]
+          ->(*args, &block){ (res = block ? block[api.call(*args)] : api.call(*args)) != 0 ? res : nil }
+        elsif options[:boolean]
+          ->(*args, &block){ block ? block[api.call(*args)] : api.call(*args) != 0 }
+        else
+          ->(*args, &block){ block ? block[api.call(*args)] : api.call(*args) }
+        end
+      end
+    end
+
+    def define_snake_method(snake_name, aliases, api, options, &def_block)
+      # Generate body for snake_case method
+      method_body = generate_snake_method_body(api, options, &def_block)
+
+      # Define snake_case instance method
+      define_method snake_name, &method_body
+
+      # We need to define module(class) level method, but something went wrong with module_function :(
+#      module_function snake_name    # TODO: Doesn't work as a perfect replacement for eigen_class stuff. :( Why?
+
+      # OK, instead of module_method we're going to directly modify eigenclass
+      eigen_class = class << self;
+        self;
+      end
+
+      # Define snake_case class method inside eigenclass, that should do it
+      eigen_class.class_eval do
+        define_method snake_name, &method_body
+      end
+
+      # Define (instance method!) aliases, if any
+      aliases.each {|ali| alias_method ali, snake_name }
     end
 
     ##
@@ -437,7 +446,7 @@ module Win
       # Ruby namespace (module) where this API function is attached
       attr_reader :namespace
 
-      # The name of the function passed to the constructor
+      # The name of the (CamelCase) function passed to the constructor
       attr_reader :function_name
 
       # The name of the actual Windows API function. For example, if you passed 'GetUserName' to the

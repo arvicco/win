@@ -92,18 +92,18 @@ module WinLibraryTest
     end
 
     context 'renaming and aliasing' do
-      it ':snake_name option overrides default snake_case name for defined method but leaves CamelCase intact' do
-        MyLib.function :FindWindow, 'PP', 'L', snake_name: 'my_own_find', &@def_block
-        expect {find_window(nil, nil)}.to raise_error NoMethodError
-        expect {FindWindow(nil, nil)}.to_not raise_error
-        expect {my_own_find(nil, nil)}.to_not raise_error
-      end
-
       it ':camel_name option overrides default CamelCase name for attached function but leaves snake_case intact' do
         MyLib.function :FindWindow, 'PP', 'L', camel_name: 'MyOwnName', &@def_block
         expect {find_window(nil, nil)}.to_not raise_error
         expect {FindWindow(nil, nil)}.to raise_error NoMethodError
         expect {MyOwnName(nil, nil)}.to_not raise_error
+      end
+
+      it ':snake_name option overrides default snake_case name for defined method but leaves CamelCase intact' do
+        MyLib.function :FindWindow, 'PP', 'L', snake_name: 'my_own_find', &@def_block
+        expect {find_window(nil, nil)}.to raise_error NoMethodError
+        expect {FindWindow(nil, nil)}.to_not raise_error
+        expect {my_own_find(nil, nil)}.to_not raise_error
       end
 
       it 'both :snake_name and :camel_name option can be used in one declaration' do
@@ -112,6 +112,12 @@ module WinLibraryTest
         expect {my_own_find(nil, nil)}.to_not raise_error
         expect {FindWindow(nil, nil)}.to raise_error NoMethodError
         expect {MyOwnName(nil, nil)}.to_not raise_error
+      end
+
+      it ':camel_only option means no snake_case method will be defined' do
+        MyLib.function :FindWindow, 'PP', 'L', camel_only: true, &@def_block
+        expect {find_window(nil, nil)}.to raise_error NoMethodError
+        expect {FindWindow(nil, nil)}.to_not raise_error
       end
 
       it 'automatically adds Rubyesque alias to IsXxx API test function' do

@@ -439,7 +439,7 @@ module Win
       #          with the dwThreadId parameter set to the identifier of the current thread.
       # Msg:: <in> Specifies the message to be posted.
       # wParam:: <in> Specifies additional message-specific information.
-      # lParam:: <in> Specifies additional message-specific information.
+      # lParam:: <in> Specifies additional message-specific information (can be either :pointer or :long).
       #
       # *Returns*:: Nonzero if the function succeeds, zero if it fails. For extended error info, call GetLastError.
       # ---
@@ -456,11 +456,34 @@ module Win
       #   the operation will fail. The functions will return before the receiving thread has had a chance to
       #   process the message and the sender will free the memory before it is used. Use the PostQuitMessage
       #   instead of PostMessage to post WM_QUIT message.
+      # ---
+      # <b>Enhanced (snake_case) API: accepts either long or pointer lParam</b>
       #
       #:call-seq:
       # success = post_message(handle, msg, w_param, l_param)
       #
-      function :PostMessage, [:ulong, :uint, :uint, :pointer], :int, boolean: true
+      function :PostMessage, [:ulong, :uint, :uint, :pointer], :int,
+               boolean: true, camel_name: :PostMessagePointer, snake_name: :post_message_pointer
+      function :PostMessage, [:ulong, :uint, :uint, :long], :int,
+               boolean: true, camel_name: :PostMessageLong, snake_name: :post_message_long
+
+      def PostMessage(handle, msg, w_param, l_param)
+        # Routes call depending on lParam type (:pointer or :long)
+        case l_param
+          when Fixnum
+            PostMessageLong(handle, msg, w_param, l_param)
+          else
+            PostMessagePointer(handle, msg, w_param, l_param)
+        end
+      end
+
+      def post_message(handle, msg, w_param, l_param, &block)
+        if block
+          block[PostMessage(handle, msg, w_param, l_param)]
+        else
+          PostMessage(handle, msg, w_param, l_param) != 0
+        end
+      end
 
       ##
       # The SendMessage function sends the specified message to a window or windows. It calls the window procedure for

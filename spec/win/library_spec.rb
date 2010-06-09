@@ -13,7 +13,7 @@ module WinLibraryTest
   def should_be symbol, api
     case symbol
       when :find_window
-        api.dll.should == ["user32", "kernel32"] # The name of the DLL that exports the API function
+        api.dll.should include "user32" # The name of the DLL that exports the API function
         api.effective_function_name.should == :FindWindowA # Actual function: 'GetUserName' ->'GetUserNameA' or 'GetUserNameW'
         api.function_name.should == :FindWindow # The name of the function passed to the constructor
         api.prototype.should == [:pointer, :pointer] # The prototype, returned as an array of characters
@@ -43,7 +43,7 @@ module WinLibraryTest
   end
 
   def redefined_methods
-    [:FindWindow, :IsWindow, :EnumWindows, :GetComputerName, :GetForegroundWindow, :keybd_event]
+    [:FindWindow, :IsWindow, :EnumWindows, :GetUserName, :GetForegroundWindow, :keybd_event]
   end
 
   def hide_method(*names) # hide original method(s) if it is defined
@@ -127,9 +127,9 @@ module WinLibraryTest
       end
 
       it 'automatically adds Rubyesque alias to GetXxx API getter function' do
-        MyLib.function 'GetComputerName', 'PP', 'I', :dll=> 'kernel32', &@def_block
-        respond_to?(:get_computer_name).should be_true
-        respond_to?(:computer_name).should be_true
+        MyLib.function 'GetForegroundWindow', [], 'L', &@def_block
+        respond_to?(:get_foreground_window).should be_true
+        respond_to?(:foreground_window).should be_true
       end
 
       it ':alias option adds alias for defined snake_case method' do
@@ -191,20 +191,21 @@ module WinLibraryTest
       end
     end
 
-    context 'using DLL other than default user32 with :dll option' do
+    context 'using DLL other than default user32, kernel32 with :dll option' do
+      before(:each){  MyLib.function 'GetUserName', 'PP', 'I', :dll=> 'advapi32', &@def_block}
+
       it 'defines new instance method with appropriate name' do
-        MyLib.function 'GetComputerName', 'PP', 'I', :dll=> 'kernel32', &@def_block
-        respond_to?(:GetComputerName).should be_true
-        respond_to?(:get_computer_name).should be_true
-        respond_to?(:computer_name).should be_true
+        respond_to?(:GetUserName).should be_true
+        respond_to?(:get_user_name).should be_true
+        respond_to?(:user_name).should be_true
       end
 
       it 'returns expected result' do
-        MyLib.function 'GetComputerName', ['P', 'P'], 'I', :dll=> 'kernel32', &@def_block
-        hostname = `hostname`.strip.upcase
-        name = " " * 128
-        get_computer_name(name, "128")
-        name.unpack("A*").first.should == hostname
+        username = `echo %USERNAME%`.strip
+        name_ptr = FFI::MemoryPointer.from_string(" " * 128)
+        size_ptr = FFI::MemoryPointer.new(:long).write_int(name_ptr.size)
+        get_user_name(name_ptr, size_ptr)
+        name_ptr.read_string.strip.should == username
       end
     end
   end
@@ -333,7 +334,7 @@ module WinLibraryTest
         it 'should define original function in (generated) CamelCase' do
           MyLib.function :keybd_event, [:char, :char, :ulong, :ulong], :void
           expect {KeybdEvent(Win::Gui::Input::VK_CONTROL, 0, Win::Gui::Input::KEYEVENTF_KEYDOWN, 0)}.to_not raise_error
-          expect {keybd_event(Win::Gui::Input::VK_CONTROL, 0, Win::Gui::Input::KEYEVENTF_KEYDOWN, 0)}.to_not raise_error
+          expect {keybd_event(Win::Gui::Input::VK_CONTROL, 0, Win::Gui::Input::KEYEVENTF_KEYUP, 0)}.to_not raise_error
         end
       end
     end

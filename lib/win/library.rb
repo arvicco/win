@@ -274,9 +274,10 @@ module Win
     # - do other stuff that you think is appropriate to make Windows API function behavior more Ruby-like...
     # ---
     # Accepts following options:
-    # :dll:: Use this dll instead of default 'user32'
-    # :snake_name:: Overrides default snake_case method name being defined (if nil, no snake_case method defined)
+    # :dll:: Use this dll instead of default ['user32', 'kernel32']
+    # :snake_name:: Overrides default snake_case method name being defined
     # :camel_name:: Overrides default CamelCase name for function being attached
+    # :camel_only:: If true, no snake_case method is defined
     # :alias(es):: Provides additional alias(es) for defined method
     # :boolean:: Forces method to return true/false instead of nonzero/zero
     # :zeronil:: Forces method to return nil if function result is zero
@@ -284,7 +285,7 @@ module Win
     def function(name, params, returns, options={}, &def_block)
       snake_name, camel_name, effective_names, aliases = generate_names(name, options)
 
-      api = define_api(name, camel_name, effective_names, params, returns)
+      api = define_api(name, camel_name, effective_names, params, returns, options)
 
       define_snake_method(snake_name, aliases, api, options, &def_block) unless options[:camel_only]
 
@@ -303,17 +304,32 @@ module Win
 
     # Defines CamelCase method calling Win32 API function, and associated API object
     #
-    def define_api(name, camel_name, effective_names, params, returns)
+    def define_api(name, camel_name, effective_names, params, returns, options)
       params, returns = generate_signature(params.dup, returns)
+
+      ffi_lib *(ffi_libraries.map(&:name) << options[:dll]) if options[:dll]
       libs = ffi_libraries.map(&:name)
 
-      effective_name = effective_names.inject(nil) do |func, effective_name|
-        func || begin
-          # Try to attach basic CamelCase method via FFI
-          attach_function(camel_name, effective_name, params.dup, returns)
-          effective_name
-        rescue FFI::NotFoundError
-          nil
+      effective_name = if options[:alternative]
+
+        alt_params, alt_returns, condition = generate_signature(*options.dup[:alternative])
+        api = function name, params, returns,
+                       options.dup.merge( camel_only: true, camel_name: "#{camel_name}Original")
+        alt_api = function name, alt_params, alt_returns,
+                           options.dup.merge( camel_only: true, camel_name: "#{camel_name}Alternative")
+        define_method camel_name do |*args|
+          (condition[*args] ? alt_api : api).call(*args)
+        end
+        api.effective_name
+      else
+        effective_names.inject(nil) do |func, effective_name|
+          func || begin
+            # Try to attach basic CamelCase method via FFI
+            attach_function(camel_name, effective_name, params.dup, returns)
+            effective_name
+          rescue FFI::NotFoundError
+            nil
+          end
         end
       end
 
@@ -376,11 +392,11 @@ module Win
     ##
     # Generates params and returns (signature) containing only FFI-compliant types
     #
-    def generate_signature(params, returns)
+    def generate_signature(params, returns, condition=nil)
       params = params.split(//) if params.respond_to?(:split) # Convert params string into array
       params.map! {|param| TYPES[param.to_sym] || param} # Convert chars into FFI type symbols
       returns = TYPES[returns.to_sym] || returns # Convert chars into FFI type symbols
-      [params, returns]
+      [params, returns, condition]
     end
 
     # Generates body for snake_case method according to directives contained in options

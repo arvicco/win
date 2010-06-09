@@ -96,6 +96,10 @@ module WinTest
   def buffer
     FFI::MemoryPointer.new(:char, 1024)
   end
+
+  def pointer(type=:long, num=1)
+    FFI::MemoryPointer.new(type, num)
+  end
 end
 
 module WinTestApp

@@ -8,6 +8,19 @@ module Win
     # http://msdn.microsoft.com/en-us/library/ms644996#init_box
     module Info
       extend Win::Library
+
+      # Enum COMPUTER_NAME_FORMAT (for GetComputerNameEx)
+
+      ComputerNameNetBIOS                    = 0
+      ComputerNameDnsHostname                = 1
+      ComputerNameDnsDomain                  = 2
+      ComputerNameDnsFullyQualified          = 3
+      ComputerNamePhysicalNetBIOS            = 4
+      ComputerNamePhysicalDnsHostname        = 5
+      ComputerNamePhysicalDnsDomain          = 6
+      ComputerNamePhysicalDnsFullyQualified  = 7
+      ComputerNameMax                        = 8
+
       class << self
         # Helper method that creates def_block returning (possibly encoded) string as a result of
         # api function call or nil if api call was not successful
@@ -128,6 +141,22 @@ module Win
       #  username = [get_]user_name()
       #
       function :GetUserName, [:LPTSTR, :LPDWORD], :int8, :dll=> 'advapi32', &return_sized_string
+
+      # Untested
+
+      ##
+      function :ExpandEnvironmentStrings, 'PPL', :long
+      ##
+      function :GetComputerNameEx, 'PPP', :int8, boolean: true
+      ##
+      function :GetSystemInfo, 'P', :void
+      ##
+      function :GetUserNameEx, 'LPP', :int8, boolean: true, dll: 'secur32'
+      ##
+      function :GetWindowsDirectory, 'PI', :int
+      ##
+      # XP or later
+      try_function :GetSystemWow64Directory, 'PI', :int
 
     end
   end

@@ -46,3 +46,7 @@
 == 0.3.13 / 2010-06-09
 
 * Win::System::Info module started
+
+== 0.3.14 / 2010-06-10
+
+* System::Version and System::Info functions added

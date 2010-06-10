@@ -225,8 +225,9 @@ module Win
             SHORT:     :short, # A 16-bit integer. The range is –32768 through 32767 decimal.
             SIZE_T:    :ulong, #  The maximum number of bytes to which a pointer can point. Use for a count that must span the full range of a pointer.
             SSIZE_T:   :long, # Signed SIZE_T.
-            TBYTE:     :short, # A WCHAR if UNICODE is defined, a CHAR otherwise.TCHAR:
-            TCHAR:     :short, # A WCHAR if UNICODE is defined, a CHAR otherwise.TCHAR:
+            TBYTE:     :char, # A WCHAR if UNICODE is defined, a CHAR otherwise.TCHAR:
+            # http://msdn.microsoft.com/en-us/library/c426s321%28VS.80%29.aspx
+            TCHAR:     :char, # A WCHAR if UNICODE is defined, a CHAR otherwise.TCHAR:
             UCHAR:     :uchar, # Unsigned CHAR (8 bit)
             UHALF_PTR: :uint, # Unsigned HALF_PTR. Use within a structure that contains a pointer and two small fields.
             UINT:      :uint, # Unsigned INT. The range is 0 through 4294967295 decimal.

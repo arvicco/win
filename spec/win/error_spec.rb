@@ -69,7 +69,7 @@ module WinErrorTest
       end
     end # describe set_last_error
 
-    if xp? || vista? # This function works only on XP++
+    if os_xp? || os_vista? # This function works only on XP++
       describe "#set_last_error_ex" do
         spec{ use{ SetLastErrorEx(dw_err_code=0, dw_type=0) }}
         spec{ use{ set_last_error_ex(dw_err_code=0, dw_type=0) }}
@@ -86,7 +86,7 @@ module WinErrorTest
       end # describe set_last_error_ex
     end
 
-    if vista? # This function works only on Vista++
+    if os_vista? || os_7? # This function works only on Vista++
       describe "#get_error_mode" do
         spec{ use{ mode = GetErrorMode() }}
         spec{ use{ mode = get_error_mode() }}

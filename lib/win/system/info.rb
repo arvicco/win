@@ -23,7 +23,7 @@ module Win
 
       class << self
         # Helper method that creates def_block returning (possibly encoded) string as a result of
-        # api function call or nil if api call was not successful
+        # api function call or nil if api call was not successful. TODO: put this into some kind of helper?
         #
         def return_sized_string( encode = nil )  #:nodoc:
           lambda do |api, *args|
@@ -46,7 +46,6 @@ module Win
 
         private :return_sized_string
       end
-
 
       ##
       # GetComputerName Function.

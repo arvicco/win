@@ -356,7 +356,7 @@ module WinLibraryTest
     end
 
     context '::try_function - possibly defines API functions that are platform-specific' do
-      if xp?
+      if os_xp?
         it 'silently fails to define function not present on current platform' do
           expect {MyLib.function :GetErrorMode, [], :UINT}.to raise_error /Function 'GetErrorMode' not found/
           expect {MyLib.try_function :GetErrorMode, [], :UINT}.to_not raise_error

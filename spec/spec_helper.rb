@@ -61,12 +61,20 @@ def os
   @os_flag ||= cygwin? ? `cmd /c ver` : `ver`
 end
 
-def vista?
-  os =~ /Version 6/
+def os_2000?
+  os =~ /Version 5.0/
 end
 
-def xp?
+def os_xp?
   os =~ /XP/
+end
+
+def os_vista?
+  os =~ /Version 6.0/
+end
+
+def os_7?
+  os =~ /Version 6.1/
 end
 
 module WinTest

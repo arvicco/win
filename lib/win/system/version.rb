@@ -16,10 +16,11 @@ module Win
       PROCESSOR_INTEL_IA64    = 2200
       PROCESSOR_AMD_X8664     = 8664
 
-      # wSuiteMask mask constants:
-
       VER_SERVER_NT                      = 0x80000000
       VER_WORKSTATION_NT                 = 0x40000000
+
+      # wSuiteMask mask constants:
+
       # Microsoft Small Business Server was once installed on the system, but may have been upgraded to
       # another version of Windows. Refer to the Remarks section for more information about this bit flag.
       VER_SUITE_SMALLBUSINESS            = 0x00000001
@@ -72,8 +73,7 @@ module Win
       VER_PLATFORM_WIN32_WINDOWS = 1
       VER_PLATFORM_WIN32_NT      = 2
 
-      # Version info type masks (used by dwTypeMask argument of VerifyVersionInfo):
-
+      # *Version* info type masks (used by VerSetConditionMask and VerifyVersionInfo):
       VER_MINORVERSION     = 0x0000001
       VER_MAJORVERSION     = 0x0000002
       VER_BUILDNUMBER      = 0x0000004
@@ -82,6 +82,22 @@ module Win
       VER_SERVICEPACKMAJOR = 0x0000020
       VER_SUITENAME        = 0x0000040
       VER_PRODUCT_TYPE     = 0x0000080
+
+      # *Condition* masks masks (used by VerSetConditionMask):
+      # The current value must be equal to the specified value.
+      VER_EQUAL         = 1
+      # The current value must be greater than the specified value.
+      VER_GREATER       = 2
+      # The current value must be greater than or equal to the specified value.
+      VER_GREATER_EQUAL = 3
+      # The current value must be less than the specified value.
+      VER_LESS          = 4
+      # The current value must be less than or equal to the specified value.
+      VER_LESS_EQUAL    = 5
+      # All product suites specified in the wSuiteMask member must be present in the current system.
+      VER_AND           = 6
+      # At least one of the specified product suites must be present in the current system.
+      VER_OR            = 7
 
       class << self
         # Macros defined in windef.h. TODO: put them into some kind of helper?
@@ -277,7 +293,7 @@ module Win
       # :call-seq:
       #  success = verify_version_info(lp_version_info, dw_type_mask, dwl_condition_mask)
       #
-      function :VerifyVersionInfo, [:pointer, :uint32, :uint32], :int8, boolean: true
+      function :VerifyVersionInfo, [:pointer, :uint32, :uint64], :int8, boolean: true
 
       ##
       # GetVersion Function retrieves the version number of the current operating system.
@@ -392,6 +408,69 @@ module Win
                &->(api, version_info = OSVERSIONINFOEX.new) {
                version_info[:dw_os_version_info_size] = version_info.size
                api.call(version_info.to_ptr) == 0 ? nil : version_info }
+
+      ##
+      # VerSetConditionMask Function
+      # Sets the bits of a 64-bit value to indicate the comparison operator to use for a specified operating
+      # system version attribute. This function is used to build the dwlConditionMask parameter of the
+      # VerifyVersionInfo function.
+      #
+      # [*Syntax*] ULONGLONG WINAPI VerSetConditionMask( ULONGLONG dwlConditionMask, DWORD dwTypeBitMask,
+      #            BYTE dwConditionMask );
+      #
+      # dwlConditionMask:: A value to be passed as the dwlConditionMask parameter of the VerifyVersionInfo function.
+      #                    The function stores the comparison information in the bits of this variable.
+      #                    Before the first call to VerSetCondition, initialize this variable to zero. For subsequent
+      #                    calls, pass in the variable used in the previous call.
+      # dwTypeBitMask:: A mask that indicates the member of the OSVERSIONINFOEX structure whose comparison operator is
+      #                 being set. This value corresponds to one of the bits specified in the dwTypeMask parameter for
+      #                 the VerifyVersionInfo function. This parameter can be one of the following values:
+      #                 VER_BUILDNUMBER:: dwBuildNumber
+      #                 VER_MAJORVERSION:: dwMajorVersion
+      #                 VER_MINORVERSION:: dwMinorVersion
+      #                 VER_PLATFORMID:: dwPlatformId
+      #                 VER_PRODUCT_TYPE:: wProductType
+      #                 VER_SERVICEPACKMAJOR:: wServicePackMajor
+      #                 VER_SERVICEPACKMINOR:: wServicePackMinor
+      #                 VER_SUITENAME:: wSuiteMask
+      # dwConditionMask:: The operator to be used for the comparison. The VerifyVersionInfo function uses this operator
+      #                   to compare a specified attribute value to the corresponding value for the currently running
+      #                   system. For all values of dwTypeBitMask other than VER_SUITENAME, this parameter can be one
+      #                   of the following:
+      #                   VER_EQUAL:: The current value must be equal to the specified value.
+      #                   VER_GREATER:: The current value must be greater than the specified value.
+      #                   VER_GREATER_EQUAL:: The current value must be greater than or equal to the specified value.
+      #                   VER_LESS:: The current value must be less than the specified value.
+      #                   VER_LESS_EQUAL:: The current value must be less than or equal to the specified value.
+      #                   If dwTypeBitMask is VER_SUITENAME, this parameter can be one of the following values:
+      #                   VER_AND:: All product suites specified in the wSuiteMask member must be present in the system.
+      #                   VER_OR:: At least one of the specified product suites must be present in the current system.
+      #
+      # *Returns*:: The function returns the condition mask value.
+      # ---
+      # *Remarks*:
+      # Call this function once for each bit set in the dwTypeMask parameter of the VerifyVersionInfo function.
+      # ---
+      # *Requirements*:
+      # Client Requires Windows Vista, Windows XP, or Windows 2000 Professional.
+      # Server Requires Windows Server 2008, Windows Server 2003, or Windows 2000 Server.
+      # Header Declared in Winnt.h; include Windows.h.
+      # Library Use Kernel32.lib.
+      # DLL Requires Kernel32.dll.
+      # ---
+      # *See* *Also*:
+      # {Operating System Version}[http://msdn.microsoft.com/en-us/library/ms724832%28v=VS.85%29.aspx]
+      # OSVERSIONINFOEX
+      # VerifyVersionInfo
+      #
+      # ---
+      # <b>Enhanced (snake_case) API: </b>
+      #
+      # :call-seq:
+      #  mask = ver_set_condition_mask(dwl_condition_mask, dw_type_bit_mask, dw_condition_mask)
+      #
+      function :VerSetConditionMask, [:uint64, :uint32, :uchar], :uint64
+
 
       # Convenience methods:
 

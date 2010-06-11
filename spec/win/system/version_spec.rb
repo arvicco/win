@@ -11,12 +11,23 @@ module WinSystemInfoTest
       when :info
         object.should be_an OSVERSIONINFOEX
         major = object[:dw_major_version]
+        minor = object[:dw_minor_version]
+        build = object[:dw_build_number]
       when :version
         object.should be_an Array
-        major = object.first
+        major = object[0]
+        minor = object[1]
+        build = object[2]
     end
-    major.should == 5 if os_xp? || os_2000?
-    major.should == 6 if os_vista? || os_7?
+    os_major, os_minor, os_build = os_version_numbers
+    major.should == os_major
+    minor.should == os_minor
+    build.should == os_build
+  end
+
+  def os_version_numbers
+    os_ver = os.match(/Version ([\d]{1,2})\.([\d]{1,2})\.([\d]{1,5})/  )
+    os_ver.captures.map(&:to_i)
   end
 
   describe Win::System::Version do
@@ -63,21 +74,38 @@ module WinSystemInfoTest
       end
     end # describe get_version_ex
 
-    describe "#verify_version_info" do
-      spec{ pending; use{ success = VerifyVersionInfo(@ver_info.to_ptr, dw_type_mask=0, dwl_condition_mask=0) }}
-      spec{ pending; use{ success = verify_version_info(@ver_info.to_ptr, dw_type_mask=0, dwl_condition_mask=0) }}
+    describe "#ver_set_condition_mask" do
+      spec{ use{ mask = VerSetConditionMask(dwl_condition_mask=0, dw_type_bit_mask=0, dw_condition_mask=0) }}
+      spec{ use{ mask = ver_set_condition_mask(dwl_condition_mask=0, dw_type_bit_mask=0, dw_condition_mask=0) }}
 
-      it "original api ignores structure " do
-        pending
-        success = VerifyVersionInfo(lp_version_info=0, dw_type_mask=0, dwl_condition_mask=0)
+      it "is used to build the dwlConditionMask parameter for the VerifyVersionInfo function" do
+        mask1 = VerSetConditionMask(0, VER_MAJORVERSION, VER_EQUAL)
+        mask2 = ver_set_condition_mask(0, VER_MAJORVERSION, VER_EQUAL)
+        mask1.should be_an Integer
+        mask1.should == mask2
+      end
+    end # describe ver_set_condition_mask
+
+    describe "#verify_version_info" do
+      before(:each) do
+        # Preparing condition mask
+        @mask_equal = ver_set_condition_mask(0, VER_MAJORVERSION, VER_EQUAL)
+        @mask_equal = ver_set_condition_mask(@mask_equal, VER_MINORVERSION, VER_EQUAL)
+
+        # Preparing expected version info
+        @expected = OSVERSIONINFOEX.new
+        @expected[:dw_os_version_info_size] = @expected.size
+        @expected[:dw_major_version] = os_version_numbers[0]
+        @expected[:dw_minor_version] = os_version_numbers[1]
       end
 
-      it "snake_case api ignores structure " do
-        pending
-        success = verify_version_info(lp_version_info=0, dw_type_mask=0, dwl_condition_mask=0)
+      spec{ use{ verified = VerifyVersionInfo(@expected.to_ptr, dw_type_mask=VER_MAJORVERSION, dwl_condition_mask=@mask_equal) }}
+      spec{ use{ verified = verify_version_info(@expected.to_ptr, dw_type_mask=VER_MAJORVERSION, dwl_condition_mask=@mask_equal) }}
+
+      it "checks if current OS features are in line with expected features " do
+        VerifyVersionInfo(@expected.to_ptr, VER_MAJORVERSION | VER_MINORVERSION, @mask_equal).should == 1
+        verify_version_info(@expected.to_ptr, VER_MAJORVERSION | VER_MINORVERSION, @mask_equal).should == true
       end
     end # describe verify_version_info
-
-
   end
 end

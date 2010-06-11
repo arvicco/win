@@ -139,18 +139,18 @@ module Win
       # :call-seq:
       #  username = [get_]user_name()
       #
-      function :GetUserName, [:LPTSTR, :LPDWORD], :int8, :dll=> 'advapi32', &return_sized_string
+      function :GetUserName, [:pointer, :pointer], :int8, :dll=> 'advapi32', &return_sized_string
 
       # Untested
 
       ##
-      function :ExpandEnvironmentStrings, 'PPL', :long
-      ##
       function :GetComputerNameEx, 'PPP', :int8, boolean: true
       ##
-      function :GetSystemInfo, 'P', :void
-      ##
       function :GetUserNameEx, 'LPP', :int8, boolean: true, dll: 'secur32'
+      ##
+      function :ExpandEnvironmentStrings, 'PPL', :long
+      ##
+      function :GetSystemInfo, 'P', :void
       ##
       function :GetWindowsDirectory, 'PI', :int
       ##

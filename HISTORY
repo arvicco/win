@@ -54,3 +54,7 @@
 == 0.3.15 / 2010-06-10
 
 * System::Version specs added
+
+== 0.3.16 / 2010-06-11
+
+* System::Version module completed

@@ -84,6 +84,27 @@ module WinSystemInfoTest
         mask1.should be_an Integer
         mask1.should == mask2
       end
+
+      context 'snake api accepts both single type/condition pair or an Array of type/condition pairs' do
+        it 'with single condition' do
+          mask1 = ver_set_condition_mask(0, VER_MAJORVERSION, VER_EQUAL)
+          mask2 = ver_set_condition_mask(VER_MAJORVERSION, VER_EQUAL)
+          mask3 = ver_set_condition_mask([VER_MAJORVERSION, VER_EQUAL])
+          mask4 = ver_set_condition_mask([[VER_MAJORVERSION, VER_EQUAL]])
+          mask1.should == mask2
+          mask1.should == mask4
+          mask1.should == mask3
+        end
+        it 'with multiple conditions' do
+          mask1 = ver_set_condition_mask(0, [[VER_MAJORVERSION, VER_EQUAL], [VER_MINORVERSION, VER_EQUAL]])
+          mask2 = ver_set_condition_mask([[VER_MAJORVERSION, VER_EQUAL], [VER_MINORVERSION, VER_EQUAL]])
+          mask3 = ver_set_condition_mask(0, [VER_MAJORVERSION, VER_EQUAL, VER_MINORVERSION, VER_EQUAL])
+          mask4 = ver_set_condition_mask([VER_MAJORVERSION, VER_EQUAL, VER_MINORVERSION, VER_EQUAL])
+          mask1.should == mask2
+          mask1.should == mask3
+          mask1.should == mask4
+        end
+      end
     end # describe ver_set_condition_mask
 
     describe "#verify_version_info" do
@@ -102,10 +123,47 @@ module WinSystemInfoTest
       spec{ use{ verified = VerifyVersionInfo(@expected.to_ptr, dw_type_mask=VER_MAJORVERSION, dwl_condition_mask=@mask_equal) }}
       spec{ use{ verified = verify_version_info(@expected.to_ptr, dw_type_mask=VER_MAJORVERSION, dwl_condition_mask=@mask_equal) }}
 
-      it "checks if current OS features are in line with expected features " do
+      it "returns 1/true if current OS features are in line with expected features " do
         VerifyVersionInfo(@expected.to_ptr, VER_MAJORVERSION | VER_MINORVERSION, @mask_equal).should == 1
         verify_version_info(@expected.to_ptr, VER_MAJORVERSION | VER_MINORVERSION, @mask_equal).should == true
       end
+
+      it "returns 0/false if current OS features are different from expected" do
+        @expected[:dw_major_version] = 1
+        VerifyVersionInfo(@expected.to_ptr, VER_MAJORVERSION | VER_MINORVERSION, @mask_equal).should == 0
+        verify_version_info(@expected.to_ptr, VER_MAJORVERSION | VER_MINORVERSION, @mask_equal).should == false
+      end
     end # describe verify_version_info
+
+    describe "convenience version checking methods" do
+      it 'returns true for current OS type, false otherwise' do
+        case
+          when os_2000?
+            windows_2000?.should == true
+            windows_xp?.should == false
+            windows_2003?.should == false
+            windows_vista?.should == false
+            windows_7?.should == false
+          when os_xp?
+            windows_2000?.should == false
+            windows_xp?.should == true
+            windows_2003?.should == false
+            windows_vista?.should == false
+            windows_7?.should == false
+          when os_vista?
+            windows_2000?.should == false
+            windows_xp?.should == false
+            windows_2003?.should == false
+            windows_vista?.should == true
+            windows_7?.should == false
+          when os_7?
+            windows_2000?.should == false
+            windows_xp?.should == false
+            windows_2003?.should == false
+            windows_vista?.should == false
+            windows_7?.should == true
+        end
+      end
+    end
   end
 end

@@ -126,7 +126,7 @@ module Win
           w >> 8
         end
       end
-      
+
       # OSVERSIONINFOEX Structure. Contains operating system version information. The information includes major and
       # minor version numbers, a build number, a platform identifier, and information about product suites and the
       # latest Service Pack installed on the system. This structure is used with the GetVersionEx and
@@ -208,92 +208,6 @@ module Win
                :w_product_type, :uchar,
                :w_reserved, :uchar,
       end
-
-      ##
-      # VerifyVersionInfo Function. Compares a set of operating system version requirements to the corresponding
-      # values for the currently running version of the system.
-      #
-      # [*Syntax*] BOOL VerifyVersionInfo( LPOSVERSIONINFOEX lpVersionInfo, DWORD dwTypeMask, DWORDLONG 
-      #            dwlConditionMask );
-      #
-      # lpVersionInfo:: A pointer to an OSVERSIONINFOEX structure containing the operating system version requirements
-      #                 to compare. The dwTypeMask parameter indicates the members of this structure that contain
-      #                 information to compare. You must set the dwOSVersionInfoSize member of this structure to
-      #                 sizeof(OSVERSIONINFOEX). You must also specify valid data for the members indicated by
-      #                 dwTypeMask. The function ignores structure members for which the corresponding dwTypeMask
-      #                 bit is not set.
-      # dwTypeMask:: Mask that indicates the members of the OSVERSIONINFOEX structure to be tested. This parameter can
-      #              be one or more of the following values: VER_BUILDNUMBER, VER_MAJORVERSION, VER_MINORVERSION,
-      #              VER_PLATFORMID, VER_SERVICEPACKMAJOR, VER_SERVICEPACKMINOR, VER_SUITENAME, VER_PRODUCT_TYPE
-      #              If you are testing the major version, you must also test the minor version and the service pack
-      #              major and minor versions.
-      # dwlConditionMask:: The type of comparison to be used for each lpVersionInfo member being compared. To build
-      #                    this value, call the VerSetConditionMask function or the VER_SET_CONDITION macro once for
-      #                    each OSVERSIONINFOEX member being compared.
-      #
-      # *Returns*:: If the currently running operating system satisfies the specified requirements, the return
-      #             value is a nonzero value. If the current system does not satisfy the requirements, the return
-      #             value is zero and GetLastError returns ERROR_OLD_WIN_VERSION. If the function fails, the return
-      #             value is zero and GetLastError returns an error code other than ERROR_OLD_WIN_VERSION.
-      # ---
-      # *Remarks*:
-      # The VerifyVersionInfo function retrieves version information about the currently running operating
-      # system and compares it to the valid members of the lpVersionInfo structure. This enables you to easily
-      # determine the presence of a required set of operating system version conditions. It is preferable to
-      # use VerifyVersionInfo rather than calling the GetVersionEx function to perform your own comparisons.
-      # Typically, VerifyVersionInfo returns a nonzero value only if all specified tests succeed. However,
-      # major, minor, and service pack versions are tested in a hierarchical manner because the operating
-      # system version is a combination of these values. If a condition exists for the major version, it
-      # supersedes the conditions specified for minor version and service pack version. (You cannot test for
-      # major version greater than 5 and minor version less than or equal to 1. If you specify such a test,
-      # the function will change the request to test for a minor version greater than 1 because it is
-      # performing a greater than operation on the major version.)
-      #
-      # The function tests these values in this order: major version, minor version, and service pack version.
-      # The function continues testing values while they are equal, and stops when one of the values does not
-      # meet the specified condition. For example, if you test for a system greater than or equal to version
-      # 5.1 service pack 1, the test succeeds if the current version is 6.0. (The major version is greater
-      # than the specified version, so the testing stops.) In the same way, if you test for a system greater
-      # than or equal to version 5.1 service pack 1, the test succeeds if the current version is 5.2. (The
-      # minor version is greater than the specified versions, so the testing stops.) However, if you test for
-      # a system greater than or equal to version 5.1 service pack 1, the test fails if the current version is
-      # 5.0 service pack 2. (The minor version is not greater than the specified version, so the testing stops.)
-      #
-      # To verify a range of system versions, you must call VerifyVersionInfo twice. For example, to verify
-      # that the system version is greater than 5.0 but less than or equal to 5.1, first call
-      # VerifyVersionInfo to test that the major version is 5 and the minor version is greater than 0, then
-      # call VerifyVersionInfo again to test that the major version is 5 and the minor version is less than or
-      # equal to 1.
-      #
-      # Identifying the current operating system is usually not the best way to determine whether a particular
-      # operating system feature is present. This is because the operating system may have had new features
-      # added in a redistributable DLL. Rather than using GetVersionEx to determine the operating system
-      # platform or version number, test for the presence of the feature itself. For more information,
-      # {see Operating System Version}[http://msdn.microsoft.com/en-us/library/ms724832%28v=VS.85%29.aspx].
-      # To verify whether the current operating system is either the Media Center or Tablet PC version of
-      # Windows, call GetSystemMetrics.
-      # ---
-      # *Requirements*
-      # Client Requires Windows Vista, Windows XP, or Windows 2000 Professional.
-      # Server Requires Windows Server 2008, Windows Server 2003, or Windows 2000 Server.
-      # Header Declared in Winbase.h; include Windows.h.
-      # Library Use Kernel32.lib.
-      # Unicode Implemented as VerifyVersionInfoW (Unicode) and VerifyVersionInfoA (ANSI).
-      # ---
-      # *See* *Also*
-      # GetVersionEx
-      # VerSetConditionMask
-      # OSVERSIONINFOEX
-      # VER_SET_CONDITION
-      # {Operating System Version}[http://msdn.microsoft.com/en-us/library/ms724832%28v=VS.85%29.aspx]
-      #
-      # ---
-      # <b>Enhanced (snake_case) API: </b>
-      #
-      # :call-seq:
-      #  success = verify_version_info(lp_version_info, dw_type_mask, dwl_condition_mask)
-      #
-      function :VerifyVersionInfo, [:pointer, :uint32, :uint64], :int8, boolean: true
 
       ##
       # GetVersion Function retrieves the version number of the current operating system.
@@ -410,6 +324,92 @@ module Win
                api.call(version_info.to_ptr) == 0 ? nil : version_info }
 
       ##
+      # VerifyVersionInfo Function. Compares a set of operating system version requirements to the corresponding
+      # values for the currently running version of the system.
+      #
+      # [*Syntax*] BOOL VerifyVersionInfo( LPOSVERSIONINFOEX lpVersionInfo, DWORD dwTypeMask, DWORDLONG
+      #            dwlConditionMask );
+      #
+      # lpVersionInfo:: A pointer to an OSVERSIONINFOEX structure containing the operating system version requirements
+      #                 to compare. The dwTypeMask parameter indicates the members of this structure that contain
+      #                 information to compare. You must set the dwOSVersionInfoSize member of this structure to
+      #                 sizeof(OSVERSIONINFOEX). You must also specify valid data for the members indicated by
+      #                 dwTypeMask. The function ignores structure members for which the corresponding dwTypeMask
+      #                 bit is not set.
+      # dwTypeMask:: Mask that indicates the members of the OSVERSIONINFOEX structure to be tested. This parameter can
+      #              be one or more of the following values: VER_BUILDNUMBER, VER_MAJORVERSION, VER_MINORVERSION,
+      #              VER_PLATFORMID, VER_SERVICEPACKMAJOR, VER_SERVICEPACKMINOR, VER_SUITENAME, VER_PRODUCT_TYPE
+      #              If you are testing the major version, you must also test the minor version and the service pack
+      #              major and minor versions.
+      # dwlConditionMask:: The type of comparison to be used for each lpVersionInfo member being compared. To build
+      #                    this value, call the VerSetConditionMask function or the VER_SET_CONDITION macro once for
+      #                    each OSVERSIONINFOEX member being compared.
+      #
+      # *Returns*:: If the currently running operating system satisfies the specified requirements, the return
+      #             value is a nonzero value. If the current system does not satisfy the requirements, the return
+      #             value is zero and GetLastError returns ERROR_OLD_WIN_VERSION. If the function fails, the return
+      #             value is zero and GetLastError returns an error code other than ERROR_OLD_WIN_VERSION.
+      # ---
+      # *Remarks*:
+      # The VerifyVersionInfo function retrieves version information about the currently running operating
+      # system and compares it to the valid members of the lpVersionInfo structure. This enables you to easily
+      # determine the presence of a required set of operating system version conditions. It is preferable to
+      # use VerifyVersionInfo rather than calling the GetVersionEx function to perform your own comparisons.
+      # Typically, VerifyVersionInfo returns a nonzero value only if all specified tests succeed. However,
+      # major, minor, and service pack versions are tested in a hierarchical manner because the operating
+      # system version is a combination of these values. If a condition exists for the major version, it
+      # supersedes the conditions specified for minor version and service pack version. (You cannot test for
+      # major version greater than 5 and minor version less than or equal to 1. If you specify such a test,
+      # the function will change the request to test for a minor version greater than 1 because it is
+      # performing a greater than operation on the major version.)
+      #
+      # The function tests these values in this order: major version, minor version, and service pack version.
+      # The function continues testing values while they are equal, and stops when one of the values does not
+      # meet the specified condition. For example, if you test for a system greater than or equal to version
+      # 5.1 service pack 1, the test succeeds if the current version is 6.0. (The major version is greater
+      # than the specified version, so the testing stops.) In the same way, if you test for a system greater
+      # than or equal to version 5.1 service pack 1, the test succeeds if the current version is 5.2. (The
+      # minor version is greater than the specified versions, so the testing stops.) However, if you test for
+      # a system greater than or equal to version 5.1 service pack 1, the test fails if the current version is
+      # 5.0 service pack 2. (The minor version is not greater than the specified version, so the testing stops.)
+      #
+      # To verify a range of system versions, you must call VerifyVersionInfo twice. For example, to verify
+      # that the system version is greater than 5.0 but less than or equal to 5.1, first call
+      # VerifyVersionInfo to test that the major version is 5 and the minor version is greater than 0, then
+      # call VerifyVersionInfo again to test that the major version is 5 and the minor version is less than or
+      # equal to 1.
+      #
+      # Identifying the current operating system is usually not the best way to determine whether a particular
+      # operating system feature is present. This is because the operating system may have had new features
+      # added in a redistributable DLL. Rather than using GetVersionEx to determine the operating system
+      # platform or version number, test for the presence of the feature itself. For more information,
+      # {see Operating System Version}[http://msdn.microsoft.com/en-us/library/ms724832%28v=VS.85%29.aspx].
+      # To verify whether the current operating system is either the Media Center or Tablet PC version of
+      # Windows, call GetSystemMetrics.
+      # ---
+      # *Requirements*
+      # Client Requires Windows Vista, Windows XP, or Windows 2000 Professional.
+      # Server Requires Windows Server 2008, Windows Server 2003, or Windows 2000 Server.
+      # Header Declared in Winbase.h; include Windows.h.
+      # Library Use Kernel32.lib.
+      # Unicode Implemented as VerifyVersionInfoW (Unicode) and VerifyVersionInfoA (ANSI).
+      # ---
+      # *See* *Also*
+      # GetVersionEx
+      # VerSetConditionMask
+      # OSVERSIONINFOEX
+      # VER_SET_CONDITION
+      # {Operating System Version}[http://msdn.microsoft.com/en-us/library/ms724832%28v=VS.85%29.aspx]
+      #
+      # ---
+      # <b>Enhanced (snake_case) API: </b>
+      #
+      # :call-seq:
+      #  success = verify_version_info(lp_version_info, dw_type_mask, dwl_condition_mask)
+      #
+      function :VerifyVersionInfo, [:pointer, :uint32, :uint64], :int8, boolean: true
+
+      ##
       # VerSetConditionMask Function
       # Sets the bits of a 64-bit value to indicate the comparison operator to use for a specified operating
       # system version attribute. This function is used to build the dwlConditionMask parameter of the
@@ -464,13 +464,23 @@ module Win
       # VerifyVersionInfo
       #
       # ---
-      # <b>Enhanced (snake_case) API: </b>
+      # <b>Enhanced (snake_case) API: dwl_condition_mask defaults to 0, you can send in an Array of type/condition
+      # pairs instead of single dw_type_bit_mask/dw_condition_mask pair</b>
       #
       # :call-seq:
-      #  mask = ver_set_condition_mask(dwl_condition_mask, dw_type_bit_mask, dw_condition_mask)
+      #  mask = ver_set_condition_mask(previous_mask=0, type_bit_mask, condition_mask)
       #
-      function :VerSetConditionMask, [:uint64, :uint32, :uchar], :uint64
-
+      function :VerSetConditionMask, [:uint64, :uint32, :uchar], :uint64,
+               &->(api, *args) {
+               case args.last
+                 when Array
+                   mask = args.size == 2 ? args.shift : 0
+                   args.last.flatten.each_slice(2) {|pair| mask = api.call(mask, *pair) }
+                   mask
+                 else
+                   mask = args.size == 3 ? args.shift : 0
+                   api.call mask, *args
+               end }
 
       # Convenience methods:
 

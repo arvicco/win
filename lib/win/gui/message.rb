@@ -421,6 +421,7 @@ module Win
       #            {|handle, msg, data, l_result| callback code }
       #
       function :SendMessageCallback, [:HWND, :uint, :uint, :pointer, :SendAsyncProc, :ulong], :int8, boolean: true,
+               alternative: [[:HWND, :uint, :uint, :long, :SendAsyncProc, :ulong], :int8, ->(*args){Integer === args[3]}],
                &->(api, handle, msg, w_param, l_param, data=0, &block){
                api.call(handle, msg, w_param, l_param, block, data)}
 
@@ -462,28 +463,8 @@ module Win
       #:call-seq:
       # success = post_message(handle, msg, w_param, l_param)
       #
-      function :PostMessage, [:ulong, :uint, :uint, :pointer], :int,
-               boolean: true, camel_name: :PostMessagePointer, snake_name: :post_message_pointer
-      function :PostMessage, [:ulong, :uint, :uint, :long], :int,
-               boolean: true, camel_name: :PostMessageLong, snake_name: :post_message_long
-
-      def PostMessage(handle, msg, w_param, l_param)
-        # Routes call depending on lParam type (:pointer or :long)
-        case l_param
-          when Integer
-            PostMessageLong(handle, msg, w_param, l_param)
-          else
-            PostMessagePointer(handle, msg, w_param, l_param)
-        end
-      end
-
-      def post_message(handle, msg, w_param, l_param, &block)
-        if block
-          block[PostMessage(handle, msg, w_param, l_param)]
-        else
-          PostMessage(handle, msg, w_param, l_param) != 0
-        end
-      end
+      function :PostMessage, [:ulong, :uint, :uint, :pointer], :int, boolean: true,
+               alternative: [[:ulong, :uint, :uint, :long], :int, ->(*args){Integer === args.last}]
 
       ##
       # The SendMessage function sends the specified message to a window or windows. It calls the window procedure for
@@ -526,7 +507,8 @@ module Win
       #:call-seq:
       # send_message(handle, msg, w_param, l_param)
       #
-      function :SendMessage, [:ulong, :uint, :uint, :pointer], :int   # LPARAM different from PostMessage!
+      function :SendMessage, [:ulong, :uint, :uint, :pointer], :int,
+               alternative: [[:ulong, :uint, :uint, :long], :int, ->(*args){Integer === args.last}]
 
       ##
       # :method: :SendMessageLong?

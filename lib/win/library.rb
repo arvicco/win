@@ -311,7 +311,8 @@ module Win
       ffi_lib *(ffi_libraries.map(&:name) << options[:dll]) if options[:dll]
       libs = ffi_libraries.map(&:name)
 
-      effective_name = if alternative = options.delete(:alternative) # This function has alternative signature, attach both
+      alternative = options.delete(:alternative) # Function may have alternative signature
+      effective_name = if alternative
 
         alt_params, alt_returns, condition = generate_signature(*alternative)
         api = function name, params, returns,

@@ -306,6 +306,7 @@ module WinLibraryTest
 
         it 'defines camel and snake methods (as well as hidden Original/Alternative methods)' do
             expect { send_message(any_handle, Win::Gui::Message::WM_GETTEXT, buffer.size, buffer) }.to_not raise_error
+            expect { send_message(any_handle, Win::Gui::Message::WM_GETTEXT, buffer.size, buffer.address) }.to_not raise_error
         end
 
         it 'defines camel and snake methods that work with both signatures' do

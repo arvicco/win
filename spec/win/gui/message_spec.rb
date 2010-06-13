@@ -15,7 +15,7 @@ module WinGuiMessageTest
   end
 
   def msg
-    @msg ||=Win::Gui::Message::Msg.new
+    @msg ||= Win::Gui::Message::Msg.new
   end
 
   def msg_callback
@@ -83,21 +83,32 @@ module WinGuiMessageTest
     end # describe '#post_message'
 
     describe '#send_message' do
+      after(:all){close_test_app if @launched_test_app}
+
       spec{ use{ success = SendMessage(handle = 0, msg = 0, w_param = 0, l_param = nil) }}
       spec{ use{ success = send_message(handle = 0, msg = 0, w_param = 0, l_param = nil) }}
 
-      it 'directly sends the specified message to a window or windows' do
-        app = launch_test_app
+      context 'sends a message to the specified window' do
+        it 'with nil as last argument(lParam)' do
+          app = launch_test_app
+          send_message(app.handle, WM_SYSCOMMAND, SC_CLOSE, nil)
+          sleep SLEEP_DELAY
+          window?(app.handle).should == false
+        end
 
-        num_chars = send_message app.handle, WM_GETTEXT, buffer.size, buffer
-        buffer.get_bytes(0, num_chars).should == "LockNote - Steganos LockNote"
+        it 'with pointer as last argument(lParam)' do
+          app = launch_test_app
+          send_message(app.handle, WM_SYSCOMMAND, SC_CLOSE, FFI::MemoryPointer.new(:long))
+          sleep SLEEP_DELAY
+          window?(app.handle).should == false
+        end
 
-        num_chars = send_message app.textarea, WM_GETTEXT, buffer.size, buffer
-        buffer.get_bytes(0, num_chars).should =~ /Welcome to Steganos LockNote/
-
-        send_message(app.handle, WM_SYSCOMMAND, SC_CLOSE, nil)
-        sleep SLEEP_DELAY  # delay to allow window close
-        window?(app.handle).should == false
+        it 'with Fixnum as last argument(lParam)' do
+          app = launch_test_app
+          send_message(app.handle, WM_SYSCOMMAND, SC_CLOSE, 0)
+          sleep SLEEP_DELAY
+          window?(app.handle).should == false
+        end
       end
     end # describe '#send_message'
 
@@ -111,13 +122,13 @@ module WinGuiMessageTest
       it "sends message to window and returns, specifying callback to be called by system after message is processed" do
         sent = SendMessageCallback(@app.handle, WM_USER, 0, nil, msg_callback, data=13)
         sent.should == 1
-        @handle.should == nil
+        @handle.should == nil  # Callback did not fire just yet
         @message.should == nil
         @data.should == nil
         @result.should == nil
 
-        sleep SLEEP_DELAY # small delay to allow message delivery
-        peek_message           # dispatching sent message (even though there is nothing in queue)
+        sleep SLEEP_DELAY # Small delay to allow message delivery
+        peek_message      # Dispatching sent message (even though there is nothing in queue)
 
         @handle.should == @app.handle
         @message.should == WM_USER
@@ -126,14 +137,24 @@ module WinGuiMessageTest
       end
 
       it "snake_case api defaults data to 0, converts block into callback and returns true/false" do
-        sent = send_message_callback(@app.handle, WM_USER, 0, nil){|*args|@data=args[2]}
+        sent = send_message_callback(@app.handle, WM_USER, 0, nil){|*args| @data=args[2]}
         sent.should == true
-        @data.should == nil
+        @data.should == nil    # Callback did not fire just yet
 
-        sleep SLEEP_DELAY # small delay to allow message delivery
-        peek_message           # dispatching sent message (even though there is nothing in queue)
+        sleep SLEEP_DELAY # Small delay to allow message delivery
+        peek_message      # Dispatching sent message (even though there is nothing in queue)
 
         @data.should == 0
+      end
+
+      it "can be used with :pointer as a 4th arg" do
+        sent = send_message_callback(@app.handle, WM_USER, 0, FFI::MemoryPointer.new(:long)){|*args| p args}
+        sent.should == true
+      end
+
+      it "can be used with :long as a 4th arg" do
+        sent = send_message_callback(@app.handle, WM_USER, 0, 0){|*args| p args}
+        sent.should == true
       end
 
       it "fails if unable to send message" do

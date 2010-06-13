@@ -58,3 +58,7 @@
 == 0.3.16 / 2010-06-11
 
 * System::Version module completed
+
+== 0.3.17 / 2010-06-13
+
+* Message fucntions now accept both Pointer and Long lParams

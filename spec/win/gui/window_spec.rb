@@ -468,24 +468,49 @@ module WinGuiWindowTest
           end
         end # context GA_PARENT
 
-        #           GA_ROOT - Retrieves the root window by walking the chain of parent windows.
+        context 'GA_ROOT - Retrieves the root window by walking the chain of parent windows' do
+          it "retrieves a handle to the specified window's root (top level parent)" do
+            child = find_window_ex(@app.handle, 0, nil, nil)
+            root1 = GetAncestor(child, GA_ROOT)
+            root2 = get_ancestor(child, GA_ROOT)
+            root1.should == root2
+            root1.should == @app.handle
+          end
+        end
         #           GA_ROOTOWNER - Retrieves the owned root window by walking the chain of parent and owner windows
         #                          returned by GetParent.
-        it "original api retrieves the handle to the ancestor of the specified window. " do
-          pending
-          success = GetAncestor(hwnd=0, ga_flags=0)
-        end
-
-        it "snake_case api retrieves the handle to the ancestor of the specified window. " do
-          pending
-          success = get_ancestor(hwnd=0, ga_flags=0)
-        end
-
       end # describe get_ancestor
 
       describe "#get_window" do
         spec{ use{ handle = GetWindow(any_handle, command=0) }}
         spec{ use{ handle = get_window(any_handle, command=0) }}
+
+        #        GW_ENABLEDPOPUP - Windows 2000/XP: The retrieved handle identifies the enabled popup window owned by
+
+        context 'GW_HWND... works with windows of the same type' do
+          before(:all) do
+            @statusbar = find_window_ex(@app.handle, 0, STATUSBAR_CLASS, nil)
+            @textarea = find_window_ex(@app.handle, 0, TEXTAREA_CLASS, nil)
+          end
+
+          it 'GW_HWNDFIRST - The retrieved handle identifies the window of the same type that is highest in Z order' do
+            get_window(@statusbar, GW_HWNDFIRST).should == @statusbar
+          end
+          it 'GW_HWNDLAST -  The retrieved handle identifies the window of the same type that is lowest in the Z order' do
+            get_window(@statusbar, GW_HWNDLAST).should == @textarea
+          end
+          it 'GW_HWNDNEXT -  The retrieved handle identifies the window below the specified window in the Z order' do
+            get_window(@statusbar, GW_HWNDNEXT).should == @textarea
+          end
+          it 'GW_HWNDPREV -  The retrieved handle identifies the window above the specified window in the Z order' do
+            get_window(@textarea, GW_HWNDPREV).should == @statusbar
+          end
+
+          it 'returns nil/0 in case nothing is returned' do
+            get_window(@textarea, GW_HWNDNEXT).should == nil
+            GetWindow(@textarea, GW_HWNDNEXT).should == 0
+          end
+        end # context 'GW_HWND...
 
         context "GW_CHILD retrieves a window handle to a first (top of the Z order) child of given window" do
           before(:all) do
@@ -510,11 +535,12 @@ module WinGuiWindowTest
         end # context GW_CHILD
 
         context "GW_OWNER - retrieves a handle to an owner of a given Window" do
-          #        GW_OWNER - The retrieved handle identifies the specified window's owner window, if any. For more
+          # Ownership is a relationship between two top level windows while Parent is a relationship between a top
+          # level and a WS_CHILD, or a WS_CHILD and another WS_CHILD. The parent of a button is the form it is on,
+          # while a message box is owned by the form that showed it.
 
           it 'returns owner (but NOT parent!) of a given window' do
-            pending
-
+            pending 'Need to open modal dialog, app should be it`s owner'
             child = find_window_ex(@app.handle, 0, nil, nil)
             p owner1 = GetWindow(child, GW_OWNER)
             p owner2 = get_window(child, GW_OWNER)
@@ -526,27 +552,12 @@ module WinGuiWindowTest
             GetWindow(@app.handle, GW_OWNER).should == 0
             get_window(@app.handle, GW_OWNER).should == nil
           end
-
-        end
-
-        it "GW_OWNER - retrieves a handle to a window that has the specified relationship to given Window" do
-          pending
-          #        GW_ENABLEDPOPUP - Windows 2000/XP: The retrieved handle identifies the enabled popup window owned by
-          #        GW_HWNDFIRST - The retrieved handle identifies the window of the same type that is highest in Z order.
-          #        GW_HWNDLAST -  The retrieved handle identifies the window of the same type that is lowest in the Z order.
-          #        GW_HWNDNEXT -  The retrieved handle identifies the window below the specified window in the Z order.
-          #        GW_HWNDPREV -  The retrieved handle identifies the window above the specified window in the Z order.
-          #        GW_OWNER - The retrieved handle identifies the specified window's owner window, if any. For more
         end
       end # describe get_window
 
       describe '#enum_windows' do
-#        before(:each){@app = launch_test_app}
-#        after(:each){close_test_app}
 
         spec{ use{ handles = enum_windows(value = 13)   }}
-        spec{ use{ enum_windows do |handle, message|
-        end  }}
 
         it 'iterates through all the top-level windows, passing each top level window handle and value to a given block' do
           enum_windows(13) do |handle, message|
@@ -558,7 +569,6 @@ module WinGuiWindowTest
 
         it 'returns an array of top-level window handles if block is not given' do
           enum = enum_windows(13)
-#          p enum
           enum.should be_a_kind_of Array
           enum.should_not be_empty
           enum.should have_at_least(5).elements # typical number of top windows in WinXP system?

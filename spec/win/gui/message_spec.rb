@@ -148,12 +148,12 @@ module WinGuiMessageTest
       end
 
       it "can be used with :pointer as a 4th arg" do
-        sent = send_message_callback(@app.handle, WM_USER, 0, FFI::MemoryPointer.new(:long)){|*args| p args}
+        sent = send_message_callback(@app.handle, WM_USER, 0, FFI::MemoryPointer.new(:long)){|*args|}
         sent.should == true
       end
 
       it "can be used with :long as a 4th arg" do
-        sent = send_message_callback(@app.handle, WM_USER, 0, 0){|*args| p args}
+        sent = send_message_callback(@app.handle, WM_USER, 0, 0){|*args|}
         sent.should == true
       end
 

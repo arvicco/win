@@ -39,7 +39,20 @@ module WinGuiInputTest
 
     describe '#mouse_event' do
       spec { use {mouse_event( flags = MOUSEEVENTF_ABSOLUTE, dx = 0, dy = 0, data=0, extra_info=0 )}}
-      it 'Emulates Mouse clicks'
+
+      it 'emulates mouse clicks' do
+        test_app do |app|
+          # Position cursor at app's "Close Window" control
+          left, top, right, bottom = get_window_rect(app.handle)
+          set_cursor_pos(x=right-5, y=top+5).should be_true
+
+          mouse_event MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0
+          mouse_event MOUSEEVENTF_LEFTUP, 0, 0, 0, 0
+          sleep SLEEP_DELAY
+          window?(app.handle).should == false
+        end
+      end
+
     end # describe '#mouse_event'
 
     describe "#get_cursor_pos" do

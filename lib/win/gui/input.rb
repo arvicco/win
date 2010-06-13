@@ -193,7 +193,7 @@ module Win
       #            A positive value indicates that the wheel was rotated forward, away from the user; a negative value
       #            indicates that the wheel was rotated backward, toward the user. One wheel click is defined as
       #            WHEEL_DELTA, which is 120.
-      #          - If dwFlags contains MOUSEEVENTF_WHHEEL, then data specifies the amount of
+      #          - If dwFlags contains MOUSEEVENTF_WHEEL, then data specifies the amount of
       #            wheel movement. A positive value indicates that the wheel was rotated to the right; a negative value
       #            indicates that the wheel was rotated to the left. One wheel click is defined as WHEEL_DELTA (= 120).
       #          - Windows 2000/XP: If flags contains MOUSEEVENTF_XDOWN or MOUSEEVENTF_XUP, then data specifies which

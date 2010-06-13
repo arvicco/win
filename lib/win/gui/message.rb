@@ -470,7 +470,7 @@ module Win
       def PostMessage(handle, msg, w_param, l_param)
         # Routes call depending on lParam type (:pointer or :long)
         case l_param
-          when Fixnum
+          when Integer
             PostMessageLong(handle, msg, w_param, l_param)
           else
             PostMessagePointer(handle, msg, w_param, l_param)

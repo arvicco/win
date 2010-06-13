@@ -1,5 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 require 'win/library'
+require 'win/gui/message'
 
 module WinLibraryTest
 
@@ -43,7 +44,7 @@ module WinLibraryTest
   end
 
   def redefined_methods
-    [:FindWindow, :IsWindow, :EnumWindows, :GetUserName, :GetForegroundWindow, :keybd_event]
+    [:FindWindow, :IsWindow, :EnumWindows, :GetUserName, :GetForegroundWindow, :keybd_event, :SendMessage]
   end
 
   def hide_method(*names) # hide original method(s) if it is defined
@@ -296,6 +297,29 @@ module WinLibraryTest
         end
       end
 
+      context 'defining API function with alternative signature' do
+        before(:each) do
+          @def_block = nil
+          MyLib.function :SendMessage, [:ulong, :uint, :uint, :pointer], :int,
+                         alternative: [[:ulong, :uint, :uint, :long], :int, ->(*args){Integer === args.last}]
+        end
+
+        it 'defines camel and snake methods (as well as hidden Original/Alternative methods)' do
+            expect { send_message(any_handle, Win::Gui::Message::WM_GETTEXT, buffer.size, buffer) }.to_not raise_error
+        end
+
+        it 'defines camel and snake methods that work with both signatures' do
+          respond_to?(:SendMessage).should be_true
+          respond_to?(:send_message).should be_true
+          respond_to?(:SendMessageOriginal).should be_true
+          respond_to?(:SendMessageAlternative).should be_true
+          MyLib.respond_to?(:SendMessage).should be_true
+          MyLib.respond_to?(:send_message).should be_true
+          MyLib.respond_to?(:SendMessageOriginal).should be_true
+          MyLib.respond_to?(:SendMessageAlternative).should be_true
+        end
+      end
+
       context 'trying to define an invalid API function' do
         it 'raises error when trying to define function with a wrong function name' do
           expect { MyLib.function 'FindWindowImpossible', 'PP', 'L' }.
@@ -330,7 +354,7 @@ module WinLibraryTest
         end
       end
 
-      context 'defining API function that has snake_case name' do
+      context 'defining API function that has original snake_case name' do
         it 'should define original function in (generated) CamelCase' do
           MyLib.function :keybd_event, [:char, :char, :ulong, :ulong], :void
           expect {KeybdEvent(Win::Gui::Input::VK_CONTROL, 0, Win::Gui::Input::KEYEVENTF_KEYDOWN, 0)}.to_not raise_error

@@ -3,13 +3,13 @@ require 'win/library'
 module Win
   module System
 
-    # Contains constants and Win32 API functions related to dialog manipulation.
-    # Windows dialog basics can be found here:
-    # http://msdn.microsoft.com/en-us/library/ms644996#init_box
+    # Contains constants and Win32 API functions related to system information functions.
+    # More functions of this type can be found here:
+    # http://msdn.microsoft.com/en-us/library/ms724953%28v=VS.85%29.aspx
     module Info
       extend Win::Library
 
-      # Enum COMPUTER_NAME_FORMAT (for GetComputerNameEx)
+      # Enum COMPUTER_NAME_FORMAT (for GetComputerNameEx). TODO: convert into FFI::Enum
 
       ComputerNameNetBIOS                    = 0
       ComputerNameDnsHostname                = 1

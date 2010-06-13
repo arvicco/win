@@ -311,16 +311,19 @@ module Win
       ffi_lib *(ffi_libraries.map(&:name) << options[:dll]) if options[:dll]
       libs = ffi_libraries.map(&:name)
 
-      effective_name = if options[:alternative]
+      effective_name = if alternative = options.delete(:alternative) # This function has alternative signature, attach both
 
-        alt_params, alt_returns, condition = generate_signature(*options.dup[:alternative])
+        alt_params, alt_returns, condition = generate_signature(*alternative)
         api = function name, params, returns,
-                       options.dup.merge( camel_only: true, camel_name: "#{camel_name}Original")
+                       options.merge( camel_only: true, camel_name: "#{camel_name}Original")
         alt_api = function name, alt_params, alt_returns,
-                           options.dup.merge( camel_only: true, camel_name: "#{camel_name}Alternative")
+                           options.merge( camel_only: true, camel_name: "#{camel_name}Alternative")
+
         define_method camel_name do |*args|
           (condition[*args] ? alt_api : api).call(*args)
         end
+        module_function camel_name
+        public camel_name
         api.effective_name
       else
         effective_names.inject(nil) do |func, effective_name|
@@ -349,21 +352,10 @@ module Win
       # Generate body for snake_case method
       method_body = generate_snake_method_body(api, options, &def_block)
 
-      # Define snake_case instance method
+      # Define snake_case as both instance and module-level method
       define_method snake_name, &method_body
-
-      # We need to define module(class) level method, but something went wrong with module_function :(
-#      module_function snake_name    # TODO: Doesn't work as a perfect replacement for eigen_class stuff. :( Why?
-
-      # OK, instead of module_method we're going to directly modify eigenclass
-      eigen_class = class << self;
-        self;
-      end
-
-      # Define snake_case class method inside eigenclass, that should do it
-      eigen_class.class_eval do
-        define_method snake_name, &method_body
-      end
+      module_function snake_name
+      public snake_name
 
       # Define (instance method!) aliases, if any
       aliases.each {|ali| alias_method ali, snake_name }
@@ -466,7 +458,8 @@ module Win
     # Win::Library::API is a wrapper for callable function API object that mimics Win32::API
     class API
 
-      # The name of the DLL(s) that export this API function
+      # The name of the DLL(s) that export this API function.
+      # dll_name alias needed for compatibility with Win32::API interface
       attr_reader :dll
       alias_method :dll_name, :dll
 
@@ -478,7 +471,9 @@ module Win
 
       # The name of the actual Windows API function. For example, if you passed 'GetUserName' to the
       # constructor, then the effective function name would be either 'GetUserNameA' or 'GetUserNameW'.
-      attr_accessor :effective_function_name
+      # effective_function_name alias needed for compatibility with Win32::API interface
+      attr_accessor :effective_name
+      alias_method :effective_function_name, :effective_name
 
       # The prototype, returned as an array of FFI types
       attr_reader :prototype
@@ -486,10 +481,10 @@ module Win
       # The return type (:void for no return value)
       attr_reader :return_type
 
-      def initialize( namespace, function_name, effective_function_name, prototype, return_type, dll )
+      def initialize( namespace, function_name, effective_name, prototype, return_type, dll )
         @namespace = namespace
         @function_name = function_name.to_sym
-        @effective_function_name = effective_function_name.to_sym
+        @effective_name = effective_name.to_sym
         @prototype = prototype
         @return_type = return_type
         @dll = dll

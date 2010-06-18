@@ -2,6 +2,7 @@ require 'win/gui/window'
 require 'win/gui/input'
 require 'win/gui/message'
 require 'win/gui/dialog'
+require 'win/gui/menu'
 
 module Win
   
@@ -12,5 +13,6 @@ module Win
     include Win::Gui::Input
     include Win::Gui::Message
     include Win::Gui::Dialog
+    include Win::Gui::Menu
   end
 end

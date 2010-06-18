@@ -6,22 +6,18 @@ module WinGuiInputTest
   include WinTestApp
   include Win::Gui::Input
 
+  # rolling back changes with Ctrl-Z to allow window closing without dialog!
+  def rollback_changes(num_changes)
+    num_changes.times {keystroke(VK_CONTROL, 'Z'.ord)}
+  end
+
   describe Win::Gui::Input, ' defines a set of API functions related to user input' do
 
     describe '#keydb_event' do
       spec{ use{ keybd_event(vkey = 0, bscan = 0, flags = 0, extra_info = 0) }}
       before(:each){ (@app=launch_test_app)}
       after(:each) do
-        3.times do  # rolling back changes to allow window closing without dialog!
-          keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYDOWN, 0)
-          sleep KEY_DELAY
-          keybd_event('Z'.ord, 0, KEYEVENTF_KEYDOWN, 0)
-          sleep KEY_DELAY
-          keybd_event('Z'.ord, 0, KEYEVENTF_KEYUP, 0)
-          sleep KEY_DELAY
-          keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0)
-          sleep KEY_DELAY
-        end
+        rollback_changes(3)
         close_test_app
       end
 

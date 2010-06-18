@@ -882,7 +882,7 @@ module Win
     #             to an array of values that represent the arguments. This flag cannot be used with 64-bit integer
     #             values. If you are using a 64-bit integer, you must use the va_list structure.
     #           - FORMAT_MESSAGE_FROM_HMODULE - The lpSource parameter is a module handle containing the message-table
-    #             resource(s) to search. If this lpSource handle is NULL, the current process's application image file
+    #             resource(s) to search. If this lpSource handle is NULL, the current process's App image file
     #             will be searched. This flag cannot be used with FORMAT_MESSAGE_FROM_STRING. If the module has no
     #             message table resource, the function fails with ERROR_RESOURCE_TYPE_NOT_FOUND.
     #           - FORMAT_MESSAGE_FROM_STRING -  The lpSource parameter is a pointer to a null-terminated string that
@@ -892,7 +892,7 @@ module Win
     #           - FORMAT_MESSAGE_FROM_SYSTEM - The function should search the system message-table resource(s) for
     #             the requested message. If this flag is specified with FORMAT_MESSAGE_FROM_HMODULE, the function
     #             searches the system message table if the message is not found in the module specified by lpSource.
-    #             This flag cannot be used with FORMAT_MESSAGE_FROM_STRING. If this flag is specified, an application
+    #             This flag cannot be used with FORMAT_MESSAGE_FROM_STRING. If this flag is specified, an App
     #             can pass the result of the GetLastError function to retrieve the message text for a system error.
     #           - FORMAT_MESSAGE_IGNORE_INSERTS - Insert sequences in the message definition are to be ignored and
     #             passed through to the output buffer unchanged. This flag is useful for fetching a message for later
@@ -1027,7 +1027,7 @@ module Win
     # GetLastError Function
     # Retrieves the calling thread's last-error code value. The last-error code is maintained on a
     # per-thread basis. Multiple threads do not overwrite each other's last-error code.
-    # Visual Basic:  Applications should call err.LastDllError instead of GetLastError.
+    # Visual Basic:  Apps should call err.LastDllError instead of GetLastError.
     #
     # [*Syntax*] DWORD WINAPI GetLastError( void );
     #
@@ -1053,9 +1053,9 @@ module Win
     # that can be returned by each function. There are also many functions whose documentation does not
     # include even a partial list of error codes that can be returned.
     # Error codes are 32-bit values (bit 31 is the most significant bit). Bit 29 is reserved for
-    # application-defined error codes; no system error code has this bit set. If you are defining an error
-    # code for your application, set this bit to one. That indicates that the error code has been defined by
-    # an application, and ensures that your error code does not conflict with any error codes defined by the
+    # App-defined error codes; no system error code has this bit set. If you are defining an error
+    # code for your App, set this bit to one. That indicates that the error code has been defined by
+    # an App, and ensures that your error code does not conflict with any error codes defined by the
     # system.
     # To convert a system error into an HRESULT value, use the HRESULT_FROM_WIN32 macro.
     # ---
@@ -1083,16 +1083,16 @@ module Win
     # - The last-error code is kept in thread local storage so that multiple threads do not overwrite each
     #   other's values.
     # - This function is intended primarily for use by dynamic-link libraries (DLL). A DLL can provide the
-    #   applications that are using it with additional diagnostic information by calling this function after
+    #   Apps that are using it with additional diagnostic information by calling this function after
     #   an error occurs. Most functions call SetLastError or SetLastErrorEx only when they fail. However, some
     #   system functions call SetLastError or SetLastErrorEx under conditions of success; those cases are
     #   noted in each function's documentation.
-    # - Applications can optionally retrieve the value set by this function by using the GetLastError function
+    # - Apps can optionally retrieve the value set by this function by using the GetLastError function
     #   immediately after a function fails.
     # - Error codes are 32-bit values (bit 31 is the most significant bit). Bit 29 is reserved for
-    #   application-defined error codes; no system error code has this bit set. If you are defining an error
-    #   code for your application, set this bit to indicate that the error code has been defined by your
-    #   application and to ensure that your error code does not conflict with any system-defined error codes.
+    #   App-defined error codes; no system error code has this bit set. If you are defining an error
+    #   code for your App, set this bit to indicate that the error code has been defined by your
+    #   App and to ensure that your error code does not conflict with any system-defined error codes.
     # ---
     # <b>Enhanced (snake_case) API: </b>
     #
@@ -1116,16 +1116,16 @@ module Win
     # The last-error code is kept in thread local storage so that multiple threads do not overwrite each
     # other's values.
     # This function is intended primarily for use by dynamic-link libraries (DLL). A DLL can provide the
-    # applications that are using it with additional diagnostic information by calling this function after
+    # Apps that are using it with additional diagnostic information by calling this function after
     # an error occurs. Most functions call SetLastError or SetLastErrorEx only when they fail. However, some
     # system functions call SetLastError or SetLastErrorEx under conditions of success; those cases are
     # noted in each function's documentation.
-    # Applications can optionally retrieve the value set by this function by using the GetLastError function
+    # Apps can optionally retrieve the value set by this function by using the GetLastError function
     # immediately after a function fails.
     # Error codes are 32-bit values (bit 31 is the most significant bit). Bit 29 is reserved for
-    # application-defined error codes; no system error code has this bit set. If you are defining an error
-    # code for your application, set this bit to indicate that the error code has been defined by the
-    # application and to ensure that your error code does not conflict with any system-defined error codes.
+    # App-defined error codes; no system error code has this bit set. If you are defining an error
+    # code for your App, set this bit to indicate that the error code has been defined by the
+    # App and to ensure that your error code does not conflict with any system-defined error codes.
     #
     # :call-seq:
     #  set_last_error_ex(err_code, dw_type)
@@ -1145,19 +1145,19 @@ module Win
     #             SEM_FAILCRITICALERRORS:: The system does not display the critical-error-handler message box. Instead,
     #                                      the system sends the error to the calling process.
     #             SEM_NOALIGNMENTFAULTEXCEPT:: The system automatically fixes memory alignment faults and makes them
-    #                                          invisible to the application. It does this for the calling process and
+    #                                          invisible to the App. It does this for the calling process and
     #                                          any descendant processes. This feature is only supported by certain
     #                                          processor architectures. For more information, see the Remarks section.
     #                                          After this value is set for a process, subsequent attempts to clear the
     #                                          value are ignored.
     #             SEM_NOGPFAULTERRORBOX:: The system does not display the general-protection-fault message box. This
-    #                                     flag should only be set by debugging applications that handle general
+    #                                     flag should only be set by debugging Apps that handle general
     #                                     protection (GP) faults themselves with an exception handler.
     #             SEM_NOOPENFILEERRORBOX:: The system does not display a message box when it fails to find a file.
     #                                      Instead, the error is returned to the calling process.
     # ---
     # *Remarks*:
-    # Each process has an associated error mode that indicates to the system how the application is going to
+    # Each process has an associated error mode that indicates to the system how the App is going to
     # respond to serious errors. A child process inherits the error mode of its parent process.
     # To change the error mode for the process, use the SetErrorMode function.
     # ------
@@ -1180,13 +1180,13 @@ module Win
     #         SEM_FAILCRITICALERRORS:: The system does not display the critical-error-handler message box. Instead,
     #                                  the system sends the error to the calling process.
     #         SEM_NOALIGNMENTFAULTEXCEPT:: The system automatically fixes memory alignment faults and makes them
-    #                                      invisible to the application. It does this for the calling process and any
+    #                                      invisible to the App. It does this for the calling process and any
     #                                      descendant processes. This feature is only supported by certain processor
     #                                      architectures. For more information, see the Remarks section.
     #                                      After this value is set for a process, subsequent attempts to clear the
     #                                      value are ignored.
     #         SEM_NOGPFAULTERRORBOX:: The system does not display the general-protection-fault message box. This flag
-    #                                 should only be set by debugging applications that handle general protection (GP)
+    #                                 should only be set by debugging Apps that handle general protection (GP)
     #                                 faults themselves with an exception handler.
     #         SEM_NOOPENFILEERRORBOX:: The system does not display a message box when it fails to find a file. Instead,
     #                                  the error is returned to the calling process.
@@ -1194,12 +1194,12 @@ module Win
     # *Returns*:: The return value is the previous state of the error-mode bit flags.
     # ---
     # *Remarks*:
-    # Each process has an associated error mode that indicates to the system how the application is going to
+    # Each process has an associated error mode that indicates to the system how the App is going to
     # respond to serious errors. A child process inherits the error mode of its parent process. To retrieve
     # the process error mode, use the GetErrorMode function.
-    # Because the error mode is set for the entire process, you must ensure that multi-threaded applications
+    # Because the error mode is set for the entire process, you must ensure that multi-threaded Apps
     # do not set different error-mode flags. Doing so can lead to inconsistent error handling.
-    # The system does not make alignment faults visible to an application on all processor architectures.
+    # The system does not make alignment faults visible to an App on all processor architectures.
     # Therefore, specifying SEM_NOALIGNMENTFAULTEXCEPT is not an error on such architectures, but the system
     # is free to silently ignore the request. This means that code sequences such as the following are not
     # always valid on x86 computers:
@@ -1208,9 +1208,9 @@ module Win
     #   fuOldErrorMode = SetErrorMode(0);
     #   ASSERT(fuOldErrorMode == SEM_NOALIGNMENTFAULTEXCEPT);
     #
-    # Itanium::  An application must explicitly call SetErrorMode with SEM_NOALIGNMENTFAULTEXCEPT to have the
+    # Itanium::  An App must explicitly call SetErrorMode with SEM_NOALIGNMENTFAULTEXCEPT to have the
     #            system automatically fix alignment faults. The default setting is for the system to make alignment
-    #            faults visible to an application.
+    #            faults visible to an App.
     # Visual Studio 2005::  When declaring a pointer to a structure that may not have aligned data, you can use
     #                       __unaligned keyword to indicate that the type must be read one byte at a time. For more
     #                       information, see Windows Data Alignment.

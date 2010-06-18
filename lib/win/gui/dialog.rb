@@ -71,7 +71,7 @@ module Win
 
       # The user must respond to the message box before continuing work in the window identified by the hWnd
       # parameter. However, the user can move to the windows of other threads and work in those windows.
-      # Depending on the hierarchy of windows in the application, the user may be able to move to other
+      # Depending on the hierarchy of windows in the App, the user may be able to move to other
       # windows within the thread. All child windows of the parent of the message box are automatically 
       # disabled, but pop-up windows are not.
       # MB_APPLMODAL is the default if neither MB_SYSTEMMODAL nor MB_TASKMODAL is specified.
@@ -82,7 +82,7 @@ module Win
       # windows other than those associated with hWnd.
       MB_SYSTEMMODAL               = 0x00001000
       # Same as MB_APPLMODAL except that all the top-level windows belonging to the current thread are
-      # disabled if the hWnd parameter is NULL. Use this flag when the calling application or library does not
+      # disabled if the hWnd parameter is NULL. Use this flag when the calling App or library does not
       # have a window handle available but still needs to prevent input to other windows in the calling thread
       # without suspending other threads.
       MB_TASKMODAL                 = 0x00002000
@@ -145,10 +145,10 @@ module Win
       ErrorIcon = 0x14  # ID of Error Icon (this dialog informs about some Error)
 
       ##
-      # DialogProc is an application-defined callback function used with the CreateDialog and DialogBox
+      # DialogProc is an App-defined callback function used with the CreateDialog and DialogBox
       # families of functions. It processes messages sent to a modal or modeless dialog box. The DLGPROC
       # type defines a pointer to this callback function. DialogProc is a placeholder for the
-      # application-defined function name.
+      # App-defined function name.
       #
       # [*Syntax*] INT_PTR CALLBACK DialogProc( HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam );
       #
@@ -232,7 +232,7 @@ module Win
       # ---
       # *Remarks*:
       # GetDlgCtrlID accepts child window handles as well as handles of controls in dialog boxes. An
-      # application sets the identifier for a child window when it creates the window by assigning the
+      # App sets the identifier for a child window when it creates the window by assigning the
       # identifier value to the hmenu parameter when calling the CreateWindow or CreateWindowEx function.
       # Although GetDlgCtrlID may return a value if hwndCtl is a handle to a top-level window, top-level
       # windows cannot have identifiers and such a return value is never valid.
@@ -251,7 +251,7 @@ module Win
       # MessageBox Function
       # --------------------------------------------------------------------------------
       # The MessageBox function creates, displays, and operates a message box. The message box contains an
-      # application-defined message and title, along with any combination of predefined icons and push
+      # App-defined message and title, along with any combination of predefined icons and push
       # buttons.
       #
       # [*Syntax*] int MessageBox( HWND hWnd, LPCTSTR lpText, LPCTSTR lpCaption, UINT uType );

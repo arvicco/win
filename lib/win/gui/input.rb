@@ -153,7 +153,7 @@ module Win
       # <b>NO Return Value</b>
       # ---
       # *Remarks*:
-      # - An application can simulate a press of the PRINTSCRN key in order to obtain a screen snapshot
+      # - An App can simulate a press of the PRINTSCRN key in order to obtain a screen snapshot
       #   and save it to the clipboard. To do this, call keybd_event with the bVk parameter set to VK_SNAPSHOT.
       #
       # - Windows NT/2000/XP: The keybd_event function can toggle the NUM LOCK, CAPS LOCK, and SCROLL LOCK keys.
@@ -201,7 +201,7 @@ module Win
       #          - If flags is not MOUSEEVENTF_WHEEL, MOUSEEVENTF_XDOWN, or MOUSEEVENTF_XUP, then data should be zero.
       #          XBUTTON1 - Set if the first X button was pressed or released.
       #          XBUTTON2 - Set if the second X button was pressed or released.
-      # dwExtraInfo:: <in> Specifies an additional value associated with the mouse event. An application
+      # dwExtraInfo:: <in> Specifies an additional value associated with the mouse event. An App
       #               calls GetMessageExtraInfo to obtain this extra information.
       # <b>NO Return Value</b>
       # ---
@@ -214,8 +214,8 @@ module Win
       # - If the MOUSEEVENTF_ABSOLUTE value is not specified, dx and dy specify relative motions from when the
       #   last mouse event was generated (the last reported position). Positive values mean the mouse moved right
       #   (or down); negative values mean the mouse moved left (or up). Relative mouse motion is subject to the
-      #   settings for mouse speed and acceleration level. An end user sets these values using the Mouse application
-      #   in Control Panel. An application obtains and sets these values with the SystemParametersInfo function.
+      #   settings for mouse speed and acceleration level. An end user sets these values using the Mouse App
+      #   in Control Panel. An App obtains and sets these values with the SystemParametersInfo function.
       # - The system applies two tests to the specified relative mouse motion when applying acceleration. If the
       #   specified distance along either the x or y axis is greater than the first mouse threshold value, and the
       #   mouse acceleration level is not zero, the operating system doubles the distance. If the specified distance
@@ -227,12 +227,12 @@ module Win
       #   Mouse speed can range from 1 (slowest) to 20 (fastest) and represents how much the pointer moves based
       #   on the distance the mouse moves. The default value is 10, which results in no additional modification
       #   to the mouse motion.
-      # - The mouse_event function is used to synthesize mouse events by applications that need to do so. It is also
-      #   used by applications that need to obtain more information from the mouse than its position and button state.
-      #   For example, if a tablet manufacturer wants to pass pen-based information to its own applications, it can
+      # - The mouse_event function is used to synthesize mouse events by Apps that need to do so. It is also
+      #   used by Apps that need to obtain more information from the mouse than its position and button state.
+      #   For example, if a tablet manufacturer wants to pass pen-based information to its own Apps, it can
       #   write a DLL that communicates directly to the tablet hardware, obtains the extra information, and saves it
       #   in a queue. The DLL then calls mouse_event with the standard button and x/y position data, along with,
-      #   in the dwExtraInfo parameter, some pointer or index to the queued extra information. When the application
+      #   in the dwExtraInfo parameter, some pointer or index to the queued extra information. When the App
       #   needs the extra information, it calls the DLL with the pointer or index stored in dwExtraInfo, and the DLL
       #   returns the extra information.
       #

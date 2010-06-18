@@ -7,7 +7,7 @@ module Win
     #  Below is a table of system-defined message prefixes:
     #
     #  *Prefix*:: *Message* *category* 
-    #  ABM:: Application desktop toolbar
+    #  ABM:: App desktop toolbar
     #  BM:: Button control
     #  CB:: Combo box control
     #  CBEM:: Extended combo box control
@@ -337,22 +337,22 @@ module Win
 
       # The MSG structure contains message information from a thread's message queue.
       #
-      #  typedef struct {
-      #     HWND hwnd;
-      #     UINT message;
-      #     WPARAM wParam;
-      #     LPARAM lParam;
-      #     DWORD time;
-      #     POINT pt;
-      #  } MSG, *PMSG;
+      # typedef struct {
+      #    HWND hwnd;
+      #    UINT message;
+      #    WPARAM wParam;
+      #    LPARAM lParam;
+      #    DWORD time;
+      #    POINT pt;
+      # } MSG, *PMSG;
       #
-      #  hwnd:: Handle to the window whose window procedure receives the message. NULL when the message is a thread message.
-      #  message:: Message identifier. Applications can only use the low word; the high word is reserved by the system.
-      #  wParam:: Additional info about the message. Exact meaning depends on the value of the message member.
-      #  lParam:: Additional info about the message. Exact meaning depends on the value of the message member.
-      #  time:: Specifies the time at which the message was posted.
-      #  pt:: POINT structure - the cursor position, in screen coordinates, when the message was posted.
-      #       (in my definition, it is changed to two longs: x, y - has the same effect, just avoid nested structs)
+      # hwnd:: Handle to the window whose window procedure receives the message. NULL when the message is a thread message.
+      # message:: Message identifier. Apps can only use the low word; the high word is reserved by the system.
+      # wParam:: Additional info about the message. Exact meaning depends on the value of the message member.
+      # lParam:: Additional info about the message. Exact meaning depends on the value of the message member.
+      # time:: Specifies the time at which the message was posted.
+      # pt:: POINT structure - the cursor position, in screen coordinates, when the message was posted.
+      #      (in my definition, it is changed to two longs: x, y - has the same effect, just avoid nested structs)
       class Msg < FFI::Struct
         layout :hwnd, :ulong,
                :message, :uint,
@@ -364,9 +364,9 @@ module Win
       end
 
       ##
-      # The SendAsyncProc function is an application-defined callback function used with the SendMessageCallback
+      # The SendAsyncProc function is an App-defined callback function used with the SendMessageCallback
       # function. The system passes the message to the callback function after passing the message to the
-      # destination window procedure. SendAsyncProc is a placeholder for the application-defined function name.
+      # destination window procedure. SendAsyncProc is a placeholder for the App-defined function name.
       #
       # [*Syntax*] VOID SendAsyncProc( HWND hwnd, UINT uMsg, ULONG_PTR dwData, LRESULT lResult );
       #
@@ -374,7 +374,7 @@ module Win
       #        function was called with its hwnd parameter set to HWND_BROADCAST, the system calls the
       #        SendAsyncProc function once for each top-level window.
       # uMsg:: <in> Specifies the message.
-      # dwData:: <in> Specifies an application-defined value sent from the SendMessageCallback function.
+      # dwData:: <in> Specifies an App-defined value sent from the SendMessageCallback function.
       # lResult:: <in> Specifies the result of the message processing. This value depends on the message.
       #
       # :call-seq:
@@ -386,7 +386,7 @@ module Win
       #  The SendMessageCallback function sends the specified message to a window or windows. It calls the window
       #  procedure for the specified window and returns immediately. After the window procedure processes the message,
       #  the system calls the specified callback function, passing the result of the message processing and an
-      #  application-defined value to the callback function.
+      #  App-defined value to the callback function.
       #
       #  [*Syntax*] BOOL SendMessageCallback( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam,
       #             SENDASYNCPROC lpCallBack, ULONG_PTR dwData);
@@ -400,7 +400,7 @@ module Win
       #  lpCallBack:: <in> Pointer to a callback function that the system calls after the window procedure processes
       #               the message. For more information, see SendAsyncProc. If hWnd is HWND_BROADCAST, the system calls
       #               SendAsyncProc callback function once for each top-level window.
-      #  dwData:: <in> Specifies an application-defined value to be sent to the callback function pointed to by
+      #  dwData:: <in> Specifies an App-defined value to be sent to the callback function pointed to by
       #           the lpCallBack parameter.
       #  *Returns*:: Nonzero if the function succeeds, zero if it fails. For extended error info, call GetLastError.
       #  ---
@@ -409,8 +409,8 @@ module Win
       #    SendNotifyMessage, and SendMessageCallback), its message parameters cannot include pointers. Otherwise,
       #    the operation will fail. The functions will return before the receiving thread has had a chance
       #    to process the message and the sender will free the memory before it is used.
-      #  - Applications that need to communicate using HWND_BROADCAST should use the RegisterWindowMessage function
-      #    to obtain a unique message for inter-application communication.
+      #  - Apps that need to communicate using HWND_BROADCAST should use the RegisterWindowMessage function
+      #    to obtain a unique message for inter-App communication.
       #  - The system only does marshalling for system messages (those in the range 0 to (WM_USER-1)). To send
       #    messages (>= WM_USER) to another process, you must do custom marshalling.
       #  - The callback function is called only when the thread that called SendMessageCallback also calls GetMessage,
@@ -448,8 +448,8 @@ module Win
       # - Microsoft Windows Vista and later. When a message is blocked by UIPI the last error, retrieved with
       #   GetLastError, is set to 5 (access denied). Messages in a message queue are retrieved by calls to the
       #   GetMessage or PeekMessage function.
-      # - Applications that need to communicate using HWND_BROADCAST should use the RegisterWindowMessage function
-      #   to obtain a unique message for inter-application communication.
+      # - Apps that need to communicate using HWND_BROADCAST should use the RegisterWindowMessage function
+      #   to obtain a unique message for inter-App communication.
       # - The system only does marshalling for system messages (those in the range 0 to (WM_USER-1)). To send other
       #   messages (those >= WM_USER) to another process, you must do custom marshalling.
       # - If you send a message in the range below WM_USER to the asynchronous message functions (PostMessage,
@@ -492,8 +492,8 @@ module Win
       # *Remarks*:
       # - Microsoft Windows Vista and later. When a message is blocked by UIPI the last error, retrieved with
       #   GetLastError, is set to 5 (access denied).
-      # - Applications that need to communicate using HWND_BROADCAST should use the RegisterWindowMessage function
-      #   to obtain a unique message for inter-application communication.
+      # - Apps that need to communicate using HWND_BROADCAST should use the RegisterWindowMessage function
+      #   to obtain a unique message for inter-App communication.
       # - The system only does marshalling for system messages (those in the range 0 to (WM_USER-1)). To send other
       #   messages (those >= WM_USER) to another process, you must do custom marshalling.
       # - If the specified window was created by the calling thread, the window procedure is called immediately as
@@ -549,7 +549,7 @@ module Win
       # *Warning*
       # Because the return value can be nonzero, zero, or -1, avoid code like this:
       #   while (GetMessage( lpMsg, hWnd, 0, 0)) ...
-      # The possibility of a -1 return value means that such code can lead to fatal application errors.
+      # The possibility of a -1 return value means that such code can lead to fatal App errors.
       # Instead, use code like this:
       #   while( (bRet = GetMessage( msg, hWnd, 0, 0 )) != 0)
       #     if (bRet == -1)
@@ -561,12 +561,12 @@ module Win
       #   end
       # ---
       # *Remarks*:
-      # An application typically uses the return value to determine whether to end the main message loop and
+      # An App typically uses the return value to determine whether to end the main message loop and
       # exit the program.
       #
       # The GetMessage function retrieves messages associated with the window identified by the hWnd parameter
       # or any of its children, as specified by the IsChild function, and within the range of message values
-      # given by the wMsgFilterMin and wMsgFilterMax parameters. Note that an application can only use the low
+      # given by the wMsgFilterMin and wMsgFilterMax parameters. Note that an App can only use the low
       # word in the wMsgFilterMin and wMsgFilterMax parameters; the high word is reserved for the system.
       # Note that GetMessage always retrieves WM_QUIT messages, no matter which values you specify for
       # wMsgFilterMin and wMsgFilterMax.
@@ -590,7 +590,7 @@ module Win
       # Windows XP: If a top-level window stops responding to messages for more than several seconds, the 
       # system considers the window to be not responding and replaces it with a ghost window that has the same
       # z-order, location, size, and visual attributes. This allows the user to move it, resize it, or even
-      # close the application. However, these are the only actions available because the application is
+      # close the App. However, these are the only actions available because the App is
       # actually not responding. When in the debugger mode, the system does not generate a ghost window.
       # ---
       # <b>Enhanced (snake_case) API: makes all args optional, returns: *false* if WM_QUIT was posted,
@@ -650,7 +650,7 @@ module Win
       # *Remarks*:
       # PeekMessage retrieves messages associated with the window identified by the hWnd parameter or any of
       # its children as specified by the IsChild function, and within the range of message values given by the
-      # wMsgFilterMin and wMsgFilterMax parameters. Note that an application can only use the low word in the
+      # wMsgFilterMin and wMsgFilterMax parameters. Note that an App can only use the low word in the
       # wMsgFilterMin and wMsgFilterMax parameters; the high word is reserved for the system.
       #
       # Note that PeekMessage always retrieves WM_QUIT messages, no matter which values you specify for
@@ -677,8 +677,8 @@ module Win
       # Windows XP: If a top-level window stops responding to messages for more than several seconds, the
       # system considers the window to be not responding and replaces it with a ghost window that has the same
       # z-order, location, size, and visual attributes. This allows the user to move it, resize it, or even
-      # close the application. However, these are the only actions available because the application is
-      # actually not responding. When an application is being debugged, the system does not generate a ghost
+      # close the App. However, these are the only actions available because the App is
+      # actually not responding. When an App is being debugged, the system does not generate a ghost
       # window.
       # ---
       # <b>Enhanced (snake_case) API: makes all args optional, returns *nil* if no message in queue,
@@ -718,12 +718,12 @@ module Win
       # TranslateMessage produces WM_CHAR messages only for keys that are mapped to ASCII characters by the
       # keyboard driver.
       #
-      # If applications process virtual-key messages for some other purpose, they should not call
-      # TranslateMessage. For instance, an application should not call TranslateMessage if the
-      # TranslateAccelerator function returns a nonzero value. Note that the application is responsible for
-      # retrieving and dispatching input messages to the dialog box. Most applications use the main message
+      # If Apps process virtual-key messages for some other purpose, they should not call
+      # TranslateMessage. For instance, an App should not call TranslateMessage if the
+      # TranslateAccelerator function returns a nonzero value. Note that the App is responsible for
+      # retrieving and dispatching input messages to the dialog box. Most Apps use the main message
       # loop for this. However, to permit the user to move to and to select controls by using the keyboard,
-      # the application must call IsDialogMessage. For more information, see Dialog Box Keyboard Interface.
+      # the App must call IsDialogMessage. For more information, see Dialog Box Keyboard Interface.
       # ---
       # <b>Enhanced (snake_case) API: returns true/false instead of nonzero/zero</b>
       #
@@ -748,9 +748,9 @@ module Win
       # message and the lParam parameter of the WM_TIMER message is not NULL, lParam points to a function that
       # is called instead of the window procedure.
       #
-      # Note that the application is responsible for retrieving and dispatching input messages to the dialog
-      # box. Most applications use the main message loop for this. However, to permit the user to move to and
-      # to select controls by using the keyboard, the application must call IsDialogMessage. For more
+      # Note that the App is responsible for retrieving and dispatching input messages to the dialog
+      # box. Most Apps use the main message loop for this. However, to permit the user to move to and
+      # to select controls by using the keyboard, the App must call IsDialogMessage. For more
       # information, see Dialog Box Keyboard Interface.
       # ---
       # <b>Enhanced (snake_case) API: </b>

@@ -148,6 +148,23 @@ module WinTestApp
     close_test_app
   end
 
+  def test_app_with_dialog(type=:close)
+    test_app do |app|
+      case type
+        when :close
+          keystroke('A')
+          shut_window app.handle
+          sleep 0.01 until dialog = find_window(nil, "Steganos Locknote")
+        when :save
+          keystroke(VK_ALT, 'F', 'A')
+          sleep 0.01 until dialog = find_window(nil, "Save As")
+      end
+      yield app, dialog
+      set_foreground_window(dialog)
+      keystroke(VK_ESCAPE)
+    end
+  end
+
   # Emulates combinations of (any amount of) keys pressed one after another (Ctrl+Alt+P) and then released
   # *keys should be a sequence of a virtual-key codes. These codes must be a value in the range 1 to 254.
   # For a complete list, see msdn:Virtual Key Codes.

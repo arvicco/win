@@ -220,11 +220,11 @@ module WinGuiWindowTest
         it 'returns handle to window that is currently in foreground' do
           test_app do |app|
             @app_handle = app.handle
-            fg1 = get_foreground_window
-            @app_handle.should == fg1
+            get_foreground_window().should ==  @app_handle
+            GetForegroundWindow().should ==  @app_handle
           end
-          fg2 = get_foreground_window
-          @app_handle.should_not == fg2
+          get_foreground_window().should_not ==  @app_handle
+          GetForegroundWindow().should_not ==  @app_handle
         end
 
         it 'defines #foreground? test function ' do
@@ -246,11 +246,11 @@ module WinGuiWindowTest
           pending 'No idea how to test it'
           test_app do |app|
             @app_handle = app.handle
-            fg1 = active_window
-            @app_handle.should == fg1
+            GetActiveWindow().should == @app_handle
+            get_active_window().should == @app_handle
           end
-          fg2 = active_window
-          @app_handle.should_not == fg2
+          GetActiveWindow().should_not == @app_handle
+          get_active_window().should_not == @app_handle
         end
       end
 

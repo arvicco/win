@@ -18,11 +18,11 @@ module Win
     DNS_UNREGISTER = 2
     # Turns on service name initiation filtering. The filter prevents a server from receiving
     # XTYP_CONNECT transactions for service names it has not registered. This is the default
-    # setting for this filter. If a server application does not register any service names,
-    # the application cannot receive XTYP_WILDCONNECT transactions.
+    # setting for this filter. If a server App does not register any service names,
+    # the App cannot receive XTYP_WILDCONNECT transactions.
     DNS_FILTERON   = 4
     # Turns off service name initiation filtering. If this flag is specified, the server
-    # receives an XTYP_CONNECT transaction whenever another DDE application calls the
+    # receives an XTYP_CONNECT transaction whenever another DDE App calls the
     # DdeConnect function, regardless of the service name.
     DNS_FILTEROFF  = 8
 
@@ -109,28 +109,28 @@ module Win
 
     # DdeInitialize afCmd flaggs:
 
-    # Registers the application as a standard (nonmonitoring) DDEML application.
+    # Registers the App as a standard (nonmonitoring) DDEML App.
     APPCLASS_STANDARD         = 0
-    # Makes it possible for the application to monitor DDE activity in the system.
-    # This flag is for use by DDE monitoring applications. The application specifies the types of DDE
+    # Makes it possible for the App to monitor DDE activity in the system.
+    # This flag is for use by DDE monitoring Apps. The App specifies the types of DDE
     # activity to monitor by combining one or more monitor flags with the APPCLASS_MONITOR flag.
     APPCLASS_MONITOR          = 0x00000001
     # ?
     APPCLASS_MASK             = 0x0000000F
-    # Prevents the application from becoming a server in a DDE conversation. The application can only be a client.
+    # Prevents the App from becoming a server in a DDE conversation. The App can only be a client.
     # This flag reduces consumption of resources by the DDEML. It includes the CBF_FAIL_ALLSVRXACTIONS flag.
     APPCMD_CLIENTONLY         = 0x00000010
-    # Prevents the DDEML from sending XTYP_CONNECT and XTYP_WILDCONNECT transactions to the application until
-    # the application has created its string handles and registered its service names or has turned off filtering
+    # Prevents the DDEML from sending XTYP_CONNECT and XTYP_WILDCONNECT transactions to the App until
+    # the App has created its string handles and registered its service names or has turned off filtering
     # by a subsequent call to the DdeNameService or DdeInitialize function. This flag is always in effect when an
-    # application calls DdeInitialize for the first time, regardless of whether the application specifies the flag.
-    # On subsequent calls to DdeInitialize, not specifying this flag turns off the application's service-name
-    # filters, but specifying it turns on the application's service name filters.
+    # App calls DdeInitialize for the first time, regardless of whether the App specifies the flag.
+    # On subsequent calls to DdeInitialize, not specifying this flag turns off the App's service-name
+    # filters, but specifying it turns on the App's service name filters.
     APPCMD_FILTERINITS        = 0x00000020
     # ?
     APPCMD_MASK               = 0x00000FF0
-    # Prevents the callback function from receiving XTYP_CONNECT transactions from the application's own instance.
-    # This flag prevents an application from establishing a DDE conversation with its own instance. An application
+    # Prevents the callback function from receiving XTYP_CONNECT transactions from the App's own instance.
+    # This flag prevents an App from establishing a DDE conversation with its own instance. An App
     # should use this flag if it needs to communicate with other instances of itself but not with itself.
     CBF_FAIL_SELFCONNECTIONS  = 0x00001000
     # Prevents the callback function from receiving XTYP_CONNECT and XTYP_WILDCONNECT.
@@ -148,7 +148,7 @@ module Win
     # to a client that sends an XTYP_REQUEST transaction to the server.
     CBF_FAIL_REQUESTS         = 0x00020000
     # Prevents the callback function from receiving server transactions. The system returns DDE_FNOTPROCESSED to each
-    # client that sends a transaction to this application. This flag is equivalent to combining all CBF_FAIL_ flags.
+    # client that sends a transaction to this App. This flag is equivalent to combining all CBF_FAIL_ flags.
     CBF_FAIL_ALLSVRXACTIONS   = 0x0003f000
     # Prevents the callback function from receiving XTYP_CONNECT_CONFIRM.
     CBF_SKIP_CONNECT_CONFIRMS = 0x00040000
@@ -160,12 +160,12 @@ module Win
     CBF_SKIP_DISCONNECTS      = 0x00200000
     # Prevents the callback function from receiving any notifications. Equivalent to combining all CBF_SKIP_ flags.
     CBF_SKIP_ALLNOTIFICATIONS = 0x003c0000
-    # Notifies the callback function whenever a DDE application creates, frees, or increments the usage count of
+    # Notifies the callback function whenever a DDE App creates, frees, or increments the usage count of
     # a string handle or whenever a string handle is freed as a result of a call to the DdeUninitialize function.
     MF_HSZ_INFO               = 0x01000000
-    # Notifies the callback function whenever the system or an application sends a DDE message.
+    # Notifies the callback function whenever the system or an App sends a DDE message.
     MF_SENDMSGS               = 0x02000000
-    # Notifies the callback function whenever the system or an application posts a DDE message.
+    # Notifies the callback function whenever the system or an App posts a DDE message.
     MF_POSTMSGS               = 0x04000000
     # Notifies the callback function whenever a transaction is sent to any DDE callback function in the system.
     MF_CALLBACKS              = 0x08000000
@@ -223,21 +223,21 @@ module Win
     # A DDEML function was called without first calling the DdeInitialize function, or an invalid instance
     # identifier was passed to a DDEML function.
     DMLERR_DLL_NOT_INITIALIZED = 0x4003
-    # An application initialized as APPCLASS_MONITOR has attempted to perform a Dynamic Data Exchange (DDE) transaction,
-    # or an application initialized as APPCMD_CLIENTONLY has attempted to perform server transactions.
+    # An App initialized as APPCLASS_MONITOR has attempted to perform a Dynamic Data Exchange (DDE) transaction,
+    # or an App initialized as APPCMD_CLIENTONLY has attempted to perform server transactions.
     DMLERR_DLL_USAGE          = 0x4004
     # A request for a synchronous execute transaction has timed out.
     DMLERR_EXECACKTIMEOUT = 0x4005
     # A parameter failed to be validated by the DDEML. Some of the possible causes follow:
-    # - The application used a data handle initialized with a different item name handle than was required by the
+    # - The App used a data handle initialized with a different item name handle than was required by the
     #   transaction.
-    # - The application used a data handle that was initialized with a different clipboard data format than was
+    # - The App used a data handle that was initialized with a different clipboard data format than was
     #   required by the transaction.
-    # - The application used a client-side conversation handle with a server-side function or vice versa.
-    # - The application used a freed data handle or string handle.
-    # - More than one instance of the application used the same object.
+    # - The App used a client-side conversation handle with a server-side function or vice versa.
+    # - The App used a freed data handle or string handle.
+    # - More than one instance of the App used the same object.
     DMLERR_INVALIDPARAMETER   = 0x4006
-    # A DDEML application has created a prolonged race condition (in which the server application
+    # A DDEML App has created a prolonged race condition (in which the server App
     # outruns the client), causing large amounts of memory to be consumed.
     DMLERR_LOW_MEMORY    = 0x4007
     # A memory allocation has failed.
@@ -250,7 +250,7 @@ module Win
     DMLERR_POKEACKTIMEOUT    = 0x400b
     # An internal call to the PostMessage function has failed.
     DMLERR_POSTMSG_FAILED    = 0x400c
-    # An application instance with a synchronous transaction already in progress attempted to initiate another
+    # An App instance with a synchronous transaction already in progress attempted to initiate another
     # synchronous transaction, or the DdeEnableCallback function was called from within a DDEML callback function.
     DMLERR_REENTRANCY    = 0x400d
     # A server-side transaction was attempted on a conversation terminated by the client, or the server terminated
@@ -260,7 +260,7 @@ module Win
     DMLERR_SYS_ERROR    = 0x400f
     # A request to end an advise transaction has timed out.
     DMLERR_UNADVACKTIMEOUT    = 0x4010
-    # An invalid transaction identifier was passed to a DDEML function. Once the application has returned from an
+    # An invalid transaction identifier was passed to a DDEML function. Once the App has returned from an
     # XTYP_XACT_COMPLETE callback, the transaction identifier for that callback function is no longer valid.
     DMLERR_UNFOUND_QUEUE_ID = 0x4011
     # Last (highest) error code
@@ -275,26 +275,26 @@ module Win
             DMLERR_DATAACKTIMEOUT => 'A request for a synchronous data transaction has timed out.',
             DMLERR_DLL_NOT_INITIALIZED => 'A DDEML function was called without first calling the DdeInitialize ' +
                     'function, or an invalid instance identifier was passed to a DDEML function.',
-            DMLERR_DLL_USAGE => 'An application initialized as APPCLASS_MONITOR has attempted to perform a DDE ' +
-                    'transaction, or an application initialized as APPCMD_CLIENTONLY has attempted to perform ' +
+            DMLERR_DLL_USAGE => 'An App initialized as APPCLASS_MONITOR has attempted to perform a DDE ' +
+                    'transaction, or an App initialized as APPCMD_CLIENTONLY has attempted to perform ' +
                     'server transactions.',
             DMLERR_EXECACKTIMEOUT => 'A request for a synchronous execute transaction has timed out.',
             DMLERR_INVALIDPARAMETER => 'A parameter failed to be validated by the DDEML. Possible causes: ' +
-                    'Application used a data handle initialized with a different item name handle than was required ' +
+                    'App used a data handle initialized with a different item name handle than was required ' +
                     'by the transaction. ' +
-                    'The application used a data handle that was initialized with a different clipboard data format ' +
+                    'The App used a data handle that was initialized with a different clipboard data format ' +
                     'than was required by the transaction. ' +
-                    'The application used a client-side conversation handle with server-side function or vice versa. ' +
-                    'The application used a freed data handle or string handle. ' +
-                    'More than one instance of the application used the same object.',
-            DMLERR_LOW_MEMORY => 'A DDEML application has created a prolonged race condition (in which the server ' +
-                    'application outruns the client), causing large amounts of memory to be consumed.',
+                    'The App used a client-side conversation handle with server-side function or vice versa. ' +
+                    'The App used a freed data handle or string handle. ' +
+                    'More than one instance of the App used the same object.',
+            DMLERR_LOW_MEMORY => 'A DDEML App has created a prolonged race condition (in which the server ' +
+                    'App outruns the client), causing large amounts of memory to be consumed.',
             DMLERR_MEMORY_ERROR => 'A memory allocation has failed.',
             DMLERR_NO_CONV_ESTABLISHED => 'A client`s attempt to establish a conversation has failed.',
             DMLERR_NOTPROCESSED => 'A transaction has failed.',
             DMLERR_POKEACKTIMEOUT => 'A request for a synchronous poke transaction has timed out.',
             DMLERR_POSTMSG_FAILED => 'An internal call to the PostMessage function has failed.',
-            DMLERR_REENTRANCY => 'An application instance with a synchronous transaction already in progress ' +
+            DMLERR_REENTRANCY => 'An App instance with a synchronous transaction already in progress ' +
                     'attempted to initiate another synchronous transaction, or the DdeEnableCallback function ' +
                     'was called from within a DDEML callback function.',
             DMLERR_SERVER_DIED => 'A server-side transaction was attempted on a conversation terminated by the ' +
@@ -302,7 +302,7 @@ module Win
             DMLERR_SYS_ERROR => 'An internal error has occurred in the DDEML.',
             DMLERR_UNADVACKTIMEOUT => 'A request to end an advise transaction has timed out.',
             DMLERR_UNFOUND_QUEUE_ID => 'An invalid transaction identifier was passed to a DDEML function. Once the ' +
-                    'application has returned from an XTYP_XACT_COMPLETE callback, the transaction identifier for ' +
+                    'App has returned from an XTYP_XACT_COMPLETE callback, the transaction identifier for ' +
                     'that callback function is no longer valid.'
     }
 
@@ -338,8 +338,8 @@ module Win
     TIMEOUT_ASYNC = 0xFFFFFFFF
 
     # The MONCBSTRUCT structure contains information about the current Dynamic Data Exchange (DDE)
-    # transaction. A DDE debugging application can use this structure when monitoring transactions that the
-    # system passes to the DDE callback functions of other applications.
+    # transaction. A DDE debugging App can use this structure when monitoring transactions that the
+    # system passes to the DDE callback functions of other Apps.
     #
     # [*Typedef*] struct { UINT cb; DWORD dwTime; HANDLE hTask; DWORD dwRet; UINT wType; UINT wFmt; HCONV
     #             hConv; HSZ hsz1; HSZ hsz2; HDDEDATA hData; ULONG_PTR dwData1; ULONG_PTR dwData2;
@@ -365,8 +365,8 @@ module Win
     # ---
     # *Information*:
     # Header Declared in Ddeml.h, include Windows.h
-
-    class MonCbStruct < FFI::Struct # :nodoc:
+    #
+    class MonCbStruct < FFI::Struct
       layout :cb, :uint,
              :dw_time, :uint32,
              :h_task, :ulong,
@@ -385,7 +385,7 @@ module Win
     end
 
     # The MONCONVSTRUCT structure contains information about a Dynamic Data Exchange (DDE) conversation. A
-    # DDE monitoring application can use this structure to obtain information about a conversation that has
+    # DDE monitoring App can use this structure to obtain information about a conversation that has
     # been established or has terminated.
     #
     # [*Typedef*] struct { UINT cb; BOOL fConnect; DWORD dwTime; HANDLE hTask; HSZ hszSvc; HSZ hszTopic;
@@ -396,7 +396,7 @@ module Win
     #            conversation is established; FALSE indicates it is not.
     # dwTime:: Specifies the Windows time at which the conversation was established or terminated. Windows
     #          time is the number of milliseconds that have elapsed since the system was booted.
-    # hTask:: Handle to a task (application instance) that is a partner in the conversation.
+    # hTask:: Handle to a task (App instance) that is a partner in the conversation.
     # hszSvc:: Handle to the service name on which the conversation is established.
     # hszTopic:: Handle to the topic name on which the conversation is established.
     # hConvClient:: Handle to the client conversation.
@@ -408,7 +408,7 @@ module Win
     # Similarly, conversation handles are local to the instance; therefore, the hConvClient and hConvServer
     # members are window handles.
     # The hConvClient and hConvServer members of the MONCONVSTRUCT structure do not hold the same value as
-    # would be seen by the applications engaged in the conversation. Instead, they hold a globally unique
+    # would be seen by the Apps engaged in the conversation. Instead, they hold a globally unique
     # pair of values that identify the conversation.
     # ---
     # Structure Information:
@@ -426,7 +426,7 @@ module Win
     end
 
     # The MONERRSTRUCT structure contains information about the current Dynamic Data Exchange (DDE) error. A
-    # DDE monitoring application can use this structure to monitor errors returned by DDE Management Library
+    # DDE monitoring App can use this structure to monitor errors returned by DDE Management Library
     # functions.
     #
     # [*Typedef*] struct { UINT cb; UINT wLastError; DWORD dwTime; HANDLE hTask } MONERRSTRUCT;
@@ -435,12 +435,12 @@ module Win
     # wLastError:: Specifies the current error.
     # dwTime:: Specifies the Windows time at which the error occurred. Windows time is the number of
     #          milliseconds that have elapsed since the system was booted.
-    # hTask:: Handle to the task (application instance) that called the DDE function that caused the error.
+    # hTask:: Handle to the task (App instance) that called the DDE function that caused the error.
     # ---
     # Structure Information:
     # Header Declared in Ddeml.h, include Windows.h
     #
-    class MonErrStruct < FFI::Struct # :nodoc:
+    class MonErrStruct < FFI::Struct
       layout :cb, :uint,
              :w_last_error, :uint,
              :dw_time, :uint32,
@@ -453,29 +453,29 @@ module Win
     MH_CLEANUP = 4
 
     # The MONHSZSTRUCT structure contains information about a Dynamic Data Exchange (DDE) string handle. A
-    # DDE monitoring application can use this structure when monitoring the activity of the string manager
+    # DDE monitoring App can use this structure when monitoring the activity of the string manager
     # component of the DDE Management Library.
     #
     # [*Typedef*] struct { UINT cb; BOOL fsAction; DWORD dwTime; HSZ hsz; HANDLE hTask; TCHAR str[1] } MONHSZSTRUCT;
     #
     # cb:: Specifies the structure's size, in bytes.
     # fsAction:: Specifies the action being performed on the string identified by the hsz member.
-    #            MH_CLEANUP:: An application is freeing its DDE resources, causing the system to delete string handles
-    #                         the application had created. (The application called the DdeUninitialize function.)
-    #            MH_CREATE:: An application is creating a string handle. (The app called the DdeCreateStringHandle)
-    #            MH_DELETE:: An application is deleting a string handle. (The app called the DdeFreeStringHandle)
-    #            MH_KEEP:: An application is increasing the usage count of a string handle. (The application called the
+    #            MH_CLEANUP:: An App is freeing its DDE resources, causing the system to delete string handles
+    #                         the App had created. (The App called the DdeUninitialize function.)
+    #            MH_CREATE:: An App is creating a string handle. (The app called the DdeCreateStringHandle)
+    #            MH_DELETE:: An App is deleting a string handle. (The app called the DdeFreeStringHandle)
+    #            MH_KEEP:: An App is increasing the usage count of a string handle. (The App called the
     #                      DdeKeepStringHandle function.)
     # dwTime:: Specifies the Windows time at which the action specified by the fsAction member takes place.
     #          Windows time is the number of milliseconds that have elapsed since the system was booted.
     # hsz:: Handle to the string. Because string handles are local to the process, this member is a global atom.
-    # hTask:: Handle to the task (application instance) performing the action on the string handle.
+    # hTask:: Handle to the task (App instance) performing the action on the string handle.
     # str:: Pointer to the string identified by the hsz member.
     # ---
     # Structure Information
     # Header Declared in Ddeml.h, include Windows.h
     #
-    class MonHszStruct < FFI::Struct # :nodoc:
+    class MonHszStruct < FFI::Struct
       layout :cb, :uint,
              :fs_action, :uchar,
              :dw_time, :uint32,
@@ -485,7 +485,7 @@ module Win
     end
 
     # The MONLINKSTRUCT structure contains information about a Dynamic Data Exchange (DDE) advise loop. A
-    # DDE monitoring application can use this structure to obtain information about an advise loop that has
+    # DDE monitoring App can use this structure to obtain information about an advise loop that has
     # started or ended.
     #
     # [*Typedef*] struct { UINT cb; DWORD dwTime; HANDLE hTask; BOOL fEstablished; BOOL fNoData; HSZ hszSvc;
@@ -495,7 +495,7 @@ module Win
     # cb:: Specifies the structure's size, in bytes.
     # dwTime:: Specifies the Windows time at which the advise loop was started or ended. Windows time is the
     #          number of milliseconds that have elapsed since the system was booted.
-    # hTask:: Handle to a task (application instance) that is a partner in the advise loop.
+    # hTask:: Handle to a task (App instance) that is a partner in the advise loop.
     # fEstablished:: Indicates whether an advise loop was successfully established. A value of TRUE
     #                indicates an advise loop was established; FALSE indicates it was not.
     # fNoData:: Indicates whether the XTYPF_NODATA flag is set for the advise loop. A value of TRUE
@@ -512,13 +512,13 @@ module Win
     # *Remarks*:
     # Because string handles are local to the process, the hszSvc, hszTopic, and hszItem members are global atoms.
     # The hConvClient and hConvServer members of the MONLINKSTRUCT structure do not hold the same value as
-    # would be seen by the applications engaged in the conversation. Instead, they hold a globally unique
+    # would be seen by the Apps engaged in the conversation. Instead, they hold a globally unique
     # pair of values that identify the conversation.
     # ---
     # Structure Information
     # Header Declared in Ddeml.h, include Windows.h
     #
-    class MonLinkStruct < FFI::Struct # :nodoc:
+    class MonLinkStruct < FFI::Struct
       layout :cb, :uint,
              :dw_time, :uint32,
              :h_task, :ulong,
@@ -534,7 +534,7 @@ module Win
     end
 
     # The MONMSGSTRUCT structure contains information about a Dynamic Data Exchange (DDE) message. A DDE
-    # monitoring application can use this structure to obtain information about a DDE message that was sent
+    # monitoring App can use this structure to obtain information about a DDE message that was sent
     # or posted.
     #
     # [*Typedef*] struct { UINT cb; HWND hwndTo; DWORD dwTime; HANDLE hTask; UINT wMsg; WPARAM wParam;
@@ -544,7 +544,7 @@ module Win
     # hwndTo:: Handle to the window that receives the DDE message.
     # dwTime:: Specifies the Windows time at which the message was sent or posted. Windows time is the
     #          number of milliseconds that have elapsed since the system was booted.
-    # hTask:: Handle to the task (application instance) containing the window that receives the DDE message.
+    # hTask:: Handle to the task (App instance) containing the window that receives the DDE message.
     # wMsg:: Specifies the identifier of the DDE message.
     # wParam:: Specifies the wParam parameter of the DDE message.
     # lParam:: Specifies the lParam parameter of the DDE message.
@@ -553,7 +553,7 @@ module Win
     # Structure Information
     # Header Declared in Ddeml.h, include Windows.h
     #
-    class MonMsgStruct < FFI::Struct # :nodoc:
+    class MonMsgStruct < FFI::Struct
       layout :cb, :uint,
              :hwnd_to, :ulong,
              :dw_time, :uint32,
@@ -566,7 +566,7 @@ module Win
 
     # The DDEML_MSG_HOOK_DATA structure contains information about a Dynamic Data Exchange (DDE) message,
     # and provides read access to the data referenced by the message. This structure is intended to be used
-    # by a Dynamic Data Exchange Management Library (DDEML) monitoring application.
+    # by a Dynamic Data Exchange Management Library (DDEML) monitoring App.
     #
     # [*Typedef*] struct { UINT_PTR uiLo; UINT_PTR uiHi; DWORD cbData; DWORD Data } DDEML_MSG_HOOK_DATA;
     #
@@ -578,7 +578,7 @@ module Win
     # Structure Information
     # Header Declared in Ddeml.h, include Windows.h
     #
-    class DdemlMsgHookData < FFI::Struct # :nodoc:
+    class DdemlMsgHookData < FFI::Struct
       layout :ui_lo, :uint,
              :ui_hi, :uint,
              :cb_data, :uint32,
@@ -598,7 +598,7 @@ module Win
     # ---
     # *Remarks*:
     # If a registered format with the specified name already exists, a new format is not registered and the
-    # return value identifies the existing format. This enables more than one application to copy and paste
+    # return value identifies the existing format. This enables more than one App to copy and paste
     # data using the same registered clipboard format. Note that the comparison is case-insensitive.
     # Registered clipboard formats are identified by values in the range 0xC000 through 0xFFFF.
     # When registered clipboard formats are placed on or retrieved from the clipboard, they must be in the
@@ -610,9 +610,9 @@ module Win
     function :RegisterClipboardFormat, [:pointer], :uint, zeronil: true
 
     ##
-    # The DdeCallback function is an application-defined callback function used with the Dynamic Data Exchange
+    # The DdeCallback function is an App-defined callback function used with the Dynamic Data Exchange
     # Management Library (DDEML) functions. It processes Dynamic Data Exchange (DDE) transactions. The PFNCALLBACK
-    # type defines a pointer to this callback function. DdeCallback is a placeholder for the application-defined
+    # type defines a pointer to this callback function. DdeCallback is a placeholder for the App-defined
     # function name.
     #
     # [*Syntax*] HDDEDATA CALLBACK DdeCallback( UINT uType, UINT uFmt, HCONV hconv, HDDEDATA hsz1, HDDEDATA hsz2,
@@ -628,9 +628,9 @@ module Win
     #             hsz1:: Handle to the topic name.
     #             hsz2:: Handle to the service name.
     #             dwData1:: Pointer to a CONVCONTEXT structure that contains context information for the conversation.
-    #                       If the client is not a Dynamic Data Exchange Management Library (DDEML) application,
+    #                       If the client is not a Dynamic Data Exchange Management Library (DDEML) App,
     #                       this parameter is 0.
-    #             dwData2:: Specifies whether the client is the same application instance as the server. If the
+    #             dwData2:: Specifies whether the client is the same App instance as the server. If the
     #                       parameter is 1, the client is the same instance. If the parameter is 0, the client
     #                       is a different instance.
     #             *Returns*:: A server callback function should return TRUE to allow the client to establish a
@@ -686,9 +686,9 @@ module Win
     # ---
     # *Remarks*:
     # - The callback function is called asynchronously for transactions that do not involve the creation or termination
-    #   of conversations. An application that does not frequently accept incoming messages will have reduced DDE
+    #   of conversations. An App that does not frequently accept incoming messages will have reduced DDE
     #   performance because the Dynamic Data Exchange Management Library (DDEML) uses messages to initiate transactions.
-    # - An application must register the callback function by specifying a pointer to the function in a call to the
+    # - An App must register the callback function by specifying a pointer to the function in a call to the
     #   DdeInitialize function.
     #
     # :call-seq:
@@ -697,24 +697,24 @@ module Win
     callback :DdeCallback, [:uint, :uint, :HCONV, :HDDEDATA, :HDDEDATA, :HDDEDATA, :HDDEDATA, :HDDEDATA], :HDDEDATA
 
     ##
-    # The DdeInitialize function registers an application with the Dynamic Data Exchange Management Library (DDEML).
-    # An application must call this function before calling any other DDEML function.
+    # The DdeInitialize function registers an App with the Dynamic Data Exchange Management Library (DDEML).
+    # An App must call this function before calling any other DDEML function.
     #
     # [*Syntax*] UINT DdeInitialize( LPDWORD pidInst, PFNCALLBACK pfnCallback, DWORD afCmd, DWORD ulRes );
     #
-    # pidInst:: <in, out> Pointer to the application instance identifier.
+    # pidInst:: <in, out> Pointer to the App instance identifier.
     #           At initialization, this parameter should point to 0. If the function succeeds, this parameter points
-    #           to the instance identifier for the application. This value should be passed as the idInst parameter
-    #           in all other DDEML functions that require it. If an application uses multiple instances of the DDEML
-    #           dynamic-link library (DLL), the application should provide a different callback function for each
+    #           to the instance identifier for the App. This value should be passed as the idInst parameter
+    #           in all other DDEML functions that require it. If an App uses multiple instances of the DDEML
+    #           dynamic-link library (DLL), the App should provide a different callback function for each
     #           instance. If pidInst points to a nonzero value, reinitialization of the DDEML is implied. In this
-    #           case, pidInst must point to a valid application-instance identifier.
-    # pfnCallback:: Pointer to the application-defined Dynamic Data Exchange DdeCallback function. This function
+    #           case, pidInst must point23 to a valid App-instance identifier.
+    # pfnCallback:: Pointer to the App-defined Dynamic Data Exchange DdeCallback function. This function
     #               processes DDE transactions sent by the system. For more information, see the DdeCallback.
     # afCmd:: <in> Specifies a set of APPCMD_, CBF_, and MF_ flags. The APPCMD_ flags provide special
     #         instructions to DdeInitialize. The CBF_ flags specify filters that prevent specific types of transactions
     #         from reaching the callback function. The MF_ flags specify the types of DDE activity that a DDE monitoring
-    #         application monitors. Using these flags enhances the performance of a DDE application by eliminating
+    #         App monitors. Using these flags enhances the performance of a DDE App by eliminating
     #         unnecessary calls to the callback function. This parameter can be one or more of the following values:
     #         APPCLASS_MONITOR, APPCLASS_STANDARD, APPCMD_CLIENTONLY, APPCMD_FILTERINITS;
     #         CBF_FAIL_ALLSVRXACTIONS, CBF_FAIL_ADVISES, CBF_FAIL_CONNECTIONS, CBF_FAIL_EXECUTES, CBF_FAIL_POKES
@@ -730,14 +730,14 @@ module Win
     #             - DMLERR_SYS_ERROR
     # ---
     # <b> Enhanced API accepts only 2 parameters (get rid of reserved hsz2):
-    # instance_id:: (optional) Application instance identifier. At initialization, this parameter should be 0, nil
+    # instance_id:: (optional) App instance identifier. At initialization, this parameter should be 0, nil
     #               or omitted altogether. If it is nonzero/non-nil, reinitialization of the DDEML is implied.
     # cmd(afCmd):: obligatory set of flags
     # ---
     # *Remarks*:
-    # - An application that uses multiple instances of the DDEML must not pass DDEML objects between instances.
-    # - A DDE monitoring application should not attempt to perform DDE operations (establish conversations,
-    #   issue transactions, and so on) within the context of the same application instance.
+    # - An App that uses multiple instances of the DDEML must not pass DDEML objects between instances.
+    # - A DDE monitoring App should not attempt to perform DDE operations (establish conversations,
+    #   issue transactions, and so on) within the context of the same App instance.
     # - A synchronous transaction fails with a DMLERR_REENTRANCY error if any instance of the same task has
     #   a synchronous transaction already in progress.
     # - The CBF_FAIL_ALLSVRXACTIONS flag causes the DDEML to filter all server transactions and can be changed
@@ -763,16 +763,16 @@ module Win
 
     ##
     # The DdeUninitialize function frees all Dynamic Data Exchange Management Library (DDEML) resources associated
-    # with the calling application.
+    # with the calling App.
     #
     # [*Syntax*] BOOL DdeUninitialize( DWORD idInst);
     #
-    # idInst:: <in> Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
+    # idInst:: <in> Specifies the App instance identifier obtained by a previous call to the DdeInitialize.
     # *Returns*:: If the function succeeds, the return value is nonzero.
     #             If the function fails, the return value is zero.
     # ---
     # *Remarks*
-    # DdeUninitialize terminates any conversations currently open for the application.
+    # DdeUninitialize terminates any conversations currently open for the App.
     #
     # :call-seq:
     #  success = dde_uninitialize( instance_id )
@@ -781,19 +781,19 @@ module Win
 
     ##
     # The DdeCreateStringHandle function creates a handle that identifies the specified string.
-    # A Dynamic Data Exchange (DDE) client or server application can pass the string handle as a
+    # A Dynamic Data Exchange (DDE) client or server App can pass the string handle as a
     # parameter to other Dynamic Data Exchange Management Library (DDEML) functions.
     #
     # [*Syntax*] HSZ DdeCreateStringHandle( DWORD idInst, LPTSTR psz, int iCodePage );
     #
-    # idInst:: <in> Specifies the application instance identifier obtained by a previous call to the
+    # idInst:: <in> Specifies the App instance identifier obtained by a previous call to the
     #          DdeInitialize function.
     # psz:: <in> Pointer to a buffer that contains the null-terminated string for which a handle
     #       is to be created. This string can be up to 255 characters. The reason for this limit is that
     #       DDEML string management functions are implemented using global atoms.
     # iCodePage:: <in> Specifies the code page used to render the string. This value should be either
     #             CP_WINANSI (the default code page) or CP_WINUNICODE, depending on whether the ANSI or Unicode
-    #             version of DdeInitialize was called by the client application.
+    #             version of DdeInitialize was called by the client App.
     #
     # *Returns*:: (L) or nil: If the function succeeds, the return value is a string handle.
     #             If the function fails, the return value is 0(changed to nil in enhanced version).
@@ -803,8 +803,8 @@ module Win
     # <b> Enhanced (snake_case) API makes code_page param optional and returns *nil* if handle creation fails. </b>
     # ---
     # *Remarks*: The value of a string handle is not related to the case of the string it identifies.
-    # When an application either creates a string handle or receives one in the callback function
-    # and then uses the DdeKeepStringHandle function to keep it, the application must free that string
+    # When an App either creates a string handle or receives one in the callback function
+    # and then uses the DdeKeepStringHandle function to keep it, the App must free that string
     # handle when it is no longer needed. An instance-specific string handle cannot be mapped from string
     # handle to string and back to string handle.
     #
@@ -817,11 +817,11 @@ module Win
              api.call(instance_id, string_pointer, code_page) }
 
     ##
-    # The DdeFreeStringHandle function frees a string handle in the calling application.
+    # The DdeFreeStringHandle function frees a string handle in the calling App.
     #
     # [*Syntax*] BOOL DdeFreeStringHandle( DWORD idInst, HSZ hsz );
     #
-    # idInst:: <in> Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
+    # idInst:: <in> Specifies the App instance identifier obtained by a previous call to the DdeInitialize.
     # hsz:: <in, out> Handle to the string handle to be freed. This handle must have been created by a previous call
     #       to the DdeCreateStringHandle function.
     # *Returns*:: If the function succeeds, the return value is nonzero. If the function fails, it is zero.
@@ -829,8 +829,8 @@ module Win
     # <b> Enhanced snake_case API returns boolean true/false as a success indicator. </b>
     # ---
     # *Remarks*:
-    # An application can free string handles it creates with DdeCreateStringHandle but should not free those that
-    # the system passed to the application's Dynamic Data Exchange (DDE) callback function or those returned in the
+    # An App can free string handles it creates with DdeCreateStringHandle but should not free those that
+    # the system passed to the App's Dynamic Data Exchange (DDE) callback function or those returned in the
     # CONVINFO structure by the DdeQueryConvInfo function.
     #
     # :call-seq:
@@ -843,7 +843,7 @@ module Win
     #
     # [*Syntax*] DWORD DdeQueryString( DWORD idInst, HSZ hsz, LPTSTR psz, DWORD cchMax, int iCodePage);
     #
-    # idInst:: <in> Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
+    # idInst:: <in> Specifies the App instance identifier obtained by a previous call to the DdeInitialize.
     # hsz:: <in> Handle to the string to copy. This handle must have been created by a previous call to the
     #       DdeCreateStringHandle function.
     # psz:: <in, out> Pointer to a buffer that receives the string. To obtain the length of the string, this parameter
@@ -860,7 +860,7 @@ module Win
     #             the terminating null character). If an error occurs, the return value is 0L.
     # ---
     # <b> Enhanced (snake_case) API makes all args optional except for first (dde instance id), and returns nil if
-    # the function was unsuccessful.</b>
+    # the function was unsuccessful. </b>
     # ---
     # *Remarks*
     # - The string returned in the buffer is always null-terminated. If the string is longer than ( cchMax– 1),
@@ -880,13 +880,13 @@ module Win
     ##
     # The DdeNameService function registers or unregisters the service names a Dynamic Data Exchange (DDE) server
     # supports. This function causes the system to send XTYP_REGISTER or XTYP_UNREGISTER transactions to other running
-    # Dynamic Data Exchange Management Library (DDEML) client applications.
+    # Dynamic Data Exchange Management Library (DDEML) client Apps.
     #
     # [*Syntax*] HDDEDATA DdeNameService( DWORD idInst, UINT hsz1, UINT hsz2, UINT afCmd );
     #
-    # idInst:: <in> Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
+    # idInst:: <in> Specifies the App instance identifier obtained by a previous call to the DdeInitialize.
     # hsz1:: <in> Handle to the string that specifies the service name the server is registering or unregistering.
-    #        An application that is unregistering all of its service names should set this parameter to 0L.
+    #        An App that is unregistering all of its service names should set this parameter to 0L.
     # hsz2:: Reserved; should be set to 0L.
     # afCmd:: <in> Specifies the service name options. This parameter can be one of the following values.
     #         DNS_REGISTER::  Registers the service name.
@@ -894,10 +894,10 @@ module Win
     #                          all service names registered by the server will be unregistered.
     #         DNS_FILTERON:: Turns on service name initiation filtering. The filter prevents a server from receiving
     #                        XTYP_CONNECT transactions for service names it has not registered. This is the default
-    #                        setting for this filter. If a server application does not register any service names,
-    #                        the application cannot receive XTYP_WILDCONNECT transactions.
+    #                        setting for this filter. If a server App does not register any service names,
+    #                        the App cannot receive XTYP_WILDCONNECT transactions.
     #         DNS_FILTEROFF:: Turns off service name initiation filtering. If this flag is specified, the server
-    #                         receives an XTYP_CONNECT transaction whenever another DDE application calls the
+    #                         receives an XTYP_CONNECT transaction whenever another DDE App calls the
     #                         DdeConnect function, regardless of the service name.
     # *Returns*:: If the function succeeds, it returns nonzero (*true* in snake_case method). For CamelCase, that
     #             value is not really HDDEDATA value, but merely a Boolean indicator of success. The function is
@@ -914,8 +914,8 @@ module Win
     # *Remarks*:
     # The service name identified by the hsz1 parameter should be a base name (that is, the name should contain no
     # instance-specific information). The system generates an instance-specific name and sends it along with the
-    # base name during the XTYP_REGISTER and XTYP_UNREGISTER transactions. The receiving applications can then
-    # connect to the specific application instance.
+    # base name during the XTYP_REGISTER and XTYP_UNREGISTER transactions. The receiving Apps can then
+    # connect to the specific App instance.
     #
     # :call-seq:
     #  success = dde_name_service( instance_id, string_handle, cmd )
@@ -925,13 +925,13 @@ module Win
     # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
 
     ##
-    # DdeConnect function establishes a conversation with a server application that supports the specified service
+    # DdeConnect function establishes a conversation with a server App that supports the specified service
     # name and topic name pair. If more than one such server exists, the system selects only one.
     #
     # [*Syntax*] HCONV DdeConnect( DWORD idInst, HSZ hszService, HSZ hszTopic, PCONVCONTEXT pCC );
     #
-    # idInst::  <in> Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
-    # hszService:: <in> Handle to the string that specifies the service name of the server application with which
+    # idInst::  <in> Specifies the App instance identifier obtained by a previous call to the DdeInitialize.
+    # hszService:: <in> Handle to the string that specifies the service name of the server App with which
     #              a conversation is to be established. This handle must have been created by a previous call to
     #              the DdeCreateStringHandle function. If this parameter is 0L, a conversation is established with
     #              any available server.
@@ -950,13 +950,13 @@ module Win
     #             - DMLERR_NO_ERROR
     # ---
     # *Remarks*
-    # - The client application cannot make assumptions regarding the server selected. If an instance-specific name
+    # - The client App cannot make assumptions regarding the server selected. If an instance-specific name
     #   is specified in the hszService parameter, a conversation is established with only the specified instance.
-    #   Instance-specific service names are passed to an application's Dynamic Data Exchange (DDE) callback function
+    #   Instance-specific service names are passed to an App's Dynamic Data Exchange (DDE) callback function
     #   during the XTYP_REGISTER and XTYP_UNREGISTER transactions.
     # - All members of the default CONVCONTEXT structure are set to zero except cb, which specifies the size of the
     #   structure, and iCodePage, which specifies CP_WINANSI (the default code page) or CP_WINUNICODE, depending on
-    #   whether the ANSI or Unicode version of the DdeInitialize function was called by the client application.
+    #   whether the ANSI or Unicode version of the DdeInitialize function was called by the client App.
     # ---
     # <b>Enhanced (snake_case) API makes all args optional except for first (dde instance id), and returns nil if
     # the function was unsuccessful.</b>
@@ -985,7 +985,7 @@ module Win
     # *Remarks*:
     # Any incomplete transactions started before calling DdeDisconnect are immediately abandoned. The XTYP_DISCONNECT
     # transaction is sent to the Dynamic Data Exchange (DDE) callback function of the partner in the conversation.
-    # Generally, only client applications must terminate conversations.
+    # Generally, only client Apps must terminate conversations.
     # ---
     # <b>Enhanced (snake_case) API returns *true/false* instead of nonzero/zero.</b>
     #
@@ -1001,7 +1001,7 @@ module Win
     #
     # [*Syntax*] UINT DdeGetLastError( DWORD idInst );
     #
-    # idInst:: <in> Specifies the application instance identifier obtained by a previous call to the DdeInitialize.
+    # idInst:: <in> Specifies the App instance identifier obtained by a previous call to the DdeInitialize.
     #
     # *Returns*:: If the function succeeds, the return value is the last error code, which can be one of the following:
     # DMLERR_ADVACKTIMEOUT, DMLERR_EXECACKTIMEOUT, DMLERR_INVALIDPARAMETER, DMLERR_LOW_MEMORY, DMLERR_MEMORY_ERROR,
@@ -1018,14 +1018,14 @@ module Win
 
     ##
     # The DdeClientTransaction function begins a data transaction between a client and a server. Only a
-    # Dynamic Data Exchange (DDE) client application can call this function, and the application can use it
+    # Dynamic Data Exchange (DDE) client App can call this function, and the App can use it
     # only after establishing a conversation with the server.
     #
     # [*Syntax*]  HDDEDATA DdeClientTransaction( LPBYTE pData, DWORD cbData, HCONV hConv, HSZ hszItem, UINT
     #            wFmt, UINT wType, DWORD dwTimeout, LPDWORD pdwResult );
     #
     # pData:: <in> Pointer to the beginning of the data the client must pass to the server.
-    #         Optionally, an application can specify the data handle (HDDEDATA) to pass to the server and in that
+    #         Optionally, an App can specify the data handle (HDDEDATA) to pass to the server and in that
     #         case the cbData parameter should be set to -1. This parameter is required only if the wType parameter
     #         is XTYP_EXECUTE or XTYP_POKE. Otherwise, this parameter should be NULL.
     #         For the optional usage of this parameter, XTYP_POKE transactions where pData is a data handle, the
@@ -1046,7 +1046,7 @@ module Win
     #        format or a valid registered clipboard format.
     # wType:: <in> Specifies the transaction type. This parameter can be one of the following values.
     #         - XTYP_ADVSTART: Begins an advise loop. Any number of distinct advise loops can exist within a
-    #           conversation. An application can alter the advise loop type by combining the XTYP_ADVSTART
+    #           conversation. An App can alter the advise loop type by combining the XTYP_ADVSTART
     #           transaction type with one or more of the following flags: Flag Meaning
     #           - XTYPF_NODATA Instructs the server to notify the client of any data changes without actually sending
     #             the data. This flag gives the client the option of ignoring the notification or requesting the changed
@@ -1059,13 +1059,13 @@ module Win
     #         - XTYP_POKE: Begins a poke transaction.
     #         - XTYP_REQUEST: Begins a request transaction.
     # dwTimeout:: <in> Specifies the maximum amount of time, in milliseconds, that the client will wait for
-    #             a response from the server application in a synchronous transaction. This parameter should
+    #             a response from the server App in a synchronous transaction. This parameter should
     #             be TIMEOUT_ASYNC for asynchronous transactions.
-    # pdwResult:: <out> Pointer to a variable that receives the result of the transaction. An application
+    # pdwResult:: <out> Pointer to a variable that receives the result of the transaction. An App
     #             that does not check the result can use NULL for this value. For synchronous transactions,
     #             the low-order word of this variable contains any applicable DDE_ flags resulting from the
-    #             transaction. This provides support for applications dependent on DDE_APPSTATUS bits. It
-    #             is, however, recommended that applications no longer use these bits because they may not
+    #             transaction. This provides support for Apps dependent on DDE_APPSTATUS bits. It
+    #             is, however, recommended that Apps no longer use these bits because they may not
     #             be supported in future versions of the Dynamic Data Exchange Management Library (DDEML).
     #             For asynchronous transactions, this variable is filled with a unique transaction
     #             identifier for use with the DdeAbandonTransaction function and the XTYP_XACT_COMPLETE
@@ -1094,13 +1094,13 @@ module Win
     # - DMLERR_UNADVACKTIMEOUT
     # ---
     # *Remarks*:
-    # When an application has finished using the data handle returned by DdeClientTransaction, the application should
+    # When an App has finished using the data handle returned by DdeClientTransaction, the App should
     # free the handle by calling the DdeFreeDataHandle function.
     #
-    #Transactions can be synchronous or asynchronous. During a synchronous transaction, DdeClientTransaction does not
+    # Transactions can be synchronous or asynchronous. During a synchronous transaction, DdeClientTransaction does not
     # return until the transaction either completes successfully or fails. Synchronous transactions cause a client to
-    # enter a modal loop while waiting for various asynchronous events. Because of this, a client application can still
-    # respond to user input while waiting on a synchronous transaction, but the application cannot begin a second
+    # enter a modal loop while waiting for various asynchronous events. Because of this, a client App can still
+    # respond to user input while waiting on a synchronous transaction, but the App cannot begin a second
     # synchronous transaction because of the activity associated with the first. DdeClientTransaction fails if any
     # instance of the same task has a synchronous transaction already in progress.
     #
@@ -1108,7 +1108,7 @@ module Win
     # passing a transaction identifier for reference. When the server's DDE callback function finishes
     # processing an asynchronous transaction, the system sends an XTYP_XACT_COMPLETE transaction to the
     # client. This transaction provides the client with the results of the asynchronous transaction that it
-    # initiated by calling DdeClientTransaction. A client application can choose to abandon an asynchronous
+    # initiated by calling DdeClientTransaction. A client App can choose to abandon an asynchronous
     # transaction by calling the DdeAbandonTransaction function.
     # ---
     # <b>Enhanced (snake_case) API: </b>
@@ -1166,7 +1166,7 @@ module Win
 
     ##
     # The DdeAccessData function provides access to the data in the specified Dynamic Data Exchange (DDE)
-    # object. An application must call the DdeUnaccessData function when it has finished accessing the data
+    # object. An App must call the DdeUnaccessData function when it has finished accessing the data
     # in the object.
     #
     # [*Syntax*] LPBYTE DdeAccessData( HDDEDATA hData, LPDWORD pcbDataSize );
@@ -1187,7 +1187,7 @@ module Win
     # ---
     # *Remarks*:
     # If the hData parameter has not been passed to a Dynamic Data Exchange Management Library (DDEML)
-    # function, an application can use the pointer returned by DdeAccessData for read-write access to the
+    # function, an App can use the pointer returned by DdeAccessData for read-write access to the
     # DDE object. If hData has already been passed to a DDEML function, the pointer should be used only for
     # read access to the memory object.
     #
@@ -1207,7 +1207,7 @@ module Win
     # weird lambda literal instead of block is needed because RDoc goes crazy if block is attached to meta-definition
 
       ##
-      # The DdeUnaccessData function unaccesses a Dynamic Data Exchange (DDE) object. An application must call
+      # The DdeUnaccessData function unaccesses a Dynamic Data Exchange (DDE) object. An App must call
       # this function after it has finished accessing the object.
       #
       # [*Syntax*] BOOL DdeUnaccessData( HDDEDATA hData );
@@ -1223,10 +1223,10 @@ module Win
       # DMLERR_NO_ERROR
       #
       # ---
-      # <b>Enhanced (snake_case) API returns true/false instead of nonzero/zero: </b>
+      # <b> Enhanced (snake_case) API returns true/false instead of nonzero/zero: </b>
       #
       # :call-seq:
-      #  success = dde_unaccess_data(data_handle)
+      # success = dde_unaccess_data(data_handle)
       #
       function :DdeUnaccessData, [:HDDEDATA], :int8, boolean: true
 

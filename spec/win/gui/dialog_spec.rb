@@ -6,22 +6,6 @@ module WinGuiDialogTest
   include WinTestApp
   include Win::Gui::Dialog
 
-  def test_app_with_dialog(type=:close)
-    test_app do |app|
-      case type
-        when :close
-          keystroke('A')
-          shut_window app.handle
-          sleep 0.01 until dialog = find_window(nil, "Steganos Locknote")
-        when :save
-          keystroke(VK_ALT, 'F', 'A')
-          sleep 0.01 until dialog = find_window(nil, "Save As")
-      end
-      yield app, dialog
-      keystroke(VK_ESCAPE)
-    end
-  end
-
   describe Win::Gui::Dialog do
 
     describe "#message_box" do

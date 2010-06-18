@@ -157,7 +157,7 @@ module Win
       WM_IME_KEYLAST                = 0x010F
       WM_INITDIALOG                 = 0x0110
       WM_COMMAND                    = 0x0111
-      # Windows Message Sys Command
+      # Windows Message System Command (emitted by Window/System menu)
       WM_SYSCOMMAND                 = 0x0112
       WM_TIMER                      = 0x0113
       WM_HSCROLL                    = 0x0114

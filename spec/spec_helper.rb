@@ -123,7 +123,9 @@ module WinTestApp
     textarea = find_window_ex(handle, 0, TEXTAREA_CLASS, nil)
     app = "Locknote" # App identifier
 
-    eigen_class = class << app; self; end      # Extracting app's eigenclass
+    eigen_class = class << app;
+      self;
+    end      # Extracting app's eigenclass
     eigen_class.class_eval do                  # Defining singleton methods on app
       define_method(:handle) {handle}
       define_method(:textarea) {textarea}
@@ -136,7 +138,10 @@ module WinTestApp
     while @launched_test_app && find_window(nil, WIN_TITLE)
       shut_window @launched_test_app.handle
       sleep SLEEP_DELAY
-      keystroke('N') if find_window(nil, "Steganos Locknote") # Dealing with closing modal dialog
+      if dialog = find_window(nil, "Steganos Locknote") # Dealing with closing modal dialog
+        set_foreground_window(dialog)
+        keystroke('N')
+      end
     end
     @launched_test_app = nil
   end

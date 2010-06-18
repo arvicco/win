@@ -66,3 +66,7 @@
 == 0.3.18 / 2010-06-18
 
 * Gui::Menu module initiated
+
+== 0.3.19 / 2010-06-18
+
+* Gui::Menu::GetSystemMenu function added

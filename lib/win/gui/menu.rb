@@ -12,6 +12,54 @@ module Win
       extend Win::Library
 #      include Win::Gui::Window
 
+      # Menu Flags
+
+      MF_INSERT          = 0x00000000
+      MF_CHANGE          = 0x00000080
+      MF_APPEND          = 0x00000100
+      MF_DELETE          = 0x00000200
+      MF_REMOVE          = 0x00001000
+      MF_BYCOMMAND       = 0x00000000
+      MF_BYPOSITION      = 0x00000400
+      MF_SEPARATOR       = 0x00000800
+      MF_ENABLED         = 0x00000000
+      MF_GRAYED          = 0x00000001
+      MF_DISABLED        = 0x00000002
+      MF_UNCHECKED       = 0x00000000
+      MF_CHECKED         = 0x00000008
+      MF_USECHECKBITMAPS = 0x00000200
+      MF_STRING          = 0x00000000
+      MF_BITMAP          = 0x00000004
+      MF_OWNERDRAW       = 0x00000100
+      MF_POPUP           = 0x00000010
+      MF_MENUBARBREAK    = 0x00000020
+      MF_MENUBREAK       = 0x00000040
+      MF_UNHILITE        = 0x00000000
+      MF_HILITE          = 0x00000080
+      MF_DEFAULT         = 0x00001000
+      MF_SYSMENU         = 0x00002000
+      MF_HELP            = 0x00004000
+      MF_RIGHTJUSTIFY    = 0x00004000
+      MF_MOUSESELECT     = 0x00008000
+      MF_END             = 0x00000080
+
+      # System Objects
+
+      OBJID_WINDOW            = 0x00000000
+      OBJID_SYSMENU           = 0xFFFFFFFF
+      OBJID_TITLEBAR          = 0xFFFFFFFE
+      OBJID_MENU              = 0xFFFFFFFD
+      OBJID_CLIENT            = 0xFFFFFFFC
+      OBJID_VSCROLL           = 0xFFFFFFFB
+      OBJID_HSCROLL           = 0xFFFFFFFA
+      OBJID_SIZEGRIP          = 0xFFFFFFF9
+      OBJID_CARET             = 0xFFFFFFF8
+      OBJID_CURSOR            = 0xFFFFFFF7
+      OBJID_ALERT             = 0xFFFFFFF6
+      OBJID_SOUND             = 0xFFFFFFF5
+      OBJID_QUERYCLASSNAMEIDX = 0xFFFFFFF4
+      OBJID_NATIVEOM          = 0xFFFFFFF0
+
       ##
       # The GetMenu function retrieves a handle to the menu assigned to the specified window.
       #
@@ -89,6 +137,94 @@ module Win
                api.call window_handle, (reset == 0 || reset == false) ? 0 : 1 }
       # weird lambda literal instead of normal block is needed because current version of RDoc
       # goes crazy if block is attached to meta-definition
+
+      ##
+      # The GetMenuItemCount function determines the number of items in the specified menu.
+      #
+      # [*Syntax*] int GetMenuItemCount( HMENU hMenu );
+      #
+      # hMenu:: <in> Handle to the menu to be examined.
+      #
+      # *Returns*:: If the function succeeds, the return value specifies the number of items in the menu.
+      # If the function fails, the return value is -1. To get extended error information, call GetLastError.
+      # ---
+      # Minimum DLL Version user32.dll
+      # Header Declared in Winuser.h, include Windows.h
+      # Import library User32.lib
+      # Minimum operating systems Windows 95, Windows NT 3.1
+      # ---
+      # *See* *Also*:
+      # GetMenuItemID
+      #
+      # ---
+      # <b>Enhanced (snake_case) API: </b>
+      #
+      # :call-seq:
+      # success = [get_]menu_item_count(menu_handle)
+      #
+      function :GetMenuItemCount, [:HMENU], :int32
+
+      ##
+      # The IsMenu function determines whether a handle is a menu handle.
+      #
+      # [*Syntax*] BOOL IsMenu( HMENU hMenu );
+      #
+      # hMenu:: <in> Handle to be tested.
+      #
+      # *Returns*:: If hMenu is a menu handle, the return value is nonzero.
+      # If hMenu is not a menu handle, the return value is zero.
+      # ---
+      # Minimum DLL Version user32.dll
+      # Header Declared in Winuser.h, include Windows.h
+      # Import library User32.lib
+      # Minimum operating systems Windows 95, Windows NT 3.1
+      # Unicode Implemented as Unicode version.
+      #
+      # ---
+      # <b>Enhanced (snake_case) API: returns true/false istead of 1/0</b>
+      #
+      # :call-seq:
+      #  success = menu?(menu_handle)
+      #
+      function :IsMenu, [:HMENU], :int8, boolean: true
+
+      # Untested:
+
+      function :AppendMenu, 'LIPP', :int8, boolean: true
+      function :CheckMenuItem, 'LII', 'L'
+      function :CheckMenuRadioItem, 'LIIII', :int8, boolean: true
+      function :CreateMenu, [], 'L'
+      function :CreatePopupMenu, [], 'L'
+      function :DeleteMenu, 'LII', :int8, boolean: true
+      function :DestroyMenu, 'L', :int8, boolean: true
+      function :DrawMenuBar, 'L', :int8, boolean: true
+      function :EnableMenuItem, 'LII', :int8, boolean: true
+      function :EndMenu, [], :int8, boolean: true
+      function :GetMenuBarInfo, 'LLLP', :int8, boolean: true
+      function :GetMenuCheckMarkDimensions, [], 'L'
+      function :GetMenuDefaultItem, 'LII', 'I'
+      function :GetMenuInfo, 'LP', :int8, boolean: true
+      function :GetMenuItemID, 'LI', 'I'
+      function :GetMenuItemInfo, 'LIIP', :int8, boolean: true
+      function :GetMenuItemRect, 'LLIP', :int8, boolean: true
+      function :GetMenuState, 'LLI', 'I'
+      function :GetMenuString, 'LIPII', 'I'
+      function :GetSubMenu, 'LI', 'L'
+      function :HiliteMenuItem, 'LLII', :int8, boolean: true
+      function :InsertMenu, 'LIIPP', :int8, boolean: true
+      function :InsertMenuItem, 'LIIP', :int8, boolean: true
+      function :LoadMenu, 'LP', 'L'
+      function :LoadMenuIndirect, 'P', 'L'
+      function :MenuItemFromPoint, 'LLP', 'I'
+      function :ModifyMenu, 'LIIPP', :int8, boolean: true
+      function :RemoveMenu, 'LII', :int8, boolean: true
+      function :SetMenu, 'LL', :int8, boolean: true
+      function :SetMenuDefaultItem, 'LLL', :int8, boolean: true
+      function :SetMenuInfo, 'LP', :int8, boolean: true
+      function :SetMenuItemBitmaps, 'LIILL', :int8, boolean: true
+      function :SetMenuItemInfo, 'LIIP', :int8, boolean: true
+      function :TrackPopupMenu, 'LIIIILP', :int8, boolean: true
+      function :TrackPopupMenuEx, 'LIIILP', :int8, boolean: true
 
     end
   end

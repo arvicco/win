@@ -77,7 +77,7 @@ natural inside Ruby code. Following the principle of least surprise, we define w
 * Have meaningful Rubyesque names (iconic? and minimized? instead of IsIconic, etc)
 * Require minimum arguments with sensible defaults
 * Return appropriate values explicitly (several return values if necessary)
-* Have sensible returns (false/true instead of 0/nonzero for test functions, nil if find function fails, etc)
+* Have sensible returns (false/true instead of 0/nonzero for test functions, nil if function fails, etc)
 * Accept blocks where callback is needed, provide default callback if no block given
 * Are partitioned into appropriate namespaces, so that you can load only the modules you really need
 

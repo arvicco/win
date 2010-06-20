@@ -48,6 +48,40 @@ module WinGuiWindowTest
         get_system_menu(@app.handle, reset=true).should == nil
       end
     end # describe get_system_menu
+
+    describe "#get_menu_item_count" do
+      before(:all){ @menu_handle = get_menu(@app.handle) }
+
+      spec{ use{ num_items = GetMenuItemCount(@menu_handle) }}
+      spec{ use{ num_items = get_menu_item_count(@menu_handle) }}
+
+      it "determines the number of items in the specified menu. " do
+        p num_items = GetMenuItemCount(@menu_handle)
+        p num_items = get_menu_item_count(@menu_handle)
+      end
+
+      it "returns -1/nil if function fails " do
+        pending
+        GetMenuItemCount(not_a_handle).should == -1
+        get_menu_item_count(not_a_handle).should == nil
+      end
+    end # describe get_menu_item_count
+
+    describe "#is_menu" do
+      before(:all){ @menu_handle = get_menu(@app.handle) }
+
+      spec{ use{ success = IsMenu(@menu_handle) }}
+      spec{ use{ success = menu?(@menu_handle) }}
+
+      it "determines whether a given handle is a menu handle " do
+        IsMenu(@menu_handle).should == 1
+        is_menu(@menu_handle).should == true
+        menu?(@menu_handle).should == true
+        IsMenu(not_a_handle).should == 0
+        is_menu(not_a_handle).should == false
+        menu?(not_a_handle).should == false
+      end
+    end # describe is_menu
   end # describe Win::Gui::Menu, ' defines a set of API functions related to menus'
 
 #  describe Win::Gui::Menu, ' defines convenience/service methods on top of Windows API' do

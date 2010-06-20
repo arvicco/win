@@ -70,3 +70,7 @@
 == 0.3.19 / 2010-06-18
 
 * Gui::Menu::GetSystemMenu function added
+
+== 0.3.20 / 2010-06-20
+
+* Library::function now uses :fails option instead of :zeronil

@@ -167,8 +167,8 @@ module WinLibraryTest
       end
     end
 
-    context 'defining API with :zeronil option converts zero result to nil' do
-      before(:each) {MyLib.function :FindWindow, 'PP', 'L', :zeronil => true, &@def_block}
+    context 'defining API with :fails option converts zero result to nil' do
+      before(:each) {MyLib.function :FindWindow, 'PP', 'L', fails: 0, &@def_block}
 
       it 'defines new instance method' do
         respond_to?(:find_window).should be_true
@@ -228,7 +228,7 @@ module WinLibraryTest
     end
 
     describe '::function - attaches external API function and defines enhanced snake_case method on top of it' do
-      spec{ use{ MyLib.function(:FindWindow, 'PP', 'l', aliases: nil, boolean: nil, zeronil: nil, &any_block) }}
+      spec{ use{ MyLib.function(:FindWindow, 'PP', 'l', aliases: nil, boolean: nil, fails: 0, &any_block) }}
 
       context 'defining enhanced API function without defenition block (using defaults)' do
         it_should_behave_like 'defining macro with options'
@@ -258,13 +258,6 @@ module WinLibraryTest
           FindWindow(IMPOSSIBLE, nil).should == 0
           FindWindow(IMPOSSIBLE, IMPOSSIBLE).should == 0
         end
-
-#      it 'returns underlying Win32::API object if defined method is called with (:api) argument ' do
-#        MyLib.function :FindWindow, 'PP', 'L'
-#        expect {find_window(:api)}.to_not raise_error
-#        should_be :find_window, find_window(:api)
-#      end
-
       end
 
       context 'defining API function using explicit definition block' do
@@ -330,18 +323,18 @@ module WinLibraryTest
 
       context 'calling defined methods with attached block to preprocess the API function results' do
         it 'defined method yields raw result to block attached to its invocation' do
-          MyLib.function :FindWindow, 'PP', 'L', zeronil: true
+          MyLib.function :FindWindow, 'PP', 'L', fails: 0
           find_window(nil, IMPOSSIBLE) {|result| result.should == 0 }
         end
 
         it 'defined method returns result of block attached to its invocation' do
-          MyLib.function :FindWindow, 'PP', 'L', zeronil: true
+          MyLib.function :FindWindow, 'PP', 'L', fails: 0
           return_value = find_window(nil, IMPOSSIBLE) {|result| 'Value'}
           return_value.should == 'Value'
         end
 
         it 'defined method transforms result of block before returning it' do
-          MyLib.function :FindWindow, 'PP', 'L', zeronil: true
+          MyLib.function :FindWindow, 'PP', 'L', fails: 0
           return_value = find_window(nil, IMPOSSIBLE) {|result| 0 }
           return_value.should_not == 0
           return_value.should == nil
@@ -350,7 +343,7 @@ module WinLibraryTest
 
       context 'defining API function without arguments - f(VOID)' do
         it 'should enforce argument count to 0, NOT 1' do
-          MyLib.function :GetForegroundWindow, [], 'L', zeronil: true
+          MyLib.function :GetForegroundWindow, [], 'L', fails: 0
           should_count_args :GetForegroundWindow, :get_foreground_window, :foreground_window, [], [nil, 0, 123]
         end
       end

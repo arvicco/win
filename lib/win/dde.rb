@@ -607,7 +607,7 @@ module Win
     # :call-seq:
     #   format_id = register_clipboard_format( format_name )
     #
-    function :RegisterClipboardFormat, [:pointer], :uint, zeronil: true
+    function :RegisterClipboardFormat, [:pointer], :uint, fails: 0
 
     ##
     # The DdeCallback function is an App-defined callback function used with the Dynamic Data Exchange
@@ -811,7 +811,7 @@ module Win
     # :call-seq:
     #  string_handle = dde_create_string_handle( instance_id, string, code_page_id )
     #
-    function :DdeCreateStringHandle, [:uint32, :pointer, :int], :ulong, zeronil: true,
+    function :DdeCreateStringHandle, [:uint32, :pointer, :int], :ulong, fails: 0,
              &->(api, instance_id, string, code_page=CP_WINANSI){
              string_pointer = FFI::MemoryPointer.from_string(string)
              api.call(instance_id, string_pointer, code_page) }
@@ -964,7 +964,7 @@ module Win
     # :call-seq:
     #  conversation_handle = dde_connect( instance_id, [service = 0, topic = 0, context = nil] )
     #
-    function :DdeConnect, [:uint32, :ulong, :ulong, :pointer], :ulong, zeronil: true,
+    function :DdeConnect, [:uint32, :ulong, :ulong, :pointer], :ulong, fails: 0,
              &->(api, instance_id, service = 0, topic = 0, context = nil){
              api.call(instance_id, service, topic, context) }
 
@@ -1014,7 +1014,7 @@ module Win
     # :call-seq:
     #  string = dde_get_last_error( instance_id )
     #
-    function :DdeGetLastError, [:uint32], :int, zeronil: true
+    function :DdeGetLastError, [:uint32], :int, fails: 0
 
     ##
     # The DdeClientTransaction function begins a data transaction between a client and a server. Only a
@@ -1117,7 +1117,7 @@ module Win
     #  data_handle = dde_client_transaction(data_pointer, size, conv, item, format, type, timeout, result)
     #
     function :DdeClientTransaction, [:pointer, :uint32, :ulong, :ulong, :uint, :uint, :uint32, :pointer],
-             :HDDEDATA, zeronil: true
+             :HDDEDATA, fails: 0
 
     ##
     # The DdeGetData function copies data from the specified Dynamic Data Exchange (DDE) object to the specified

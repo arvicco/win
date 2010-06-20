@@ -215,7 +215,7 @@ module Win
       # :call-seq:
       #   control_handle = [get_]dlg_item( dialog_handle, control_id )
       #
-      function :GetDlgItem, [:ulong, :int], :ulong, zeronil: true
+      function :GetDlgItem, [:ulong, :int], :ulong, fails: 0
 
       ##
       # The GetDlgCtrlID function retrieves the identifier of the specified control. In other words,
@@ -245,7 +245,7 @@ module Win
       # :call-seq:
       #  control_id = get_dlg_ctrl_id(control_handle)
       #
-      function :GetDlgCtrlID, [:HWND], :int, zeronil: true
+      function :GetDlgCtrlID, [:HWND], :int, fails: 0
 
       ##
       # MessageBox Function
@@ -324,7 +324,7 @@ module Win
       # :call-seq:
       #  selected_item = message_box(owner_handle, text, caption, type)
       #
-      function :MessageBox, [:HWND, :LPCTSTR, :LPCTSTR, :UINT], :int, zeronil: true,
+      function :MessageBox, [:HWND, :LPCTSTR, :LPCTSTR, :UINT], :int, fails: 0,
                &->(api, handle, text, caption, type=MB_OK) {
                   text_pointer = FFI::MemoryPointer.from_string(text)
                   caption_pointer = FFI::MemoryPointer.from_string(caption)

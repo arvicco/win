@@ -281,7 +281,7 @@ module Win
     # :camel_only:: If true, no snake_case method is defined
     # :alias(es):: Provides additional alias(es) for defined method
     # :boolean:: Forces method to return true/false instead of nonzero/zero
-    # :zeronil:: Forces method to return nil if function result is zero
+    # :fails:: Forces method to return nil if function result is equal to following error code
     #
     def function(name, params, returns, options={}, &def_block)
       snake_name, camel_name, effective_names, aliases = generate_names(name, options)
@@ -394,20 +394,20 @@ module Win
     end
 
     # Generates body for snake_case method according to directives contained in options
-    # options (:boolean, :zeronil) currently supported
+    # options (:boolean, :fails) currently supported
     #
     def generate_snake_method_body(api, options, &def_block)
       if def_block
-        if options[:zeronil]
-          ->(*args, &block){ (res = def_block.(api, *args, &block)) != 0 ? res : nil }
+        if options[:fails]
+          ->(*args, &block){ (res = def_block.(api, *args, &block)) == options[:fails] ? nil: res }
         elsif options[:boolean]
           ->(*args, &block){ def_block.(api, *args, &block) != 0 }
         else
           ->(*args, &block){ def_block.(api, *args, &block) }
         end
       else
-        if options[:zeronil]
-          ->(*args, &block){ (res = block ? block[api.call(*args)] : api.call(*args)) != 0 ? res : nil }
+        if options[:fails]
+          ->(*args, &block){ (res = block ? block[api.call(*args)] : api.call(*args)) == options[:fails] ? nil : res }
         elsif options[:boolean]
           ->(*args, &block){ block ? block[api.call(*args)] : api.call(*args) != 0 }
         else

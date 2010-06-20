@@ -89,7 +89,7 @@ module Win
       # :call-seq:
       #  menu_handle = [get_]menu(window_handle)
       #
-      function :GetMenu, [:HWND], :HMENU, zeronil: true
+      function :GetMenu, [:HWND], :HMENU, fails: 0
 
       ##
       # The GetSystemMenu function allows the application to access the window menu (also known as the system
@@ -132,7 +132,7 @@ module Win
       # :call-seq:
       #  menu_handle = [get_]system_menu(window_handle, reset)
       #
-      function :GetSystemMenu, [:HWND, :int8], :HMENU, zeronil: true,
+      function :GetSystemMenu, [:HWND, :int8], :HMENU, fails: 0,
                &->(api, window_handle, reset=false) {
                api.call window_handle, (reset == 0 || reset == false) ? 0 : 1 }
       # weird lambda literal instead of normal block is needed because current version of RDoc

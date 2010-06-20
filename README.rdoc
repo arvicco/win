@@ -134,8 +134,10 @@ Contributors always welcome!
     module YourLibModule
       include Win::Library
 
-      # Customizing method behavior: zeronil forces function to return nil instead of 0, rename renames method
-      function :FindWindow, [:pointer, :pointer], :ulong, zeronil: true, rename: :my_find
+      # Customizing method behavior -
+      # :fails option forces function to return nil if its result is equal to specified error code (0)
+      # :snake_name option defines method with given snake_case name
+      function :FindWindow, [:pointer, :pointer], :ulong, fails: 0, snake_name: :my_find
 
       # Customizing even further: your own method extension in attached block
       function :GetWindowText, [ :ulong, :pointer, :int ], :int do |api, handle|

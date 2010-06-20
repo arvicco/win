@@ -229,7 +229,7 @@ module Win
       # :call-seq:
       #   win_handle = find_window( class_name, win_name )
       #
-      function :FindWindow, [:pointer, :pointer], :HWND, zeronil: true
+      function :FindWindow, [:pointer, :pointer], :HWND, fails: 0
 
       ##
       # Unicode version of FindWindow (strings must be encoded as utf-16LE AND terminate with "\x00\x00")
@@ -237,7 +237,7 @@ module Win
       # :call-seq:
       #   win_handle = find_window_w( class_name, win_name )
       #
-      function :FindWindowW, [:pointer, :pointer], :HWND, zeronil: true
+      function :FindWindowW, [:pointer, :pointer], :HWND, fails: 0
 
       ##
       #  The FindWindowEx function retrieves a handle to a window whose class name and window name match the specified
@@ -284,7 +284,7 @@ module Win
       # :call-seq:
       #   win_handle = find_window_ex( win_handle, after_child, class_name, win_name )
       #
-      function :FindWindowEx, [:HWND, :HWND, :pointer, :pointer], :HWND, zeronil: true
+      function :FindWindowEx, [:HWND, :HWND, :pointer, :pointer], :HWND, fails: 0
 
       ##
       # GetWindowText returns the text of the specified window's title bar (if it has one).
@@ -632,7 +632,7 @@ module Win
       #:call-seq:
       #   win_handle = [get_]foreground_window()
       #
-      function :GetForegroundWindow, [], :HWND, zeronil: true
+      function :GetForegroundWindow, [], :HWND, fails: 0
 
       ##
       # SetForegroundWindow function puts the thread that created the specified window into the foreground
@@ -705,7 +705,7 @@ module Win
       #:call-seq:
       #   win_handle = [get_]active_window()
       #
-      function :GetActiveWindow, [], :HWND, zeronil: true
+      function :GetActiveWindow, [], :HWND, fails: 0
 
       ##
       # The GetWindow function retrieves a handle to a window that has the specified relationship (Z-Order or
@@ -762,7 +762,7 @@ module Win
       # :call-seq:
       #  window_handle = get_window(h_wnd, u_cmd)
       #
-      function :GetWindow, [:HWND, :UINT], :HWND, zeronil: true
+      function :GetWindow, [:HWND, :UINT], :HWND, fails: 0
 
       ##
       # The GetParent function retrieves a handle to the specified window's parent OR OWNER.
@@ -788,7 +788,7 @@ module Win
       # :call-seq:
       #  parent = get_parent(h_wnd)
       #
-      function :GetParent, [:HWND], :HWND, zeronil: true
+      function :GetParent, [:HWND], :HWND, fails: 0
 
       ##
       # The GetAncestor function retrieves the handle to the ancestor of the specified window.
@@ -810,7 +810,7 @@ module Win
       # :call-seq:
       #  ancestor = get_ancestor(hwnd, ga_flags)
       #
-      function :GetAncestor, [:HWND, :UINT], :HWND, zeronil: true
+      function :GetAncestor, [:HWND, :UINT], :HWND, fails: 0
 
 
       # Convenience wrapper methods:

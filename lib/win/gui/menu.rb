@@ -412,6 +412,41 @@ module Win
       #
       function :IsMenu, [:HMENU], :int8, boolean: true
 
+      ##
+      # The SetMenu function assigns a new menu to the specified window.
+      #
+      # [*Syntax*] BOOL SetMenu( HWND hWnd, HMENU hMenu );
+      #
+      # hWnd:: <in> Handle to the window to which the menu is to be assigned.
+      # hMenu:: <in> Handle to the new menu. If this parameter is NULL, the window's current menu is removed.
+      #
+      # *Returns*:: If the function succeeds, the return value is nonzero.
+      # If the function fails, the return value is zero. To get extended error information, call GetLastError.
+      # ---
+      # *Remarks*:
+      # The window is redrawn to reflect the menu change. A menu can be assigned to any window that is not a
+      # child window.
+      # The SetMenu function replaces the previous menu, if any, but it does not destroy it. An application
+      # should call the DestroyMenu function to accomplish this task.
+      # ---
+      # Minimum DLL Version user32.dll
+      # Header Declared in Winuser.h, include Windows.h
+      # Import library User32.lib
+      # Minimum operating systems Windows 95, Windows NT 3.1
+      # Unicode Implemented as Unicode version.
+      # ---
+      # See Also: DestroyMenu, GetMenu
+      #
+      # ---
+      # <b>Enhanced (snake_case) API: menu_handle argument optional</b>
+      #
+      # :call-seq:
+      #  success = set_menu(window_handle, menu_handle)
+      #
+      function :SetMenu, [:HWND, :HMENU], :int8, boolean: true,
+               &->(api, window_handle, menu_handle=nil){
+               api.call window_handle, menu_handle ? menu_handle : 0}
+
       # Untested:
 
       function :AppendMenu, 'LIPP', :int8, boolean: true
@@ -441,7 +476,6 @@ module Win
       function :MenuItemFromPoint, 'LLP', 'I'
       function :ModifyMenu, 'LIIPP', :int8, boolean: true
       function :RemoveMenu, 'LII', :int8, boolean: true
-      function :SetMenu, 'LL', :int8, boolean: true
       function :SetMenuDefaultItem, 'LLL', :int8, boolean: true
       function :SetMenuInfo, 'LP', :int8, boolean: true
       function :SetMenuItemBitmaps, 'LIILL', :int8, boolean: true

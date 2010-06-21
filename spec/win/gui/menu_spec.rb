@@ -119,6 +119,31 @@ module WinGuiWindowTest
         menu?(not_a_handle).should == false
       end
     end # describe is_menu
+
+    describe "#set_menu" do
+      spec{ use{ success = SetMenu(window_handle=0, menu_handle=0) }}
+      spec{ use{ success = set_menu(window_handle=0, menu_handle=0) }}
+
+      it "assigns/removes menu of the specified top-level window" do
+        SetMenu(@app.handle, menu_handle=0)
+        get_menu(@app.handle).should == nil
+        SetMenu(@app.handle, @menu_handle)
+        menu(@app.handle).should == @menu_handle
+        set_menu(@app.handle)
+        menu(@app.handle).should == nil
+        set_menu(@app.handle, @menu_handle)
+        menu(@app.handle).should == @menu_handle
+      end
+
+      it "snake_case api with nil, zero or omitted menu_handle removes menu" do
+        [[@app.handle, 0], [@app.handle, nil], [@app.handle]].each do |args|
+          set_menu(*args)
+          menu(@app.handle).should == nil
+          set_menu(@app.handle, @menu_handle)
+        end
+      end
+
+    end # describe set_menu
   end # describe Win::Gui::Menu, ' defines a set of API functions related to menus'
 
 #  describe Win::Gui::Menu, ' defines convenience/service methods on top of Windows API' do

@@ -413,6 +413,37 @@ module Win
       function :IsMenu, [:HMENU], :int8, boolean: true
 
       ##
+      # The DestroyMenu function destroys the specified menu and frees any memory that the menu occupies.
+      #
+      # [*Syntax*] BOOL DestroyMenu( HMENU hMenu );
+      #
+      # hMenu:: <in> Handle to the menu to be destroyed.
+      #
+      # *Returns*:: If the function succeeds, the return value is nonzero.
+      # If the function fails, the return value is zero. To get extended error information, call GetLastError.
+      # ---
+      # *Remarks*:
+      # Before closing, an application must use the DestroyMenu function to destroy a menu not assigned to a
+      # window. A menu that is assigned to a window is automatically destroyed when the application closes.
+      # DestroyMenu is recursive, that is, it will destroy the menu and all its submenus.
+      # ---
+      # Minimum DLL Version user32.dll
+      # Header Declared in Winuser.h, include Windows.h
+      # Import library User32.lib
+      # Minimum operating systems Windows 95, Windows NT 3.1
+      # Unicode Implemented as Unicode version.
+      # ---
+      # See Also: CreateMenu, DeleteMenu, RemoveMenu, SetMenuItemInfo
+      #
+      # ---
+      # <b>Enhanced (snake_case) API: </b>
+      #
+      # :call-seq:
+      #  success = destroy_menu(menu_handle)
+      #
+      function :DestroyMenu, [:HMENU], :int8, boolean: true
+
+      ##
       # The SetMenu function assigns a new menu to the specified window.
       #
       # [*Syntax*] BOOL SetMenu( HWND hWnd, HMENU hMenu );

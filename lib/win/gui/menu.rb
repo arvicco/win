@@ -660,12 +660,49 @@ module Win
       # SetMenuItemBitmaps, WM_DRAWITEM, WM_MEASUREITEM
       #
       # ---
-      # <b>Enhanced (snake_case) API: </b>
+      # <b>Enhanced (snake_case) API: returns true/false instead of 1/0</b>
       #
       # :call-seq:
       #  success = insert_menu(menu_handle, position, flags, id_new_item, lp_new_item)
       #
       function :InsertMenu, [:HMENU, :UINT, :UINT, :UINT, :pointer], :int8, boolean: true
+
+      ##
+      # The DeleteMenu function deletes an item from the specified menu. If the menu item opens a menu or  submenu,
+      # this function destroys the handle to the menu or submenu and frees the memory used by the menu or submenu.
+      #
+      # [*Syntax*] BOOL DeleteMenu( HMENU hMenu, UINT uPosition, UINT uFlags );
+      #
+      # hMenu:: <in> Handle to the menu to be changed.
+      # uPosition:: <in> Specifies the menu item to be deleted, as determined by the uFlags parameter.
+      # uFlags:: <in> Specifies how the uPosition parameter is interpreted. This parameter must be one of the
+      #          following values.
+      #          MF_BYCOMMAND:: Indicates that uPosition gives the identifier of the menu item. The MF_BYCOMMAND
+      #                         flag is the default flag if neither MF_BYCOMMAND nor MF_BYPOSITION flag is specified.
+      #          MF_BYPOSITION:: Indicates that uPosition gives the zero-based relative position of the menu item.
+      #
+      # *Returns*:: If the function succeeds, the return value is nonzero.
+      # If the function fails, the return value is zero. To get extended error information, call GetLastError.
+      # ---
+      # *Remarks*:
+      # The application must call the DrawMenuBar function whenever a menu changes, whether or not the menu is
+      # in a displayed window.
+      # ---
+      # Minimum DLL Version user32.dll
+      # Header Declared in Winuser.h, include Windows.h
+      # Import library User32.lib
+      # Minimum operating systems Windows 95, Windows NT 3.1
+      # Unicode Implemented as Unicode version.
+      # ---
+      # See Also: DrawMenuBar, RemoveMenu
+      #
+      # ---
+      # <b>Enhanced (snake_case) API: returns true/false instead of 1/0</b>
+      # 
+      # :call-seq:
+      #  success = delete_menu(menu_handle, position, flags)
+      #
+      function :DeleteMenu, [:HMENU, :UINT, :UINT], :int8, boolean: true
 
 
       # Untested:
@@ -673,7 +710,6 @@ module Win
       function :CheckMenuItem, 'LII', 'L'
       function :CheckMenuRadioItem, 'LIIII', :int8, boolean: true
       function :CreatePopupMenu, [], 'L'
-      function :DeleteMenu, 'LII', :int8, boolean: true
       function :DrawMenuBar, 'L', :int8, boolean: true
       function :EnableMenuItem, 'LII', :int8, boolean: true
       function :EndMenu, [], :int8, boolean: true
@@ -685,9 +721,7 @@ module Win
       function :GetMenuItemRect, 'LLIP', :int8, boolean: true
       function :GetMenuState, 'LLI', 'I'
       function :GetMenuString, 'LIPII', 'I'
-      function :GetSubMenu, 'LI', 'L'
       function :HiliteMenuItem, 'LLII', :int8, boolean: true
-#      function :InsertMenu, 'LIIPP', :int8, boolean: true
       function :InsertMenuItem, 'LIIP', :int8, boolean: true
       function :LoadMenu, 'LP', 'L'
       function :LoadMenuIndirect, 'P', 'L'

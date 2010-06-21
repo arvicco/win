@@ -86,3 +86,7 @@
 == 0.3.23 / 2010-06-21
 
 * Menu::InsertMenu function added
+
+== 0.3.24 / 2010-06-21
+
+* Menu::DeleteMenu function added

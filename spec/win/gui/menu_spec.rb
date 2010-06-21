@@ -146,25 +146,52 @@ module WinGuiWindowTest
       end # describe set_menu
 
       describe "#append_menu" do
-        before(:each){ @new_menu_handle = create_menu() }
+        before(:each)do
+          @new_menu_handle = create_menu()
+          @text = FFI::MemoryPointer.from_string("Appended Item Text")
+        end
         after(:each){ destroy_menu(@new_menu_handle) }
 
         spec{ use{ success = AppendMenu(menu_handle=0, flags=0, id_new_item=0, lp_new_item=nil) }}
         spec{ use{ success = append_menu(menu_handle=0, flags=0, id_new_item=0, lp_new_item=nil) }}
 
         it "appends a new item to the end of the specified menu bar, drop-down or context menu, returns 1/true " do
-          text = FFI::MemoryPointer.from_string("Menu Item Text")
-          append_menu(@new_menu_handle, flags=MF_STRING, ID_FILE_SAVE_AS, text).should == true
-          AppendMenu(@new_menu_handle, flags=MF_STRING, ID_FILE_SAVE_AS, text).should == 1
+          AppendMenu(@new_menu_handle, flags=MF_STRING, 333, @text).should == 1
+          append_menu(@new_menu_handle, flags=MF_STRING, 333, @text).should == true
           menu_item_count(@new_menu_handle).should == 2
-          menu_item_id(@new_menu_handle, pos=0).should == ID_FILE_SAVE_AS
+          menu_item_id(@new_menu_handle, pos=0).should == 333
         end
 
         it "returns 0/false if unable to appends a new item to the end of the specified menu" do
-          pending
-          success = append_menu(h_menu=0, u_flags=0, u_id_new_item=0, lp_new_item=0)
+          AppendMenu(0, flags=MF_STRING, 333, @text).should == 0
+          append_menu(0, flags=MF_STRING, 333, @text).should == false
         end
       end # describe append_menu
+
+      describe "#insert_menu" do
+        before(:each)do
+          @new_menu_handle = create_menu()
+          @text = FFI::MemoryPointer.from_string("Inserted Item Text")
+          append_menu(@new_menu_handle, MF_STRING, ID_FILE_SAVE_AS, FFI::MemoryPointer.from_string("Appended Item Text"))
+        end
+        after(:each){ destroy_menu(@new_menu_handle) }
+
+        spec{ use{ success = InsertMenu(menu_handle=0, position=0, flags=0, id_new_item=0, lp_new_item=nil) }}
+        spec{ use{ success = insert_menu(menu_handle=0, position=0, flags=0, id_new_item=0, lp_new_item=nil) }}
+
+        it "inserts a new menu item into a menu, moving other items down the menu, returns 0/true" do
+          InsertMenu(@new_menu_handle, 0, MF_STRING | MF_BYPOSITION, 1, @text).should == 1
+          insert_menu(@new_menu_handle, 0, MF_STRING | MF_BYPOSITION, 0, @text).should == true
+          menu_item_count(@new_menu_handle).should == 3
+          menu_item_id(@new_menu_handle, pos=0).should == 0
+          menu_item_id(@new_menu_handle, pos=1).should == 1
+        end
+
+        it "returns 0/false if unable to appends a new item to the end of the specified menu" do
+          InsertMenu(0, 0, flags=MF_STRING, 333, @text).should == 0
+          insert_menu(0, 0, flags=MF_STRING, 333, @text).should == false
+        end
+      end # describe insert_menu
 
       describe "#create_menu" do
         after(:each){ destroy_menu(@new_menu_handle) }

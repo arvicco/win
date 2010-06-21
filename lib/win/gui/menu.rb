@@ -405,12 +405,40 @@ module Win
       # Unicode Implemented as Unicode version.
       #
       # ---
-      # <b>Enhanced (snake_case) API: returns true/false istead of 1/0</b>
+      # <b>Enhanced (snake_case) API: returns true/false instead of 1/0</b>
       #
       # :call-seq:
       #  success = menu?(menu_handle)
       #
       function :IsMenu, [:HMENU], :int8, boolean: true
+
+      ##
+      # The CreateMenu function creates a menu. The menu is initially empty, but it can be filled with menu
+      # items by using the InsertMenuItem, AppendMenu, and InsertMenu functions.
+      #
+      # [*Syntax*] HMENU CreateMenu( void );
+      #
+      # *Returns*:: If the function succeeds, the return value is a handle to the newly created menu.
+      # If the function fails, the return value is NULL. To get extended error information, call GetLastError.
+      # ---
+      # *Remarks*:
+      # Resources associated with a menu that is assigned to a window are freed automatically. If the menu is
+      # not assigned to a window, an application must free system resources associated with the menu before
+      # closing. An application frees menu resources by calling the DestroyMenu function.
+      # Windows 95/98/Me:The system can support a maximum of 16,364 menu handles.
+      # ---
+      # Minimum DLL Version user32.dll
+      # Header Declared in Winuser.h, include Windows.h
+      # Import library User32.lib
+      # Minimum operating systems Windows 95, Windows NT 3.1
+      # Unicode Implemented as Unicode version.
+      # ---
+      # See Also: AppendMenu, CreatePopupMenu, DestroyMenu, InsertMenu, SetMenu, InsertMenuItem
+      #
+      # :call-seq:
+      #  menu_handle = create_menu()
+      #
+      function :CreateMenu, [], :HMENU
 
       ##
       # The DestroyMenu function destroys the specified menu and frees any memory that the menu occupies.
@@ -436,7 +464,7 @@ module Win
       # See Also: CreateMenu, DeleteMenu, RemoveMenu, SetMenuItemInfo
       #
       # ---
-      # <b>Enhanced (snake_case) API: </b>
+      # <b>Enhanced (snake_case) API: returns true/false instead of 1/0</b>
       #
       # :call-seq:
       #  success = destroy_menu(menu_handle)
@@ -478,15 +506,200 @@ module Win
                &->(api, window_handle, menu_handle=nil){
                api.call window_handle, menu_handle ? menu_handle : 0}
 
+      ##
+      # The AppendMenu function appends a new ITEM to the end of the specified menu bar, drop-down menu, submenu, or
+      # shortcut menu. You can use this function to specify the content, appearance, and behavior of the menu item.
+      #
+      # [*Syntax*] BOOL AppendMenu( HMENU hMenu, UINT uFlags, UINT_PTR uIDNewItem, LPCTSTR lpNewItem );
+      #
+      # hMenu:: <in> Handle to the menu bar, drop-down menu, submenu, or shortcut menu to be changed.
+      # uFlags:: <in> Specifies flags to control the appearance and behavior of the new menu item. This
+      #          parameter can be a combination of the values listed in the following Remarks section.
+      # uIDNewItem:: <in> Specifies either the identifier of the new menu item or, if the uFlags parameter is
+      #              set to MF_POPUP, a handle to the drop-down menu or submenu.
+      # lpNewItem:: <in> Specifies the content of the new menu item. The interpretation of lpNewItem depends
+      #             on whether the uFlags parameter includes the MF_BITMAP, MF_OWNERDRAW, or MF_STRING flag,
+      #             as shown in the following table.
+      #             MF_BITMAP:: Contains a bitmap handle.
+      #             MF_OWNERDRAW:: Contains an application-supplied value that can be used to maintain additional
+      #                            data related to the menu item. The value is in the itemData member of the structure
+      #                            pointed to by the lParam parameter of the WM_MEASUREITEM or WM_DRAWITEM message
+      #                            sent when the menu is created or its appearance is updated.
+      #             MF_STRING:: Contains a pointer to a null-terminated string. 
+      #
+      # *Returns*:: If the function succeeds, the return value is nonzero. If the function fails, the return
+      #             value is zero. To get extended error information, call GetLastError.
+      # ---
+      # *Remarks*:
+      # The application must call the DrawMenuBar function whenever a menu changes, whether or not the menu is
+      # in a displayed window.
+      # To get keyboard accelerators to work with bitmap or owner-drawn menu items, the owner of the menu must
+      # process the WM_MENUCHAR message. For more information, see Owner-Drawn Menus and the WM_MENUCHAR Message.
+      # The following flags can be set in the uFlags parameter:
+      # MF_BITMAP:: Uses a bitmap as the menu item. The lpNewItem parameter contains a handle to the bitmap.
+      # MF_CHECKED:: Places a check mark next to the menu item. If the application provides check-mark bitmaps
+      #              (see SetMenuItemBitmaps, this flag displays the check-mark bitmap next to the menu item.)
+      # MF_DISABLED:: Disables the menu item so that it cannot be selected, but the flag does not gray it.
+      # MF_ENABLED:: Enables the menu item so that it can be selected, and restores it from its grayed state.
+      # MF_GRAYED:: Disables the menu item and grays it so that it cannot be selected.
+      # MF_MENUBARBREAK:: Functions the same as the MF_MENUBREAK flag for a menu bar. For a drop-down menu, submenu,
+      #                   or shortcut menu, the new column is separated from the old column by a vertical line.
+      # MF_MENUBREAK:: Places the item on a new line (for a menu bar) or in a new column (for a drop-down menu,
+      #                submenu, or shortcut menu) without separating columns.
+      # MF_OWNERDRAW:: Specifies that the item is an owner-drawn item. Before the menu is displayed for the
+      #                first time, the window that owns the menu receives a WM_MEASUREITEM message to retrieve
+      #                the width and height of the menu item. The WM_DRAWITEM message is then sent to the window
+      #                procedure of the owner window whenever the appearance of the menu item must be updated.
+      # MF_POPUP:: Specifies that the menu item opens a drop-down menu or submenu. The uIDNewItem parameter
+      #            specifies a handle to the drop-down menu or submenu. This flag is used to add a menu name to a menu
+      #            bar, or a menu item that opens a submenu to a drop-down menu, submenu, or shortcut menu.
+      # MF_SEPARATOR:: Draws a horizontal dividing line. This flag is used only in a drop-down menu, submenu, or
+      #                shortcut menu. The line cannot be grayed, disabled, or highlighted. The lpNewItem and uIDNewItem
+      #                parameters are ignored.
+      # MF_STRING:: Specifies that the menu item is a text string; the lpNewItem parameter is a pointer to the string.
+      # MF_UNCHECKED:: Does not place a check mark next to the item (default). If the application supplies check-mark
+      #                bitmaps (see SetMenuItemBitmaps), this flag displays the clear bitmap next to the menu item.
+      # The following groups of flags cannot be used together:
+      # MF_BITMAP, MF_STRING, and MF_OWNERDRAW
+      # MF_CHECKED and MF_UNCHECKED
+      # MF_DISABLED, MF_ENABLED, and MF_GRAYED
+      # MF_MENUBARBREAK and MF_MENUBREAK
+      # ---
+      # Minimum DLL Version user32.dll
+      # Header Declared in Winuser.h, include Windows.h
+      # Import library User32.lib
+      # Minimum operating systems Windows 95, Windows NT 3.1
+      # Unicode Implemented as ANSI and Unicode versions.
+      # ---
+      # See Also:
+      # CreateMenu, DeleteMenu, DestroyMenu, DrawMenuBar, InsertMenu, InsertMenuItem, ModifyMenu,
+      # RemoveMenu, SetMenuItemBitmaps
+      #
+      # ---
+      # <b>Enhanced (snake_case) API: </b>
+      #
+      # :call-seq:
+      #  success = append_menu(menu_handle, flags, id_new_item, lp_new_item)
+      #
+      function :AppendMenu, [:HMENU, :UINT, :UINT, :pointer], :int8, boolean: true
+
+      ##
+      # The InsertMenu function inserts a new menu item into a menu, moving other items down the menu.
+      # Note  The InsertMenu function has been superseded by the InsertMenuItem function. You can still use
+      # InsertMenu, however, if you do not need any of the extended features of InsertMenuItem.
+      #
+      # [*Syntax*] BOOL InsertMenu( HMENU hMenu, UINT uPosition, UINT uFlags, PTR uIDNewItem, LPCTSTR
+      #            lpNewItem );
+      #
+      # hMenu:: <in> Handle to the menu to be changed.
+      # uPosition:: <in> Specifies the menu item before which the new menu item is to be inserted, as
+      #             determined by the uFlags parameter.
+      # uFlags:: <in> Specifies flags that control the interpretation of the uPosition parameter and the
+      #          content, appearance, and behavior of the new menu item. This parameter must be a combination
+      #          of one of the following required values and at least one of the values listed in the
+      #          following Remarks section.
+      # MF_BYCOMMAND:: Indicates that the uPosition parameter gives the identifier of the menu item. The MF_BYCOMMAND flag is 
+      # the default if neither the MF_BYCOMMAND nor MF_BYPOSITION flag is specified.
+      # MF_BYPOSITION
+      # Indicates that the uPosition parameter gives the zero-based relative position of the new menu item. If
+      # uPosition is -1, the new menu item is appended to the end of the menu.
+      # uIDNewItem:: <in> Specifies either the identifier of the new menu item or, if the uFlags parameter has
+      #              the MF_POPUP flag set, a handle to the drop-down menu or submenu.
+      # lpNewItem:: <in> Specifies the content of the new menu item. The interpretation of lpNewItem depends
+      #             on whether the uFlags parameter includes the MF_BITMAP, MF_OWNERDRAW, or MF_STRING flag,
+      #             as follows.
+      # MF_BITMAP
+      # Contains a bitmap handle.
+      # MF_OWNERDRAW
+      # Contains an application-supplied value that can be used to maintain additional data related to the
+      # menu item. The value is in the itemData member of the structure pointed to by the lParam parameter of
+      # the WM_MEASUREITEM or WM_DRAWITEM message sent when the menu item is created or its appearance is
+      # updated.
+      # MF_STRING
+      # Contains a pointer to a null-terminated string (the default).
+      #
+      # *Returns*:: If the function succeeds, the return value is nonzero.
+      # If the function fails, the return value is zero. To get extended error information, call GetLastError.
+      # ---
+      # *Remarks*:
+      # The application must call the DrawMenuBar function whenever a menu changes, whether or not the menu is
+      # in a displayed window.
+      # The following list describes the flags that can be set in the uFlags parameter.
+      # Value Description
+      # MF_BITMAP Uses a bitmap as the menu item. The lpNewItem parameter contains a handle to the bitmap.
+      # MF_CHECKED Places a check mark next to the menu item. If the application provides check-mark bitmaps
+      # (see SetMenuItemBitmaps), this flag displays the check-mark bitmap next to the menu item.
+      # MF_DISABLED Disables the menu item so that it cannot be selected, but does not gray it.
+      # MF_ENABLED Enables the menu item so that it can be selected and restores it from its grayed state.
+      # MF_GRAYED Disables the menu item and grays it so it cannot be selected.
+      # MF_MENUBARBREAK Functions the same as the MF_MENUBREAK flag for a menu bar. For a drop-down menu,
+      # submenu, or shortcut menu, the new column is separated from the old column by a vertical line.
+      # MF_MENUBREAK Places the item on a new line (for menu bars) or in a new column (for a drop-down menu,
+      # submenu, or shortcut menu) without separating columns.
+      # MF_OWNERDRAW Specifies that the item is an owner-drawn item. Before the menu is displayed for the
+      # first time, the window that owns the menu receives a WM_MEASUREITEM message to retrieve the width and
+      # height of the menu item. The WM_DRAWITEM message is then sent to the window procedure of the owner
+      # window whenever the appearance of the menu item must be updated.
+      # MF_POPUP Specifies that the menu item opens a drop-down menu or submenu. The uIDNewItem parameter
+      # specifies a handle to the drop-down menu or submenu. This flag is used to add a menu name to a menu
+      # bar or a menu item that opens a submenu to a drop-down menu, submenu, or shortcut menu.
+      # MF_SEPARATOR Draws a horizontal dividing line. This flag is used only in a drop-down menu, submenu, or
+      # shortcut menu. The line cannot be grayed, disabled, or highlighted. The lpNewItem and uIDNewItem
+      # parameters are ignored.
+      # MF_STRING Specifies that the menu item is a text string; the lpNewItem parameter is a pointer to the
+      # string.
+      # MF_UNCHECKED Does not place a check mark next to the menu item (default). If the application supplies
+      # check-mark bitmaps (see the SetMenuItemBitmaps function), this flag displays the clear bitmap next to
+      # the menu item.
+      # The following groups of flags cannot be used together:
+      # MF_BYCOMMAND and MF_BYPOSITION
+      # MF_DISABLED, MF_ENABLED, and MF_GRAYED
+      # MF_BITMAP, MF_STRING, MF_OWNERDRAW, and MF_SEPARATOR
+      # MF_MENUBARBREAK and MF_MENUBREAK
+      # MF_CHECKED and MF_UNCHECKED
+      # Windows 95/98/Me: InsertMenuW is supported by the Microsoft Layer for Unicode. To use this, you must
+      # add certain files to your application, as outlined in Microsoft Layer for Unicode on Windows 95/98/Me
+      # Systems .
+      # Function Information
+      # Minimum DLL Version user32.dll
+      # Header Declared in Winuser.h, include Windows.h
+      # Import library User32.lib
+      # Minimum operating systems Windows 95, Windows NT 3.1
+      # Unicode Implemented as ANSI and Unicode versions.
+      # See Also
+      # Menus, AppendMenu, DeleteMenu, DrawMenuBar, InsertMenuItem, ModifyMenu, RemoveMenu,
+      # SetMenuItemBitmaps, WM_DRAWITEM, WM_MEASUREITEM
+      #
+      # ---
+      # <b>Enhanced (snake_case) API: </b>
+      #
+      # :call-seq:
+      #  success = insert_menu(h_menu, u_position, u_flags, u_id_new_item, lp_new_item)
+      #
+#      function :InsertMenu, [:HMENU, :UINT, :UINT, :PTR, :LPCTSTR], :int8, boolean: true
+
+#    describe "#insert_menu" do
+#      spec{ use{ success = InsertMenu(h_menu=0, u_position=0, u_flags=0, u_id_new_item=0, lp_new_item=0) }}
+#      spec{ use{ success = insert_menu(h_menu=0, u_position=0, u_flags=0, u_id_new_item=0, lp_new_item=0) }}
+#
+#      it "original api inserts a new menu item into a menu, moving other items down the menu. " do
+#        pending
+#        success = InsertMenu(h_menu=0, u_position=0, u_flags=0, u_id_new_item=0, lp_new_item=0)
+#      end
+#
+#      it "snake_case api inserts a new menu item into a menu, moving other items down the menu. " do
+#        pending
+#        success = insert_menu(h_menu=0, u_position=0, u_flags=0, u_id_new_item=0, lp_new_item=0)
+#      end
+#
+#    end # describe insert_menu
+
       # Untested:
 
-      function :AppendMenu, 'LIPP', :int8, boolean: true
       function :CheckMenuItem, 'LII', 'L'
       function :CheckMenuRadioItem, 'LIIII', :int8, boolean: true
-      function :CreateMenu, [], 'L'
       function :CreatePopupMenu, [], 'L'
       function :DeleteMenu, 'LII', :int8, boolean: true
-      function :DestroyMenu, 'L', :int8, boolean: true
       function :DrawMenuBar, 'L', :int8, boolean: true
       function :EnableMenuItem, 'LII', :int8, boolean: true
       function :EndMenu, [], :int8, boolean: true
@@ -500,7 +713,7 @@ module Win
       function :GetMenuString, 'LIPII', 'I'
       function :GetSubMenu, 'LI', 'L'
       function :HiliteMenuItem, 'LLII', :int8, boolean: true
-      function :InsertMenu, 'LIIPP', :int8, boolean: true
+#      function :InsertMenu, 'LIIPP', :int8, boolean: true
       function :InsertMenuItem, 'LIIP', :int8, boolean: true
       function :LoadMenu, 'LP', 'L'
       function :LoadMenuIndirect, 'P', 'L'

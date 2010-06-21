@@ -144,6 +144,45 @@ module WinGuiWindowTest
           end
         end
       end # describe set_menu
+
+      describe "#append_menu" do
+        before(:each){ @new_menu_handle = create_menu() }
+        after(:each){ destroy_menu(@new_menu_handle) }
+
+        spec{ use{ success = AppendMenu(menu_handle=0, flags=0, id_new_item=0, lp_new_item=nil) }}
+        spec{ use{ success = append_menu(menu_handle=0, flags=0, id_new_item=0, lp_new_item=nil) }}
+
+        it "appends a new item to the end of the specified menu bar, drop-down or context menu, returns 1/true " do
+          text = FFI::MemoryPointer.from_string("Menu Item Text")
+          append_menu(@new_menu_handle, flags=MF_STRING, ID_FILE_SAVE_AS, text).should == true
+          AppendMenu(@new_menu_handle, flags=MF_STRING, ID_FILE_SAVE_AS, text).should == 1
+          menu_item_count(@new_menu_handle).should == 2
+          menu_item_id(@new_menu_handle, pos=0).should == ID_FILE_SAVE_AS
+        end
+
+        it "returns 0/false if unable to appends a new item to the end of the specified menu" do
+          pending
+          success = append_menu(h_menu=0, u_flags=0, u_id_new_item=0, lp_new_item=0)
+        end
+      end # describe append_menu
+
+      describe "#create_menu" do
+        after(:each){ destroy_menu(@new_menu_handle) }
+
+        spec{ use{ @new_menu_handle = CreateMenu() }}
+        spec{ use{ @new_menu_handle = create_menu() }}
+
+        it "original api creates a menu. The menu is initially empty, but it can be filled with menu items" do
+          @new_menu_handle = CreateMenu()
+          menu?(@new_menu_handle).should == true
+        end
+
+        it "snake_case api creates a menu. The menu is initially empty." do
+          @new_menu_handle = create_menu()
+          menu?(@new_menu_handle).should == true
+        end
+
+      end # describe create_menu
     end # context 'non-destructive methods'
 
     context 'destructive methods' do
@@ -160,12 +199,12 @@ module WinGuiWindowTest
 
         it "original api destroys the specified menu and frees any memory that the menu occupies, returns 1" do
           DestroyMenu(@menu_handle).should == 1
-          set_menu(@app.handle, @menu_handle).should == false
+          menu?(@menu_handle).should == false
         end
 
         it "snake_case api destroys the specified menu and frees any memory that the menu occupies, returns true" do
           destroy_menu(@menu_handle).should == true
-          set_menu(@app.handle, @menu_handle).should == false
+          menu?(@menu_handle).should == false
         end
 
         it "returns 0/false if function was not successful " do
@@ -173,7 +212,8 @@ module WinGuiWindowTest
           DestroyMenu(0).should == 0
         end
       end # describe destroy_menu
-    end
+
+    end # context 'destructive methods' do
 
   end # describe Win::Gui::Menu, ' defines a set of API functions related to menus'
 

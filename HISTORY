@@ -78,3 +78,7 @@
 == 0.3.21 / 2010-06-21
 
 * atlres.h constants added to Win::Gui::Menu
+
+== 0.3.22 / 2010-06-21
+
+* Menu::AppendMenu function added

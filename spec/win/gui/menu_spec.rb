@@ -75,16 +75,16 @@ module WinGuiWindowTest
       spec{ use{ item_id = get_menu_item_id(@menu_handle, pos=0) }}
 
       it "retrieves the menu item identifier of a menu item located at the specified position" do
-        p item_id = GetMenuItemID(@file_menu_handle, pos=0)
-        p item_id = get_menu_item_id(@file_menu_handle, pos=0)
+        GetMenuItemID(@file_menu_handle, pos=0).should == ID_FILE_SAVE_AS
+        get_menu_item_id(@file_menu_handle, pos=0).should == ID_FILE_SAVE_AS
       end
 
-      it "returns 0/nil if no menu item at given position" do
+      it "returns -1/nil if no menu item at given position" do
         GetMenuItemID(@menu_handle, pos=4).should == -1
         get_menu_item_id(@menu_handle, pos=4).should == nil
       end
 
-      it "returns 0/nil if given menu item is in fact submenu" do
+      it "returns -1/nil if given menu item is in fact a sub-menu" do
         GetMenuItemID(@menu_handle, pos=0).should == -1
         get_menu_item_id(@menu_handle, pos=1).should == nil
       end
@@ -101,11 +101,6 @@ module WinGuiWindowTest
         sub_menu1.should == @file_menu_handle
         sub_menu1.should == sub_menu2
       end
-
-      it "snake_case api retrieves a handle to the drop-down menu or submenu activated by the specified " do
-        pending
-        success = get_sub_menu(h_menu=0, n_pos=0)
-      end
     end # describe get_sub_menu
 
     describe "#is_menu" do
@@ -118,6 +113,7 @@ module WinGuiWindowTest
         IsMenu(@menu_handle).should == 1
         is_menu(@menu_handle).should == true
         menu?(@menu_handle).should == true
+        menu?(@file_menu_handle).should == true
         IsMenu(not_a_handle).should == 0
         is_menu(not_a_handle).should == false
         menu?(not_a_handle).should == false

@@ -60,6 +60,172 @@ module Win
       OBJID_QUERYCLASSNAMEIDX = 0xFFFFFFF4
       OBJID_NATIVEOM          = 0xFFFFFFF0
 
+      # From atlres.h:
+
+      # operation messages sent to DLGINIT
+#      LB_ADDSTRING    (WM_USER+1)
+#      CB_ADDSTRING    (WM_USER+3)
+
+      # Standard window components
+
+      ID_SEPARATOR                 = 0       # special separator value
+      ID_DEFAULT_PANE              = 0       # default status bar pane
+
+      # standard control bars (IDW = window ID)
+      ATL_IDW_TOOLBAR               = 0xE800  # main Toolbar for window
+      ATL_IDW_STATUS_BAR            = 0xE801  # Status bar window
+      ATL_IDW_COMMAND_BAR           = 0xE802  # Command bar window
+
+      # parts of a frame window
+      ATL_IDW_CLIENT                = 0xE900
+      ATL_IDW_PANE_FIRST            = 0xE900  # first pane (256 max)
+      ATL_IDW_PANE_LAST             = 0xE9FF
+      ATL_IDW_HSCROLL_FIRST         = 0xEA00  # first Horz scrollbar (16 max)
+      ATL_IDW_VSCROLL_FIRST         = 0xEA10  # first Vert scrollbar (16 max)
+      ATL_IDW_SIZE_BOX              = 0xEA20  # size box for splitters
+      ATL_IDW_PANE_SAVE             = 0xEA21  # to shift ATL_IDW_PANE_FIRST
+
+      # bands for a rebar
+      ATL_IDW_BAND_FIRST            = 0xEB00
+      ATL_IDW_BAND_LAST             = 0xEBFF
+
+        # Standard Commands
+
+        # File commands
+      ID_FILE_NEW                   = 0xE100
+      ID_FILE_OPEN                  = 0xE101
+      ID_FILE_CLOSE                 = 0xE102
+      ID_FILE_SAVE                  = 0xE103
+      ID_FILE_SAVE_AS               = 0xE104
+      ID_FILE_PAGE_SETUP            = 0xE105
+      ID_FILE_PRINT_SETUP           = 0xE106
+      ID_FILE_PRINT                 = 0xE107
+      ID_FILE_PRINT_DIRECT          = 0xE108
+      ID_FILE_PRINT_PREVIEW         = 0xE109
+      ID_FILE_UPDATE                = 0xE10A
+      ID_FILE_SAVE_COPY_AS          = 0xE10B
+      ID_FILE_SEND_MAIL             = 0xE10C
+      ID_FILE_MRU_FIRST             = 0xE110
+      ID_FILE_MRU_FILE1             = 0xE110          # range - 16 max
+      ID_FILE_MRU_FILE2             = 0xE111
+      ID_FILE_MRU_FILE3             = 0xE112
+      ID_FILE_MRU_FILE4             = 0xE113
+      ID_FILE_MRU_FILE5             = 0xE114
+      ID_FILE_MRU_FILE6             = 0xE115
+      ID_FILE_MRU_FILE7             = 0xE116
+      ID_FILE_MRU_FILE8             = 0xE117
+      ID_FILE_MRU_FILE9             = 0xE118
+      ID_FILE_MRU_FILE10            = 0xE119
+      ID_FILE_MRU_FILE11            = 0xE11A
+      ID_FILE_MRU_FILE12            = 0xE11B
+      ID_FILE_MRU_FILE13            = 0xE11C
+      ID_FILE_MRU_FILE14            = 0xE11D
+      ID_FILE_MRU_FILE15            = 0xE11E
+      ID_FILE_MRU_FILE16            = 0xE11F
+      ID_FILE_MRU_LAST              = 0xE11F
+
+      # Edit commands
+      ID_EDIT_CLEAR                 = 0xE120
+      ID_EDIT_CLEAR_ALL             = 0xE121
+      ID_EDIT_COPY                  = 0xE122
+      ID_EDIT_CUT                   = 0xE123
+      ID_EDIT_FIND                  = 0xE124
+      ID_EDIT_PASTE                 = 0xE125
+      ID_EDIT_PASTE_LINK            = 0xE126
+      ID_EDIT_PASTE_SPECIAL         = 0xE127
+      ID_EDIT_REPEAT                = 0xE128
+      ID_EDIT_REPLACE               = 0xE129
+      ID_EDIT_SELECT_ALL            = 0xE12A
+      ID_EDIT_UNDO                  = 0xE12B
+      ID_EDIT_REDO                  = 0xE12C
+
+      # Window commands
+      ID_WINDOW_NEW                 = 0xE130
+      ID_WINDOW_ARRANGE             = 0xE131
+      ID_WINDOW_CASCADE             = 0xE132
+      ID_WINDOW_TILE_HORZ           = 0xE133
+      ID_WINDOW_TILE_VERT           = 0xE134
+      ID_WINDOW_SPLIT               = 0xE135
+      ATL_IDM_WINDOW_FIRST          = 0xE130
+      ATL_IDM_WINDOW_LAST           = 0xE13F
+      ATL_IDM_FIRST_MDICHILD        = 0xFF00  # window list starts here
+
+      # Help and App commands
+      ID_APP_ABOUT                  = 0xE140
+      ID_APP_EXIT                   = 0xE141
+      ID_HELP_INDEX                 = 0xE142
+      ID_HELP_FINDER                = 0xE143
+      ID_HELP_USING                 = 0xE144
+      ID_CONTEXT_HELP               = 0xE145      # shift-F1
+      ID_HELP                       = 0xE146      # first attempt for F1
+      ID_DEFAULT_HELP               = 0xE147      # last attempt
+
+      # Misc
+      ID_NEXT_PANE                  = 0xE150
+      ID_PREV_PANE                  = 0xE151
+      ID_PANE_CLOSE                 = 0xE152
+
+      # Format
+      ID_FORMAT_FONT                = 0xE160
+
+      # Scroll
+      ID_SCROLL_UP                  = 0xE170
+      ID_SCROLL_DOWN                = 0xE171
+      ID_SCROLL_PAGE_UP             = 0xE172
+      ID_SCROLL_PAGE_DOWN           = 0xE173
+      ID_SCROLL_TOP                 = 0xE174
+      ID_SCROLL_BOTTOM              = 0xE175
+      ID_SCROLL_LEFT                = 0xE176
+      ID_SCROLL_RIGHT               = 0xE177
+      ID_SCROLL_PAGE_LEFT           = 0xE178
+      ID_SCROLL_PAGE_RIGHT          = 0xE179
+      ID_SCROLL_ALL_LEFT            = 0xE17A
+      ID_SCROLL_ALL_RIGHT           = 0xE17B
+
+      # OLE commands
+      ID_OLE_INSERT_NEW             = 0xE200
+      ID_OLE_EDIT_LINKS             = 0xE201
+      ID_OLE_EDIT_CONVERT           = 0xE202
+      ID_OLE_EDIT_CHANGE_ICON       = 0xE203
+      ID_OLE_EDIT_PROPERTIES        = 0xE204
+      ID_OLE_VERB_FIRST             = 0xE210     # range - 16 max
+      ID_OLE_VERB_LAST              = 0xE21F
+
+      # View commands (same number used as IDW used for toolbar and status bar)
+      ID_VIEW_TOOLBAR               = 0xE800
+      ID_VIEW_STATUS_BAR            = 0xE801
+      ID_VIEW_REFRESH               = 0xE803
+
+      # Standard control IDs
+
+      IDC_STATIC              = -1     # all static controls
+
+      # Standard string error/warnings
+
+      # idle status bar message
+      ATL_IDS_IDLEMESSAGE           = 0xE001
+      ATL_IDS_SCFIRST               = 0xEF00
+      ATL_IDS_SCSIZE                = 0xEF00
+      ATL_IDS_SCMOVE                = 0xEF01
+      ATL_IDS_SCMINIMIZE            = 0xEF02
+      ATL_IDS_SCMAXIMIZE            = 0xEF03
+      ATL_IDS_SCNEXTWINDOW          = 0xEF04
+      ATL_IDS_SCPREVWINDOW          = 0xEF05
+      ATL_IDS_SCCLOSE               = 0xEF06
+      ATL_IDS_SCRESTORE             = 0xEF12
+      ATL_IDS_SCTASKLIST            = 0xEF13
+      ATL_IDS_MDICHILD              = 0xEF1F
+      ATL_IDS_MRU_FILE              = 0xEFDA
+
+      # Misc. control IDs
+
+      # Property Sheet control id's (determined with Spy++)
+      ID_APPLY_NOW                  = 0x3021
+      ID_WIZBACK                    = 0x3023
+      ID_WIZNEXT                    = 0x3024
+      ID_WIZFINISH                  = 0x3025
+      ATL_IDC_TAB_CONTROL           = 0x3020
+
       ##
       # The GetMenu function retrieves a handle to the menu assigned to the specified window.
       #

@@ -74,3 +74,7 @@
 == 0.3.20 / 2010-06-20
 
 * Library::function now uses :fails option instead of :zeronil
+
+== 0.3.21 / 2010-06-21
+
+* atlres.h constants added to Win::Gui::Menu

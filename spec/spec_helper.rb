@@ -83,7 +83,7 @@ module WinTest
   IMPOSSIBLE = 'Impossible'
   CONVERSION_ERROR = /Can.t convert/
   SLEEP_DELAY = 0.02
-  APP_PATH = File.join(File.dirname(__FILE__), "test_apps/locknote/LockNote.exe" )
+  APP_PATH = File.join(File.dirname(__FILE__), "../misc/locknote/LockNote.exe" )
   APP_START = cygwin? ? "cmd /c start `cygpath -w #{APP_PATH}`" : 'start "" "' + APP_PATH + '"'
   WIN_TITLE = 'LockNote - Steganos LockNote'
   WIN_RECT = [710, 400, 1210, 800]

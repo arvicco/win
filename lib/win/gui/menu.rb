@@ -157,12 +157,70 @@ module Win
       # GetMenuItemID
       #
       # ---
+      # <b>Enhanced (snake_case) API: returns nil instead of -1 if function fails </b>
+      #
+      # :call-seq:
+      # num_items = [get_]menu_item_count(menu_handle)
+      #
+      function :GetMenuItemCount, [:HMENU], :int32, fails: -1
+
+      ##
+      # The GetMenuItemID function retrieves the menu item identifier of a menu item located at the specified
+      # position in a menu.
+      #
+      # [*Syntax*] UINT GetMenuItemID( HMENU hMenu, int nPos );
+      #
+      # hMenu:: <in> Handle to the menu that contains the item whose identifier is to be retrieved.
+      # nPos:: <in> Specifies the zero-based relative position of the menu item whose identifier is to be
+      #        retrieved.
+      #
+      # *Returns*:: The return value is the identifier of the specified menu item. If the menu item identifier
+      #             is NULL or if the specified item opens a submenu, the return value is -1.
+      # --
+      # Minimum DLL Version user32.dll
+      # Header Declared in Winuser.h, include Windows.h
+      # Import library User32.lib
+      # Minimum operating systems Windows 95, Windows NT 3.1
+      # ---
+      # See Also:
+      # GetMenuItemCount
+      #
+      # ---
+      # <b>Enhanced (snake_case) API: returns nil instead of -1 if function fails </b>
+      #
+      # :call-seq:
+      #  item_id = [get_]menu_item_id(@menu_handle, pos)
+      #
+      function :GetMenuItemID, [:HMENU, :int], :int32, fails: -1
+
+      ##
+      # The GetSubMenu function retrieves a handle to the drop-down menu or submenu activated by the specified
+      # menu item.
+      #
+      # [*Syntax*] HMENU GetSubMenu( HMENU hMenu, int nPos );
+      #
+      # hMenu:: <in> Handle to the menu.
+      # nPos:: <in> Specifies the zero-based relative position in the specified menu of an item that activates
+      #        a drop-down menu or submenu.
+      #
+      # *Returns*:: If the function succeeds, the return value is a handle to the drop-down menu or submenu
+      #             activated by the menu item. If the menu item does not activate a drop-down menu or
+      #             submenu, the return value is NULL.
+      # ---
+      # Minimum DLL Version user32.dll
+      # Header Declared in Winuser.h, include Windows.h
+      # Import library User32.lib
+      # Minimum operating systems Windows 95, Windows NT 3.1
+      # ---
+      # See Also: CreatePopupMenu, GetMenu
+      #
+      # ---
       # <b>Enhanced (snake_case) API: </b>
       #
       # :call-seq:
-      # success = [get_]menu_item_count(menu_handle)
+      #  sub_menu = [get_]sub_menu(menu_handle, pos)
       #
-      function :GetMenuItemCount, [:HMENU], :int32
+      function :GetSubMenu, [:HMENU, :int], :HMENU, fails: 0
 
       ##
       # The IsMenu function determines whether a handle is a menu handle.
@@ -204,7 +262,6 @@ module Win
       function :GetMenuCheckMarkDimensions, [], 'L'
       function :GetMenuDefaultItem, 'LII', 'I'
       function :GetMenuInfo, 'LP', :int8, boolean: true
-      function :GetMenuItemID, 'LI', 'I'
       function :GetMenuItemInfo, 'LIIP', :int8, boolean: true
       function :GetMenuItemRect, 'LLIP', :int8, boolean: true
       function :GetMenuState, 'LLI', 'I'

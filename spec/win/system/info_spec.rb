@@ -29,7 +29,7 @@ module WinSystemInfoTest
       spec{ use{ username = get_user_name() }}
 
       it "original api to retrieve the user name in a specified format. Additional information " do
-        username = `echo %USERNAME%`.strip
+        username = ENV['USERNAME'].strip
         name_ptr = FFI::MemoryPointer.from_string(" " * 128)
         size_ptr = FFI::MemoryPointer.new(:long).write_int(name_ptr.size)
         success = GetUserName(name_ptr, size_ptr)
@@ -38,7 +38,7 @@ module WinSystemInfoTest
       end
 
       it "snake_case api to retrieve the user name in a specified format. Additional information " do
-        username = `echo %USERNAME%`.strip
+        username = ENV['USERNAME'].strip
         get_user_name.strip.should == username
       end
     end # describe get_user_name

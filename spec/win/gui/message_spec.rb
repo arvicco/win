@@ -244,7 +244,8 @@ module WinGuiMessageTest
       spec{ use{ success = TranslateMessage(msg) }}
       spec{ use{ success = translate_message(msg) }}
 
-      it "translates virtual-key message into character message which is then posted to the thread's message queue"
+      it "translates virtual-key message into character message which is then posted to the thread's message queue" do
+      pending end
 
       it "returns zero/false if no translation took place" do
         TranslateMessage(msg).should == 0

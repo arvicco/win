@@ -19,5 +19,5 @@ end  # module WinGui
 
 # Require all ruby source files located under directory lib/win_gui
 # If you need files in specific order, you should specify it here before the glob
-WinGui.require_libs %W[**/*]
+Win.require_libs %W[**/*]
 

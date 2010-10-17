@@ -242,12 +242,12 @@ module Win
             UNICODE_STRING: :pointer, # Pointer to some string structure??
             USHORT:    :ushort, # Unsigned SHORT. The range is 0 through 65535 decimal.
             USN:    :ulong_long, # Update sequence number (USN).
-            VOID:   [], # Any type ? Only use it to indicate no arguments or no return value
             WCHAR:  :ushort, # 16-bit Unicode character. For more information, see Character Sets Used By Fonts.
             # In WinNT.h: typedef wchar_t WCHAR;
             #WINAPI: K,      # Calling convention for system functions. WinDef.h: define WINAPI __stdcall
             WORD: :ushort, # 16-bit unsigned integer. The range is 0 through 65535 decimal.
-            WPARAM: :uint    # Message parameter. WinDef.h as follows: typedef UINT_PTR WPARAM;
+            WPARAM: :uint,    # Message parameter. WinDef.h as follows: typedef UINT_PTR WPARAM;
+            VOID:   [], # Any type ? Only use it to indicate no arguments or no return value
     }
 
     ##
@@ -259,7 +259,7 @@ module Win
     #   and (optionally) transforms the result before returning it. If a block is attached to
     #   method invocation, raw result is yielded to this block before final transformation take place
     # - Defines aliases for enhanced method with more Rubyesque names for getters, setters and tests:
-    #   GetWindowText -> window_test, SetWindowText -> window_text=, IsZoomed -> zoomed?
+    #   GetWindowText -> window_text, SetWindowText -> window_text=, IsZoomed -> zoomed?
     # ---
     # You may modify default behavior of defined method by providing optional *def_block* to function definition.
     # If you do so, snake_case method is defined based on your *def_block*. It receives callable API
@@ -282,6 +282,7 @@ module Win
     # :alias(es):: Provides additional alias(es) for defined method
     # :boolean:: Forces method to return true/false instead of nonzero/zero
     # :fails:: Forces method to return nil if function result is equal to following error code
+    # :alternative:: Alternative signature for this function
     #
     def function(name, params, returns, options={}, &def_block)
       snake_name, camel_name, effective_names, aliases = generate_names(name, options)
@@ -297,7 +298,7 @@ module Win
     #
     def try_function(name, params, returns, options={}, &def_block)
       begin
-        function name, params, returns, options={}, &def_block
+        function name, params, returns, options, &def_block
       rescue Win::Errors::NotFoundError
         "This platform does not support function #{name}"
       end

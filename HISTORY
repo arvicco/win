@@ -90,3 +90,7 @@
 == 0.3.24 / 2010-06-21
 
 * Menu::DeleteMenu function added
+
+== 0.3.25 / 2010-10-17
+
+* Minor refactoring

@@ -425,7 +425,6 @@ module Win
                &->(api, handle, msg, w_param, l_param, data=0, &block){
                api.call(handle, msg, w_param, l_param, block, data)}
 
-
       ##
       # The PostMessage function places (posts) a message in the message queue associated with the thread that
       # created the specified window and returns without waiting for the thread to process the message.
@@ -801,4 +800,3 @@ module Win
     end
   end
 end
-

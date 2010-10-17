@@ -167,6 +167,25 @@ module WinGuiWindowTest
         end
       end # describe create_menu
 
+      describe "#create_popup_menu" do
+        after(:each){ destroy_menu(@sub_menu) }
+
+        spec{ use{ @sub_menu = CreatePopupMenu() }}
+        spec{ use{ @sub_menu = create_popup_menu() }}
+
+        context "creates a drop-down menu, submenu, or shortcut menu. The menu is initially empty" do
+          it "original api" do
+            @sub_menu = CreatePopupMenu()
+            menu?(@sub_menu).should == true
+          end
+
+          it "snake_case api" do
+            @sub_menu = create_popup_menu()
+            menu?(@sub_menu).should == true
+          end
+        end
+      end # describe create_popup_menu
+
       context 'functions related to menu item manipulation' do
         before(:each)do
           @new_menu = create_menu()

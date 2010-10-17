@@ -408,7 +408,7 @@ module WinGuiWindowTest
         spec{ use{ success = DestroyWindow(handle = 0) }}
         spec{ use{ success = destroy_window(handle = 0) }}
 
-        it 'destroys window created by current thread'
+        it 'destroys window created by current thread' do pending end
 
         it 'cannot destroy window created by other thread' do
           test_app do |app|
@@ -595,7 +595,7 @@ module WinGuiWindowTest
         spec{ use{ handles = enum_desktop_windows(0, value = 13)   }}
         spec{ use{ enum_desktop_windows(0) {|handle, message|} }}
 
-        it 'iterates through all the top-level windows for a given desktop'
+        it 'iterates through all the top-level windows for a given desktop' do pending end
       end
 
       describe '#enum_child_windows' do

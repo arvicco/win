@@ -1,6 +1,6 @@
 require 'win/library'
 #require 'win/gui/window'
-#require 'win/gui/message' # needed because SC_... constants defined there
+#require 'win/gui/message' # needed because of SC_... constants defined there ?
 
 module Win
   module Gui
@@ -438,7 +438,39 @@ module Win
       # :call-seq:
       #  menu_handle = create_menu()
       #
-      function :CreateMenu, [], :HMENU
+      function :CreateMenu, [], :HMENU, fails: 0
+
+      ##
+      # The CreatePopupMenu function creates a drop-down menu, submenu, or shortcut menu. The menu is
+      # initially empty. You can insert or append menu items by using the InsertMenuItem function. You can
+      # also use the InsertMenu function to insert menu items and the AppendMenu function to append menu items.
+      #
+      # [*Syntax*] HMENU CreatePopupMenu( void );
+      #
+      # *Returns*:: If the function succeeds, the return value is a handle to the newly created menu.
+      # If the function fails, the return value is NULL. To get extended error information, call GetLastError.
+      # ---
+      # *Remarks*:
+      # The application can add the new menu to an existing menu, or it can display a shortcut menu by calling
+      # the TrackPopupMenuEx or TrackPopupMenu functions.
+      # Resources associated with a menu that is assigned to a window are freed automatically. If the menu is
+      # not assigned to a window, an application must free system resources associated with the menu before
+      # closing. An application frees menu resources by calling the DestroyMenu function.
+      # ---
+      # Minimum DLL Version user32.dll
+      # Header Declared in Winuser.h, include Windows.h
+      # Import library User32.lib
+      # Minimum operating systems Windows 95, Windows NT 3.1
+      # Unicode Implemented as Unicode version.
+      # ---
+      # *See* *Also*:
+      # AppendMenu, CreateMenu, DestroyMenu, InsertMenu, SetMenu, TrackPopupMenu, TrackPopupMenuEx, InsertMenuItem
+      #
+      # :call-seq:
+      #  success = create_popup_menu()
+      #
+      function :CreatePopupMenu, [], :HMENU, fails: 0
+
 
       ##
       # The DestroyMenu function destroys the specified menu and frees any memory that the menu occupies.
@@ -709,7 +741,6 @@ module Win
 
       function :CheckMenuItem, 'LII', 'L'
       function :CheckMenuRadioItem, 'LIIII', :int8, boolean: true
-      function :CreatePopupMenu, [], 'L'
       function :DrawMenuBar, 'L', :int8, boolean: true
       function :EnableMenuItem, 'LII', :int8, boolean: true
       function :EndMenu, [], :int8, boolean: true

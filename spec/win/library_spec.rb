@@ -202,7 +202,7 @@ module WinLibraryTest
       end
 
       it 'returns expected result' do
-        username = `echo %USERNAME%`.strip
+        username = ENV['USERNAME'].strip
         name_ptr = FFI::MemoryPointer.from_string(" " * 128)
         size_ptr = FFI::MemoryPointer.new(:long).write_int(name_ptr.size)
         get_user_name(name_ptr, size_ptr)

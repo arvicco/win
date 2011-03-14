@@ -189,7 +189,7 @@ module Win
       #              the return value is *true*. If the window is not a child or descendant window of
       #              the specified parent window, the return value is *false*.
       # :call-seq:
-      #   child?( win_handle )
+      #   child?( parent_handle, win_handle )
       #
       function :IsChild, [:HWND, :HWND], :int, boolean: true
 

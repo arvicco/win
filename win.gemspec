@@ -4,18 +4,16 @@
 lib = File.expand_path('../lib/', __FILE__)
 $:.unshift lib unless $:.include?(lib)
 
-require 'version'
-
 Gem::Specification.new do |gem|
   gem.name        = "win"
-  gem.version     = ::Win::VERSION
+  gem.version     = File.open('VERSION').read.strip
   gem.summary     = %q{Rubyesque interfaces and wrappers for Windows API functions pre-defined using FFI}
   gem.description = %q{Rubyesque interfaces and wrappers for Windows API functions pre-defined using FFI}
   gem.authors     = ["arvicco"]
   gem.email       = "arvitallian@gmail.com"
   gem.homepage    = %q{http://github.com/arvicco/win}
   gem.platform    = Gem::Platform::RUBY
-  gem.date        = Date.today.to_s
+  gem.date        = Time.now.strftime "%Y-%m-%d"
 
   # Files setup
   versioned         = `git ls-files -z`.split("\0")
@@ -31,13 +29,8 @@ Gem::Specification.new do |gem|
   gem.extra_rdoc_files = ["LICENSE", "HISTORY", "README.rdoc"]
     
   # Dependencies
-  gem.add_development_dependency(%q{rspec}, [">= 1.2.9"])
-  gem.add_development_dependency(%q{cucumber}, [">= 0"])
+  gem.add_development_dependency(%q{rspec}, [">= 2.0.9"])
   gem.add_dependency "ffi", ">= 0.6.0"
-  #gem.add_dependency(%q{bunder}, [">= 1.2.9"])
-
-  gem.rubyforge_project = ""
-  gem.rubygems_version  = `gem -v`
-  #gem.required_rubygems_version = ">= 1.3.6"
+  #gem.add_dependency(%q{bundler}, [">= 1.2.9"])
 end
 

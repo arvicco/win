@@ -1,9 +1,8 @@
 = win
+by: Arvicco
+url: http://github.com/arvicco/win
 
-    by: Arvicco
-    url: http://github.com/arvicco/win
-
-== DESCRIPTION
+== SUMMARY
 
 A collection of Windows API functions predefined for you using FFI. In addition to
 straightforward (CamelCase) API wrappers, it also strives to provide more Ruby-like
@@ -12,7 +11,7 @@ sensible return values (false/true instead of 0/nonzero for test functions, etc)
 
 This is still work in progress, only a small portion of Windows API wrapped so far...
 
-== SUMMARY
+== DESCRIPTION
 
 So you want to write a simple program that makes some Windows API function calls.
 You searched MSDN high and low and you know exactly what functions you need.

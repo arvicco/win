@@ -1,56 +1,9 @@
-$LOAD_PATH.unshift(File.dirname(__FILE__))
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
-require 'spec'
-require 'spec/autorun'
+require 'bundler'
+Bundler.setup
+Bundler.require :test
 require 'win/gui'
 
 $debug = false
-
-# Customize RSpec with my own extensions
-module ClassMacros
-
-  # wrapper for it method that extracts description from example source code, such as:
-  # spec { use{    function(arg1 = 4, arg2 = 'string')  }}
-  def spec &block
-    it description_from(caller[0]), &block # it description_from(*block.source_location), &block
-  end
-
-  # reads description line from source file and drops external brackets like its{}, use{}
-  # accepts as arguments either file name and line or call stack member (caller[0])
-  def description_from(*args)
-    case args.size
-      when 1
-        file, line = args.first.scan(/\A(.*?):(\d+)/).first
-      when 2
-        file, line = args
-    end
-    File.open(file) do |f|
-      f.lines.to_a[line.to_i-1].gsub( /(spec.*?{)|(use.*?{)|}/, '' ).strip
-    end
-  end
-end
-
-# Customize RSpec with my own extensions
-module InstanceMacros
-  def use
-    lambda{yield}.should_not raise_error
-  end
-
-  def any_block
-    lambda{|*args| args}
-  end
-end
-
-Spec::Runner.configure do |config|
-  config.extend(ClassMacros)
-  config.include(InstanceMacros)
-
-#  class << Spec::ExampleGroup
-##    def spoc &block
-##      it description_from(caller[0]), &block
-##    end
-#  end
-end
 
 # Global test methods
 def cygwin?
@@ -77,42 +30,78 @@ def os_7?
   os =~ /Version 6.1/
 end
 
-module WinTest
+# Customize RSpec with my own extensions
+module ClassMacros
 
-  KEY_DELAY = 0.001
-  IMPOSSIBLE = 'Impossible'
-  CONVERSION_ERROR = /Can.t convert/
-  SLEEP_DELAY = 0.02
-  APP_PATH = File.join(File.dirname(__FILE__), "../misc/locknote/LockNote.exe" )
-  APP_START = cygwin? ? "cmd /c start `cygpath -w #{APP_PATH}`" : 'start "" "' + APP_PATH + '"'
-  WIN_TITLE = 'LockNote - Steganos LockNote'
-  WIN_RECT = [710, 400, 1210, 800]
-  WIN_CLASS = 'ATL:00434098'
-  STATUSBAR_CLASS = 'msctls_statusbar32'
-  TEXTAREA_CLASS = 'ATL:00434310'
-  DESKTOP_CLASS = '#32769'
-  MENU_CLASS = '#32768'
-
-  def any_handle
-    find_window(nil, nil)
+  # wrapper for it method that extracts description from example source code, such as:
+  # spec { use{    function(arg1 = 4, arg2 = 'string')  }}
+  def spec &block
+    it description_from(caller[0]), &block # it description_from(*block.source_location), &block
   end
 
-  def not_a_handle
-    123
+  # reads description line from source file and drops external brackets like its{}, use{}
+  # accepts as arguments either file name and line or call stack member (caller[0])
+  def description_from(*args)
+    case args.size
+      when 1
+        file, line = args.first.scan(/\A(.*?):(\d+)/).first
+      when 2
+        file, line = args
+    end
+    File.open(file) do |f|
+      f.lines.to_a[line.to_i-1].gsub(/(spec.*?{)|(use.*?{)|}/, '').strip
+    end
+  end
+end
+
+# Customize RSpec with my own extensions
+module InstanceMacros
+  def use
+    lambda { yield }.should_not raise_error
   end
 
-  def buffer
-    FFI::MemoryPointer.new(:char, 1024)
+  def any_block
+    lambda { |*args| args }
   end
+end
 
-  def pointer(type=:long, num=1)
-    FFI::MemoryPointer.new(type, num)
-  end
+RSpec.configure do |config|
+  config.extend(ClassMacros)
+  config.include(InstanceMacros)
+end
+
+KEY_DELAY        = 0.001
+IMPOSSIBLE       = 'Impossible'
+CONVERSION_ERROR = /Can.t convert/
+SLEEP_DELAY      = 0.02
+APP_PATH         = File.join(File.dirname(__FILE__), "../misc/locknote/LockNote.exe")
+APP_START        = cygwin? ? "cmd /c start `cygpath -w #{APP_PATH}`" : 'start "" "' + APP_PATH + '"'
+WIN_TITLE        = 'LockNote - Steganos LockNote'
+WIN_RECT         = [710, 400, 1210, 800]
+WIN_CLASS        = 'ATL:00434098'
+STATUSBAR_CLASS  = 'msctls_statusbar32'
+TEXTAREA_CLASS   = 'ATL:00434310'
+DESKTOP_CLASS    = '#32769'
+MENU_CLASS       = '#32768'
+
+def any_handle
+  find_window(nil, nil)
+end
+
+def not_a_handle
+  123
+end
+
+def buffer
+  FFI::MemoryPointer.new(:char, 1024)
+end
+
+def pointer(type=:long, num=1)
+  FFI::MemoryPointer.new(type, num)
 end
 
 module WinTestApp
 
-  include WinTest
   include Win::Gui
   #include Win::Gui::Convenience
 
@@ -120,15 +109,15 @@ module WinTestApp
     system APP_START
     sleep SLEEP_DELAY until (handle = find_window(nil, WIN_TITLE))
 
-    textarea = find_window_ex(handle, 0, TEXTAREA_CLASS, nil)
-    app = "Locknote" # App identifier
+    textarea    = find_window_ex(handle, 0, TEXTAREA_CLASS, nil)
+    app         = "Locknote" # App identifier
 
     eigen_class = class << app;
       self;
-    end      # Extracting app's eigenclass
-    eigen_class.class_eval do                  # Defining singleton methods on app
-      define_method(:handle) {handle}
-      define_method(:textarea) {textarea}
+    end # Extracting app's eigenclass
+    eigen_class.class_eval do # Defining singleton methods on app
+      define_method(:handle) { handle }
+      define_method(:textarea) { textarea }
     end
 
     @launched_test_app = app

@@ -360,7 +360,11 @@ module Win
       public snake_name
 
       # Define (instance method!) aliases, if any
-      aliases.each {|ali| alias_method ali, snake_name }
+      aliases.each do |ali|
+        alias_method ali, snake_name
+        module_function ali
+        public ali
+      end
     end
 
     # Generates possible effective names for function in Win32 dll (name+A/W),

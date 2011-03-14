@@ -94,3 +94,7 @@
 == 0.3.25 / 2010-10-17
 
 * Minor refactoring
+
+== 0.3.26 / 2011-03-14
+
+* Win::Time.now returns enhanced-precision Time value with granularity below microsecond

@@ -10,7 +10,8 @@ module Win
   # The caller of these functions should not rely on more than second granularity.
   # In fact, granularity of all the GetTime... functions is about ~16msec on Windows.
   # You'll need to mess with QueryPerformanceFrequency() and QueryPerformanceCounter()
-  # to get real msec granularity on MS Windows;
+  # to get real msec granularity on MS Windows; OR, just use Win::Time.now() for
+  # enhanced-precision Time values
   #
   module Time
     extend Win::Library
@@ -136,5 +137,21 @@ module Win
     try_function :TzSpecificLocalTimeToSystemTime, 'PPP', :int8, boolean: true
 
 
+    # The problem: granularity of standard Time.now on Windows is about ~16 milliseconds!
+    # Here we try to add enhanced-precision Time support on Windows.
+    # Use it like this: t = Win::Time.now
+    # It returns enhanced-precision Time value with granularity below microsecond.
+    begin
+      COUNTER_FREQUENCY = query_performance_frequency()
+      INITIAL_COUNTER = query_performance_counter()
+      INITIAL_TIME = ::Time.now
+
+      # Returns enhanced-precision Time value with granularity below microsecond.
+      def self.now
+        INITIAL_TIME + (query_performance_counter()-INITIAL_COUNTER).to_f/COUNTER_FREQUENCY
+      end
+    rescue Exception
+     raise "Unable to initiate enhanced-precision timer"
+    end
   end
 end

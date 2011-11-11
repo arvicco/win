@@ -26,12 +26,12 @@ describe Win::Time do
 
     it "original api succeeds, the return value is nonzero, counter value returned at given pointer." do
       QueryPerformanceCounter(count = FFI::MemoryPointer.new(:int64)).should be > 0
-      count.get_int64(0).should be > 500000000000
+      count.get_int64(0).should be > 5_000_000
     end
 
     it "snake_case api succeeds, the return value is counter value (in counts)" do
       count = query_performance_counter()
-      count.should be > 500000000000
+      count.should be > 5_000_000
     end
 
     it "return (slightly) incremented counter values in successive function calls" do

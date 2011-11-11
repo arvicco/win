@@ -27,10 +27,10 @@ Gem::Specification.new do |gem|
   gem.has_rdoc = true
   gem.rdoc_options.concat %W{--charset UTF-8 --main README.rdoc --title win}
   gem.extra_rdoc_files = ["LICENSE", "HISTORY", "README.rdoc"]
-    
+
   # Dependencies
-  gem.add_development_dependency(%q{rspec}, [">= 2.0.9"])
-  gem.add_dependency "ffi", ">= 0.6.0"
-  #gem.add_dependency(%q{bundler}, [">= 1.2.9"])
+  gem.add_development_dependency 'rspec', [">= 2.0.9"]
+  gem.add_dependency 'bundler', [">= 1.0.13"]
+  gem.add_dependency 'ffi', ["= 1.0.9"] # 1.0.10 has problems on Win32
 end
 

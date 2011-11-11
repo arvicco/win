@@ -3,9 +3,6 @@ require 'win/library'
 require 'win/gui/message'
 
 module LibraryTest
-#  include my_lib
-#  include WinTest
-
 
   shared_examples_for 'defining macro with options' do
 
@@ -24,31 +21,32 @@ module LibraryTest
 
     context 'renaming and aliasing' do
       it ':camel_name option overrides default CamelCase name for attached function but leaves snake_case intact' do
-        @my_lib.function :FindWindow, 'PP', 'L', camel_name: 'MyOwnName', &@def_block
-        expect { @my_lib.find_window(nil, nil) }.to_not raise_error
-        expect { @my_lib.FindWindow(nil, nil) }.to raise_error NoMethodError
-        expect { @my_lib.MyOwnName(nil, nil) }.to_not raise_error
+        @my_lib.function :FindWindow, 'PP', 'L', :camel_name => 'MyOwnName', &@def_block
+        p @my_lib.methods(false)
+        @my_lib.methods(false).should include :MyOwnName
+        @my_lib.methods(false).should include :find_window
+        @my_lib.methods(false).should_not include :FindWindow
       end
 
       it ':snake_name option overrides default snake_case name for defined method but leaves CamelCase intact' do
-        @my_lib.function :FindWindow, 'PP', 'L', snake_name: 'my_own_find', &@def_block
-        expect { @my_lib.find_window(nil, nil) }.to raise_error NoMethodError
-        expect { @my_lib.FindWindow(nil, nil) }.to_not raise_error
-        expect { @my_lib.my_own_find(nil, nil) }.to_not raise_error
+        @my_lib.function :FindWindow, 'PP', 'L', :snake_name => 'my_own_find', &@def_block
+        @my_lib.methods(false).should include :FindWindow
+        @my_lib.methods(false).should include :my_own_find
+        @my_lib.methods(false).should_not include :find_window
       end
 
       it 'both :snake_name and :camel_name option can be used in one declaration' do
-        @my_lib.function :FindWindow, 'PP', 'L', camel_name: 'MyOwnName', snake_name: 'my_own_find', &@def_block
-        expect { @my_lib.find_window(nil, nil) }.to raise_error NoMethodError
-        expect { @my_lib.my_own_find(nil, nil) }.to_not raise_error
-        expect { @my_lib.FindWindow(nil, nil) }.to raise_error NoMethodError
-        expect { @my_lib.MyOwnName(nil, nil) }.to_not raise_error
+        @my_lib.function :FindWindow, 'PP', 'L', :camel_name => 'MyOwnName', :snake_name => 'my_own_find', &@def_block
+        @my_lib.methods(false).should include :MyOwnName
+        @my_lib.methods(false).should_not include :FindWindow
+        @my_lib.methods(false).should include :my_own_find
+        @my_lib.methods(false).should_not include :find_window
       end
 
       it ':camel_only option means no snake_case method will be defined' do
-        @my_lib.function :FindWindow, 'PP', 'L', camel_only: true, &@def_block
-        expect { @my_lib.find_window(nil, nil) }.to raise_error NoMethodError
-        expect { @my_lib.FindWindow(nil, nil) }.to_not raise_error
+        @my_lib.function :FindWindow, 'PP', 'L', :camel_only => true, &@def_block
+        @my_lib.methods(false).should include :FindWindow
+        @my_lib.methods(false).should_not include :find_window
       end
 
       it 'automatically adds Rubyesque alias to IsXxx API test function' do
@@ -98,7 +96,7 @@ module LibraryTest
     end
 
     context 'defining API with :fails option converts zero result to nil' do
-      before(:each) { @my_lib.function :FindWindow, 'PP', 'L', fails: 0, &@def_block }
+      before(:each) { @my_lib.function :FindWindow, 'PP', 'L', :fails => 0, &@def_block }
 
       it 'defines new instance method' do
         @my_lib.respond_to?(:find_window).should be_true
@@ -123,7 +121,7 @@ module LibraryTest
     end
 
     context 'using DLL other than default user32, kernel32 with :dll option' do
-      before(:each) { @my_lib.function 'GetUserName', 'PP', 'I', :dll=> 'advapi32', &@def_block }
+      before(:each) { @my_lib.function 'GetUserName', 'PP', 'I', :dll => 'advapi32', &@def_block }
 
       it 'defines new instance method with appropriate name' do
         @my_lib.respond_to?(:GetUserName).should be_true
@@ -154,18 +152,14 @@ module LibraryTest
       end
     end
 
-    def should_count_args(*methods, rights, wrongs)
-      rights = [rights].flatten
-      wrongs = [wrongs].flatten
-      methods.each do |method|
-        (0..8).each do |n|
-          if n == rights.size
-            expect { @my_lib.send method, *rights }.to_not raise_error
-          else
-            args = (1..n).map { wrongs[rand(wrongs.size)] }
-            expect { @my_lib.send method, *args }.
-                to raise_error "wrong number of arguments (#{args.size} for #{rights.size})"
-          end
+    def should_count_args method, rights, wrongs
+      (0..8).each do |n|
+        if n == rights.size
+          expect { @my_lib.send method, *rights }.to_not raise_error
+        else
+          args = (1..n).map { wrongs[rand(wrongs.size)] }
+          expect { @my_lib.send method, *args }.
+              to raise_error "wrong number of arguments (#{args.size} for #{rights.size})"
         end
       end
     end
@@ -197,19 +191,21 @@ module LibraryTest
     end
 
     describe '::function - attaches external API function and defines enhanced snake_case method on top of it' do
-      spec { use { @my_lib.function(:FindWindow, 'PP', 'l', aliases: nil, boolean: nil, fails: 0, &any_block) } }
+      spec { use { @my_lib.function(:FindWindow, 'PP', 'l', :aliases => nil, :boolean => nil, :fails => 0, &any_block) } }
 
       context 'defining enhanced API function without definition block (using defaults)' do
         it_should_behave_like 'defining macro with options'
 
         it 'constructs argument prototype from uppercase string, enforces the args count' do
           expect { @my_lib.function :FindWindow, 'PP', 'L' }.to_not raise_error
-          should_count_args :find_window, :FindWindow, [nil, nil], [nil, IMPOSSIBLE, 'cmd']
+          should_count_args :FindWindow, [nil, nil], [nil, IMPOSSIBLE, 'cmd']
+          should_count_args :find_window, [nil, nil], [nil, IMPOSSIBLE, 'cmd']
         end
 
         it 'constructs argument prototype from (mixed) array, enforces the args count' do
           expect { @my_lib.function :FindWindow, [:pointer, 'P'], 'L' }.to_not raise_error
-          should_count_args :find_window, :FindWindow, [nil, nil], [nil, IMPOSSIBLE, 'cmd']
+          should_count_args :FindWindow, [nil, nil], [nil, IMPOSSIBLE, 'cmd']
+          should_count_args :find_window, [nil, nil], [nil, IMPOSSIBLE, 'cmd']
         end
 
         it 'defined snake_case method returns expected value when called' do
@@ -250,7 +246,7 @@ module LibraryTest
 
         it 'passes arguments and underlying Win32::API object to the block' do
           @my_lib.function(:FindWindow, 'PP', 'L') do |api, *args|
-            @api  = api
+            @api = api
             @args = args
           end
           expect { @my_lib.find_window(1, 2, 3) }.to_not raise_error
@@ -263,13 +259,13 @@ module LibraryTest
         before(:each) do
           @def_block = nil
           @my_lib.function :SendMessage, [:ulong, :uint, :uint, :pointer], :int,
-                         alternative: [[:ulong, :uint, :uint, :long], :int,
-                                       ->(*args){ Integer === args.last }]
+                           :alternative => [[:ulong, :uint, :uint, :long], :int,
+                                            lambda { |*args| Integer === args.last} ]
         end
 
         it 'defines camel and snake methods (as well as hidden Original/Alternative methods)' do
           expect { @my_lib.send_message(any_handle, Win::Gui::Message::WM_GETTEXT,
-                                      buffer.size, buffer) }.to_not raise_error
+                                        buffer.size, buffer) }.to_not raise_error
           expect {
             @my_lib.send_message(any_handle, Win::Gui::Message::WM_GETTEXT, buffer.size, buffer.address)
           }.to_not raise_error
@@ -296,18 +292,18 @@ module LibraryTest
 
       context 'calling defined methods with attached block to preprocess the API function results' do
         it 'defined method yields raw result to block attached to its invocation' do
-          @my_lib.function :FindWindow, 'PP', 'L', fails: 0
+          @my_lib.function :FindWindow, 'PP', 'L', :fails => 0
           @my_obj.find_window(nil, IMPOSSIBLE) { |result| result.should == 0 }
         end
 
         it 'defined method returns result of block attached to its invocation' do
-          @my_lib.function :FindWindow, 'PP', 'L', fails: 0
+          @my_lib.function :FindWindow, 'PP', 'L', :fails => 0
           return_value = @my_obj.find_window(nil, IMPOSSIBLE) { |result| 'Value' }
           return_value.should == 'Value'
         end
 
         it 'defined method transforms result of block before returning it' do
-          @my_lib.function :FindWindow, 'PP', 'L', fails: 0
+          @my_lib.function :FindWindow, 'PP', 'L', :fails => 0
           return_value = @my_obj.find_window(nil, IMPOSSIBLE) { |result| 0 }
           return_value.should_not == 0
           return_value.should == nil
@@ -316,10 +312,11 @@ module LibraryTest
 
       context 'defining API function without arguments - f(VOID)' do
         it 'should enforce argument count to 0, NOT 1' do
-          @my_lib.function :GetForegroundWindow, [], 'L', fails: 0
+          @my_lib.function :GetForegroundWindow, [], 'L', :fails => 0
           p (@my_lib.methods-Win::Library.methods).sort
-          p (@my_obj.methods-Win::Library.methods).sort
-          should_count_args :GetForegroundWindow, :get_foreground_window, :foreground_window, [], [nil, 0, 123]
+          should_count_args :GetForegroundWindow, [], [nil, 0, 123]
+          should_count_args :get_foreground_window, [], [nil, 0, 123]
+          should_count_args :foreground_window, [], [nil, 0, 123]
         end
       end
 

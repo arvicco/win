@@ -72,7 +72,7 @@ module Win
       # The user must respond to the message box before continuing work in the window identified by the hWnd
       # parameter. However, the user can move to the windows of other threads and work in those windows.
       # Depending on the hierarchy of windows in the App, the user may be able to move to other
-      # windows within the thread. All child windows of the parent of the message box are automatically 
+      # windows within the thread. All child windows of the parent of the message box are automatically
       # disabled, but pop-up windows are not.
       # MB_APPLMODAL is the default if neither MB_SYSTEMMODAL nor MB_TASKMODAL is specified.
       MB_APPLMODAL                 = 0x00000000
@@ -207,7 +207,7 @@ module Win
       # *Remarks*:
       # You can use the GetDlgItem function with any parent-child window pair, not just with dialog boxes.
       # As long as the hDlg parameter specifies a parent window and the child window has a unique identifier
-      # (as specified by the hMenu parameter in the CreateWindow or CreateWindowEx function that created the 
+      # (as specified by the hMenu parameter in the CreateWindow or CreateWindowEx function that created the
       # child window), GetDlgItem returns a valid handle to the child window.
       # ---
       # <b>Enhanced (snake_case) API: returns nil if function fails</b>

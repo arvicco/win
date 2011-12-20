@@ -288,7 +288,7 @@ module Win
       # :call-seq:
       #  x, y = get_cursor_pos()
       #
-      function :GetCursorPos, [:pointer], :int8, 
+      function :GetCursorPos, [:pointer], :int8,
                &->(api) {
                point = FFI::MemoryPointer.new(:long, 2)
                res = api.call point

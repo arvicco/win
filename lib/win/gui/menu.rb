@@ -557,7 +557,7 @@ module Win
       #                            data related to the menu item. The value is in the itemData member of the structure
       #                            pointed to by the lParam parameter of the WM_MEASUREITEM or WM_DRAWITEM message
       #                            sent when the menu is created or its appearance is updated.
-      #             MF_STRING:: Contains a pointer to a null-terminated string. 
+      #             MF_STRING:: Contains a pointer to a null-terminated string.
       #
       # *Returns*:: If the function succeeds, the return value is nonzero. If the function fails, the return
       #             value is zero. To get extended error information, call GetLastError.
@@ -730,7 +730,7 @@ module Win
       #
       # ---
       # <b>Enhanced (snake_case) API: returns true/false instead of 1/0</b>
-      # 
+      #
       # :call-seq:
       #  success = delete_menu(menu_handle, position, flags)
       #

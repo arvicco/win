@@ -206,7 +206,7 @@ module Win
                :w_service_pack_minor, :uint16,
                :w_suite_mask, :uint16,
                :w_product_type, :uchar,
-               :w_reserved, :uchar,
+               :w_reserved, :uchar
       end
 
       ##

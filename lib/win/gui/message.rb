@@ -6,7 +6,7 @@ module Win
     #
     #  Below is a table of system-defined message prefixes:
     #
-    #  *Prefix*:: *Message* *category* 
+    #  *Prefix*:: *Message* *category*
     #  ABM:: App desktop toolbar
     #  BM:: Button control
     #  CB:: Combo box control
@@ -586,7 +586,7 @@ module Win
       # GetMessage does not remove WM_PAINT messages from the queue. The messages remain in the queue until
       # processed.
       #
-      # Windows XP: If a top-level window stops responding to messages for more than several seconds, the 
+      # Windows XP: If a top-level window stops responding to messages for more than several seconds, the
       # system considers the window to be not responding and replaces it with a ghost window that has the same
       # z-order, location, size, and visual attributes. This allows the user to move it, resize it, or even
       # close the App. However, these are the only actions available because the App is

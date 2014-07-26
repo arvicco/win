@@ -425,7 +425,7 @@ module Win
       # ---
       # *Remarks*:
       # A thread <b>cannot use DestroyWindow to destroy a window created by a different thread.</b> Use a convenience
-      # method destroy_unowned_window instead (it relies on 
+      # method destroy_unowned_window instead (it relies on
       # If the window being destroyed is a child window that does not have the WS_EX_NOPARENTNOTIFY style, a
       # WM_PARENTNOTIFY message is sent to the parent.
       #
@@ -636,7 +636,7 @@ module Win
 
       ##
       # SetForegroundWindow function puts the thread that created the specified window into the foreground
-      # and activates the window. Keyboard input is directed to the window, and various visual cues are 
+      # and activates the window. Keyboard input is directed to the window, and various visual cues are
       # changed for the user. The system assigns a slightly higher priority to the thread that created the
       # foreground window than it does to other threads.
       #
